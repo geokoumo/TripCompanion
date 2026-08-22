@@ -1,0 +1,35 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid currentColor;
+  white-space: nowrap;
+}
+
+.badge[data-tone='rust'] {
+  color: var(--color-rust);
+  background: var(--color-rust-soft);
+}
+.badge[data-tone='teal'] {
+  color: var(--color-teal);
+  background: var(--color-teal-soft);
+}
+.badge[data-tone='brass'] {
+  color: var(--color-brass);
+  background: var(--color-brass-soft);
+}
+.badge[data-tone='gray'] {
+  color: var(--color-gray);
+  background: var(--color-gray-soft);
+}
+
+.badge[data-locked='true'] {
+  border-style: dashed;
+}

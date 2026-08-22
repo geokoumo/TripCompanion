@@ -1,0 +1,58 @@
+.button {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-base);
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.12s ease;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button[data-variant='primary'] {
+  background: var(--color-rust);
+  color: var(--color-text-on-accent);
+  flex: 1;
+}
+
+.button[data-variant='secondary'] {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border-strong);
+}
+
+.button[data-variant='danger'] {
+  background: transparent;
+  color: var(--color-rust);
+  border: 1.5px solid var(--color-rust);
+}
+
+.button[data-variant='ghost'] {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.fab {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-5);
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--color-rust);
+  color: var(--color-text-on-accent);
+  border: none;
+  font-size: 1.75rem;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  z-index: 50;
+}

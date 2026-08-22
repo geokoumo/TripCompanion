@@ -1,0 +1,85 @@
+.card {
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-4);
+  cursor: pointer;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.airlineLine {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.routeRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.airportCode {
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.alignRight {
+  text-align: right;
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.dateCity {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  margin-top: 2px;
+}
+
+.middle {
+  text-align: center;
+}
+
+.duration {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--color-text-faint);
+  white-space: nowrap;
+}
+
+.durationLine {
+  width: 48px;
+  height: 1px;
+  background: var(--color-border-strong);
+  margin: 4px auto;
+}
+
+.nextDay {
+  font-size: var(--fs-xs);
+  color: var(--color-rust);
+  margin-top: 2px;
+}
+
+.footer {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  gap: var(--space-4);
+}

@@ -1,0 +1,23 @@
+.subTabs {
+  display: flex;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+.subTab {
+  flex: 1;
+  padding: 9px 0;
+  text-align: center;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.subTab[data-active='true'] {
+  background: var(--color-rust);
+  border-color: var(--color-rust);
+  color: var(--color-text-on-accent);
+}

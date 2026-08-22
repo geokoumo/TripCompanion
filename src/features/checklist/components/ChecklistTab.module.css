@@ -1,0 +1,115 @@
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: var(--space-2) 0 var(--space-4);
+}
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.tab[data-active='true'] {
+  background: var(--color-rust);
+  border-color: var(--color-rust);
+  color: var(--color-text-on-accent);
+}
+
+.progressBar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-bg);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-teal);
+  border-radius: 999px;
+}
+
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) 0;
+  cursor: pointer;
+}
+
+.categoryTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.itemText {
+  flex: 1;
+}
+
+.itemText[data-done='true'] {
+  text-decoration: line-through;
+  color: var(--color-text-faint);
+}
+
+.quantity {
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.removeButton {
+  border: none;
+  background: none;
+  color: var(--color-text-faint);
+  cursor: pointer;
+}
+
+.addRow {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.addInput {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.footerActions {
+  margin-top: var(--space-5);
+  text-align: center;
+}
+
+.linkButton {
+  border: none;
+  background: none;
+  color: var(--color-rust);
+  font-weight: 500;
+  cursor: pointer;
+}

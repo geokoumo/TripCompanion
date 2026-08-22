@@ -1,0 +1,45 @@
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-2);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+}
+
+.categoryLabel {
+  font-size: var(--fs-xs);
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+}
+
+.note {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.amount {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.addButton {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px dashed var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  margin-top: var(--space-3);
+}

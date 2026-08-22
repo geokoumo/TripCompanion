@@ -1,0 +1,40 @@
+.row {
+  display: flex;
+  gap: var(--space-3);
+  position: relative;
+}
+
+.pill {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid transparent;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--fs-md);
+  font-family: var(--font-mono);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pill[data-open='true'] {
+  border-color: var(--color-rust);
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-4);
+  min-width: 260px;
+}
+
+.popoverBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+}
