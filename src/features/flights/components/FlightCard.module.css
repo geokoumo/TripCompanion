@@ -15,8 +15,9 @@
 }
 
 .airlineLine {
+  font-family: var(--font-mono);
   color: var(--color-text-muted);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-meta);
 }
 
 .routeRow {
@@ -27,9 +28,10 @@
 }
 
 .airportCode {
-  font-family: var(--font-mono);
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--fs-airport-code);
+  font-weight: 600;
+  line-height: 1;
 }
 
 .alignRight {
@@ -38,14 +40,15 @@
 
 .time {
   font-family: var(--font-mono);
-  font-size: var(--fs-lg);
+  font-size: var(--fs-data);
   font-weight: 600;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .dateCity {
+  font-family: var(--font-body);
   color: var(--color-text-muted);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-field-label);
   margin-top: 2px;
 }
 
@@ -55,7 +58,7 @@
 
 .duration {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-eyebrow);
   color: var(--color-text-faint);
   white-space: nowrap;
 }
@@ -68,7 +71,8 @@
 }
 
 .nextDay {
-  font-size: var(--fs-xs);
+  font-family: var(--font-body);
+  font-size: var(--fs-field-label);
   color: var(--color-rust);
   margin-top: 2px;
 }
@@ -78,7 +82,7 @@
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-field-label);
   color: var(--color-text-muted);
   display: flex;
   gap: var(--space-4);

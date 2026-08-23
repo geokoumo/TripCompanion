@@ -4,10 +4,10 @@
 
 .label {
   display: block;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-family: var(--font-body);
+  font-size: var(--fs-field-label);
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--color-text-muted);
   margin-bottom: var(--space-2);
@@ -22,7 +22,7 @@
   border: 1.5px solid transparent;
   background: var(--color-bg);
   color: var(--color-text);
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-family: inherit;
 }
 
@@ -40,13 +40,13 @@
 
 .error {
   color: var(--color-rust);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-meta);
   margin-top: 4px;
 }
 
 .caption {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-meta);
   color: var(--color-text-faint);
   margin-top: 6px;
 }
@@ -65,7 +65,7 @@
   background: none;
   color: var(--color-rust);
   font-weight: 600;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-meta);
   cursor: pointer;
   padding: var(--space-2) 0;
   margin-bottom: var(--space-2);

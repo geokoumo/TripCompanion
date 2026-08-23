@@ -135,7 +135,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
 
   return (
     <Modal
-      title={STEPS[step]!}
+      title={<span className={styles.stepTitle}>{STEPS[step]}</span>}
       onClose={onClose}
       footer={
         <>

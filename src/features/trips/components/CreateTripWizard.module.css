@@ -1,3 +1,9 @@
+.stepTitle {
+  font-family: var(--font-display);
+  font-size: 1.6875rem; /* 27px */
+  font-weight: 600;
+}
+
 .stepMeta {
   font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);

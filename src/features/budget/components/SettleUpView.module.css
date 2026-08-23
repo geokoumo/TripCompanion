@@ -17,6 +17,7 @@
 
 .balance {
   font-family: var(--font-mono);
+  font-size: var(--fs-item-title);
   font-weight: 700;
 }
 
@@ -31,16 +32,17 @@
 }
 
 .balanceNote {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-meta);
   color: var(--color-text-faint);
+  text-align: right;
 }
 
 .sectionTitle {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 600;
+  font-size: var(--fs-eyebrow);
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.12em;
   color: var(--color-text-faint);
   margin: var(--space-5) 0 var(--space-2);
 }
@@ -50,7 +52,21 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3);
-  background: var(--color-brass-soft);
+  background: var(--color-teal-soft);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-2);
+}
+
+.evenNote {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+.transparencyNote {
+  color: var(--color-text-faint);
+  font-size: var(--fs-meta);
+  margin-top: var(--space-5);
+  line-height: 1.4;
 }

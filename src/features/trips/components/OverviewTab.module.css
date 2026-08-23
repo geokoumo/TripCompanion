@@ -12,25 +12,26 @@
 
 .countdownLabel {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: var(--fs-eyebrow);
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-rust);
 }
 
 .countdownValue {
   font-family: var(--font-display);
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: var(--fs-countdown);
+  font-weight: 600;
   color: var(--color-rust);
   margin: 4px 0;
+  line-height: 1.05;
 }
 
 .countdownDates {
   color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+  font-size: var(--fs-meta);
 }
 
 .snapshotCard {
@@ -54,9 +55,9 @@
 
 .snapshotLabel {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: var(--fs-eyebrow);
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-faint);
 }
@@ -64,12 +65,12 @@
 .snapshotTitle {
   font-weight: 600;
   margin-top: 4px;
-  font-size: var(--fs-md);
+  font-size: var(--fs-item-title);
 }
 
 .snapshotSubtitle {
   color: var(--color-text-muted);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-meta);
   margin-top: 2px;
 }
 

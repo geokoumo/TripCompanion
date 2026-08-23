@@ -28,22 +28,24 @@
 
 .dayTabWeekday {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-stamp);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.75;
 }
 
 .dayTabNumber {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--fs-lg);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--fs-data);
+  margin-top: 2px;
 }
 
 .legHeader {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-eyebrow);
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-faint);
   margin: var(--space-3) 0 var(--space-2);

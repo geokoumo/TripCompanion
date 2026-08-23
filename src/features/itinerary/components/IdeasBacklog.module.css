@@ -14,9 +14,9 @@
 
 .headerTitle {
   font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: var(--fs-sm);
-  letter-spacing: 0.04em;
+  font-weight: 400;
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-muted);
 }
@@ -49,12 +49,12 @@
 
 .rowTitle {
   flex: 1;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-item-title);
 }
 
 .dateChip {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-chip);
   padding: 5px 10px;
   border-radius: var(--radius-pill);
   border: 1.5px solid var(--color-border-strong);

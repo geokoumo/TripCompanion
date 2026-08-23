@@ -51,9 +51,9 @@
 
 .categoryTitle {
   font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: var(--fs-eyebrow);
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-muted);
 }
@@ -67,6 +67,7 @@
 
 .itemText {
   flex: 1;
+  font-size: var(--fs-item-title);
 }
 
 .itemText[data-done='true'] {
@@ -77,7 +78,7 @@
 .quantity {
   font-family: var(--font-mono);
   color: var(--color-text-muted);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-data);
 }
 
 .removeButton {

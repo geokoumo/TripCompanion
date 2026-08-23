@@ -9,16 +9,16 @@
 
 .totalLabel {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-eyebrow);
   color: var(--color-text-faint);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.12em;
 }
 
 .totalValue {
   font-family: var(--font-display);
-  font-size: var(--fs-2xl);
-  font-weight: 700;
+  font-size: var(--fs-budget-total);
+  font-weight: 600;
   margin-top: 4px;
 }
 
@@ -59,7 +59,7 @@
 .categoryAmount {
   font-family: var(--font-mono);
   color: var(--color-text-muted);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-data);
 }
 
 .barTrack {

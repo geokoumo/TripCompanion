@@ -14,6 +14,8 @@ export function SettleUpView({ trip }: { trip: Trip }) {
 
   const { balances, payments } = computeSettleUp(travelerIds, expenses);
 
+  const foreignExpense = trip.expenses.find((e) => e.currency !== trip.homeCurrency && e.exchangeRateToHome);
+
   if (trip.travelers.length === 0) {
     return <p style={{ color: 'var(--color-text-faint)', padding: '16px 0' }}>Πρόσθεσε ταξιδιώτες για να δεις την εξόφληση.</p>;
   }
@@ -34,15 +36,15 @@ export function SettleUpView({ trip }: { trip: Trip }) {
                 {balance > 0 ? '+' : ''}
                 {balance.toFixed(2)} {trip.homeCurrency}
               </span>
-              <div className={styles.balanceNote}>{sign === 'positive' ? 'του χρωστάνε' : sign === 'negative' ? 'χρωστάει' : 'είναι στα ίσα'}</div>
+              <div className={styles.balanceNote}>{sign === 'positive' ? 'του/της χρωστάνε' : sign === 'negative' ? 'χρωστάει' : 'πάτσι'}</div>
             </span>
           </div>
         );
       })}
 
-      {payments.length > 0 && (
+      {payments.length > 0 ? (
         <>
-          <div className={styles.sectionTitle}>Προτεινόμενες πληρωμές</div>
+          <div className={styles.sectionTitle}>Προτεινόμενες εξοφλήσεις</div>
           {payments.map((payment, i) => {
             const from = trip.travelers.find((t) => t.id === payment.from);
             const to = trip.travelers.find((t) => t.id === payment.to);
@@ -51,14 +53,22 @@ export function SettleUpView({ trip }: { trip: Trip }) {
                 <span>
                   {from?.name} → {to?.name}
                 </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--color-teal)' }}>
                   {payment.amount.toFixed(2)} {trip.homeCurrency}
                 </span>
               </div>
             );
           })}
         </>
+      ) : (
+        <p className={styles.evenNote}>Είστε πάτσι. Καμία μεταφορά δεν χρειάζεται.</p>
       )}
+
+      <p className={styles.transparencyNote}>
+        {foreignExpense
+          ? `Τα ποσά υπολογίζονται από τα καταχωρημένα έξοδα με την ισοτιμία που όρισες χειροκίνητα (1 ${foreignExpense.currency} = ${foreignExpense.exchangeRateToHome} ${trip.homeCurrency}). Άλλαξέ την επεξεργαζόμενος/η το έξοδο.`
+          : `Τα ποσά υπολογίζονται από τα καταχωρημένα έξοδα στο νόμισμα ${trip.homeCurrency}.`}
+      </p>
     </div>
   );
 }

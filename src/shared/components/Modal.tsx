@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import styles from './Modal.module.css';
 
 interface ModalProps {
-  title: string;
+  title: ReactNode;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
