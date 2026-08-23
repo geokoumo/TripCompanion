@@ -1,12 +1,11 @@
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
-// Round-robin palette for traveler avatars.
+// Round-robin palette for traveler avatars — fixed 4-color cycle, assigned in add order.
 export const TRAVELER_AVATAR_COLORS = [
-  'rust',
-  'teal',
-  'brass',
-  'purple',
-  'gray',
+  'avatar-1',
+  'avatar-2',
+  'avatar-3',
+  'avatar-4',
 ] as const;
 export type TravelerAvatarColor = (typeof TRAVELER_AVATAR_COLORS)[number];
 

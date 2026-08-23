@@ -22,7 +22,9 @@ export function StayCard({ stay, onOpen, overlapping }: { stay: Stay; onOpen: ()
           </div>
         </div>
       </div>
-      {overlapping && <div className={styles.warning}>Επικαλύπτεται με άλλη διαμονή</div>}
+      {overlapping && (
+        <div className={styles.warning}>Επικάλυψη με άλλη διαμονή σε αυτές τις νύχτες. Επιτρέπεται — έλεγξέ το.</div>
+      )}
     </div>
   );
 }

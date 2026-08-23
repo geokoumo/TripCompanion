@@ -1,0 +1,26 @@
+.panel {
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 38px 22px;
+  text-align: center;
+}
+
+.circle {
+  width: 44px;
+  height: 44px;
+  border: 1.5px dashed var(--color-border);
+  border-radius: 999px;
+  margin: 0 auto var(--space-4);
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: var(--fs-card-title);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.body {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+}

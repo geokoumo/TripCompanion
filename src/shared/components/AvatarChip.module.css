@@ -10,37 +10,34 @@
 }
 
 .avatar[data-size='sm'] {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   font-size: 0.625rem;
 }
 
 .avatar[data-size='md'] {
-  width: 32px;
-  height: 32px;
-  font-size: 0.75rem;
+  width: 23px;
+  height: 23px;
+  font-size: 0.6875rem;
 }
 
 .avatar[data-size='lg'] {
-  width: 44px;
-  height: 44px;
-  font-size: 1rem;
+  width: 30px;
+  height: 30px;
+  font-size: 0.8125rem;
 }
 
-.avatar[data-color='rust'] {
-  background: var(--color-rust);
+.avatar[data-color='avatar-1'] {
+  background: var(--avatar-1);
 }
-.avatar[data-color='teal'] {
-  background: var(--color-teal);
+.avatar[data-color='avatar-2'] {
+  background: var(--avatar-2);
 }
-.avatar[data-color='brass'] {
-  background: var(--color-brass);
+.avatar[data-color='avatar-3'] {
+  background: var(--avatar-3);
 }
-.avatar[data-color='purple'] {
-  background: var(--color-purple);
-}
-.avatar[data-color='gray'] {
-  background: var(--color-gray);
+.avatar[data-color='avatar-4'] {
+  background: var(--avatar-4);
 }
 
 .row {
@@ -48,6 +45,6 @@
 }
 
 .row > .avatar:not(:first-child) {
-  margin-left: -8px;
-  border: 2px solid var(--color-surface);
+  margin-left: -6px;
+  border: 2px solid var(--color-surface-raised);
 }

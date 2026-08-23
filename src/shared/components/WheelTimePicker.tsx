@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import styles from './WheelTimePicker.module.css';
 
-const ITEM_HEIGHT = 32;
+const ITEM_HEIGHT = 36;
+const TIME_PRESETS = ['08:00', '12:00', '15:00', '19:30'];
 
 interface WheelColumnProps {
   values: number[];
@@ -12,7 +13,6 @@ interface WheelColumnProps {
 
 function WheelColumn({ values, selected, onSelect, pad = 2 }: WheelColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const scrolling = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -22,10 +22,6 @@ function WheelColumn({ values, selected, onSelect, pad = 2 }: WheelColumnProps) 
       el.scrollTop = index * ITEM_HEIGHT;
     }
   }, [selected, values]);
-
-  const handleScroll = () => {
-    scrolling.current = true;
-  };
 
   const handleScrollEnd = () => {
     const el = ref.current;
@@ -42,7 +38,6 @@ function WheelColumn({ values, selected, onSelect, pad = 2 }: WheelColumnProps) 
     <div
       ref={ref}
       className={styles.column}
-      onScroll={handleScroll}
       onTouchEnd={handleScrollEnd}
       onMouseUp={handleScrollEnd}
       onWheel={() => setTimeout(handleScrollEnd, 60)}
@@ -71,20 +66,29 @@ interface WheelTimePickerProps {
 export function WheelTimePicker({ value, onChange }: WheelTimePickerProps) {
   const [hourStr, minuteStr] = value.split(':');
   const hour = Number(hourStr ?? 0);
-  const minute = Number(minuteStr ?? 0);
+  const rawMinute = Number(minuteStr ?? 0);
+  const minute = Math.round(rawMinute / 5) * 5 % 60;
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
-  const minutes = Array.from({ length: 60 }, (_, i) => i);
+  const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
 
   const setHour = (h: number) => onChange(`${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
   const setMinute = (m: number) => onChange(`${String(hour).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
 
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.frame} />
-      <WheelColumn values={hours} selected={hour} onSelect={setHour} />
-      <span className={styles.separator}>:</span>
-      <WheelColumn values={minutes} selected={minute} onSelect={setMinute} />
+    <div>
+      <div className={styles.presets}>
+        {TIME_PRESETS.map((preset) => (
+          <button key={preset} type="button" className={styles.presetChip} onClick={() => onChange(preset)}>
+            {preset}
+          </button>
+        ))}
+      </div>
+      <div className={styles.wrapper}>
+        <WheelColumn values={hours} selected={hour} onSelect={setHour} />
+        <span className={styles.separator}>:</span>
+        <WheelColumn values={minutes} selected={minute} onSelect={setMinute} />
+      </div>
     </div>
   );
 }

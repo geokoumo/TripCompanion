@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Menu } from '../../../shared/components/Menu';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
+import { getTripDateRange } from '../lib/dateRange';
 import { TRIP_TABS, type Trip, type TripTab } from '../types';
 import { ShareSheet } from './ShareSheet';
+import { TripMenuSheet } from './TripMenuSheet';
 import styles from './TripHeader.module.css';
 
 const TAB_LABELS: Record<TripTab, string> = {
@@ -20,11 +21,15 @@ interface TripHeaderProps {
   onTabChange: (tab: TripTab) => void;
   onBack: () => void;
   onArchiveToggle: () => void;
-  onDelete: () => void;
+  onDuplicate: () => void;
+  onDeleteRequest: () => void;
+  onSaveTrip: (trip: Trip) => void;
 }
 
-export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveToggle, onDelete }: TripHeaderProps) {
+export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip }: TripHeaderProps) {
   const [shareOpen, setShareOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const range = getTripDateRange(trip.legs, trip.flights);
 
   return (
     <div className={styles.header}>
@@ -36,18 +41,17 @@ export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveTogg
           <button type="button" className={styles.shareButton} onClick={() => setShareOpen(true)}>
             Κοινή χρήση
           </button>
-          <Menu
-            items={[
-              { label: trip.archived ? 'Επαναφορά' : 'Αρχειοθέτηση', onSelect: onArchiveToggle },
-              { label: 'Διαγραφή', onSelect: onDelete, danger: true },
-            ]}
-          />
+          <button type="button" className={styles.menuButton} onClick={() => setMenuOpen(true)} aria-label="Περισσότερα">
+            ···
+          </button>
         </div>
       </div>
       <div className={styles.title}>{trip.title}</div>
-      <div className={styles.dates}>
-        {formatDateShort(trip.startDate)} – {formatDateShort(trip.endDate)}
-      </div>
+      {range && (
+        <div className={styles.dates}>
+          {formatDateShort(range.startDate)} – {formatDateShort(range.endDate)}
+        </div>
+      )}
       <div className={styles.tabsWrapper}>
         <div className={styles.tabs}>
           {TRIP_TABS.map((tab) => (
@@ -63,7 +67,17 @@ export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveTogg
           ))}
         </div>
       </div>
-      {shareOpen && <ShareSheet trip={trip} onClose={() => setShareOpen(false)} />}
+      {shareOpen && <ShareSheet trip={trip} onClose={() => setShareOpen(false)} onSave={onSaveTrip} />}
+      {menuOpen && (
+        <TripMenuSheet
+          trip={trip}
+          onClose={() => setMenuOpen(false)}
+          onShare={() => setShareOpen(true)}
+          onDuplicate={onDuplicate}
+          onArchiveToggle={onArchiveToggle}
+          onDelete={onDeleteRequest}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { TripListScreen } from '../features/trips/components/TripListScreen';
 import { TripDetailScreen } from '../features/trips/components/TripDetailScreen';
+import { SharedTripView } from '../features/trips/components/SharedTripView';
 import { useHashRoute } from '../shared/lib/useHashRoute';
 import { ErrorBoundary } from './ErrorBoundary';
 import { ThemeProvider } from './providers/ThemeProvider';
@@ -8,6 +9,10 @@ import { TripsProvider } from './providers/TripsProvider';
 
 function Router() {
   const [route, navigate] = useHashRoute();
+
+  if (route.name === 'shared') {
+    return <SharedTripView tripId={route.tripId} onExit={() => navigate({ name: 'home' })} />;
+  }
 
   if (route.name === 'trip') {
     return (

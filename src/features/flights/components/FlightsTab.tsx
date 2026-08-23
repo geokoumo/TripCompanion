@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import type { Trip } from '../../trips/types';
 import { Fab } from '../../../shared/components/Button';
-import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import type { Flight } from '../types';
 import { FlightCard } from './FlightCard';
 import { FlightForm } from './FlightForm';
@@ -26,7 +27,7 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
         const exists = t.flights.some((f) => f.id === flight.id);
         return { ...t, flights: exists ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight] };
       });
-      showToast('Η πτήση αποθηκεύτηκε', 'success');
+      showToast('Η πτήση αποθηκεύτηκε.');
       setEditing(null);
       setCreating(false);
     } catch {
@@ -34,16 +35,21 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
     }
   };
 
-  const remove = async (id: string) => {
-    await updateTrip((t) => ({ ...t, flights: t.flights.filter((f) => f.id !== id) }));
+  const remove = (id: string) => {
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id });
     setPendingDelete(null);
     setEditing(null);
-    showToast('Η πτήση διαγράφηκε', 'success');
   };
 
   return (
     <div style={{ paddingTop: 8 }}>
-      {sorted.length === 0 && <p style={{ color: 'var(--color-text-faint)', padding: '24px 0' }}>Δεν έχουν προστεθεί πτήσεις ακόμα.</p>}
+      {sorted.length === 0 && (
+        <p style={{ color: 'var(--color-text-faint)', padding: '24px 0' }}>
+          Καμία πτήση
+          <br />
+          Πρόσθεσε την πρώτη σου πτήση με το κουμπί κάτω δεξιά.
+        </p>
+      )}
       {sorted.map((flight) => (
         <FlightCard key={flight.id} flight={flight} onOpen={() => setEditing(flight)} />
       ))}
@@ -63,11 +69,10 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
       )}
 
       {pendingDelete && (
-        <ConfirmDialog
-          title="Διαγραφή πτήσης"
-          message={`Θα διαγραφεί η πτήση ${pendingDelete.airline} ${pendingDelete.flightNumber}.`}
+        <DeleteConfirmSheet
+          itemName={`${pendingDelete.airline} ${pendingDelete.flightNumber}`}
           onCancel={() => setPendingDelete(null)}
-          onConfirm={() => void remove(pendingDelete.id)}
+          onConfirm={() => remove(pendingDelete.id)}
         />
       )}
     </div>

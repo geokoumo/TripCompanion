@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Fab } from '../../../shared/components/Button';
-import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
+import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import type { Trip } from '../../trips/types';
 import { dateTimeRangesOverlap } from '../lib/overlap';
 import type { Stay } from '../types';
@@ -44,7 +45,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
         const exists = t.stays.some((s) => s.id === stay.id);
         return { ...t, stays: exists ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay] };
       });
-      showToast('Η διαμονή αποθηκεύτηκε', 'success');
+      showToast('Η διαμονή αποθηκεύτηκε.');
       setEditing(null);
       setCreating(false);
     } catch {
@@ -52,16 +53,21 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
     }
   };
 
-  const remove = async (id: string) => {
-    await updateTrip((t) => ({ ...t, stays: t.stays.filter((s) => s.id !== id) }));
+  const remove = (id: string) => {
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'stays', id });
     setPendingDelete(null);
     setEditing(null);
-    showToast('Η διαμονή διαγράφηκε', 'success');
   };
 
   return (
     <div style={{ paddingTop: 8 }}>
-      {sorted.length === 0 && <p style={{ color: 'var(--color-text-faint)', padding: '24px 0' }}>Δεν έχει προστεθεί διαμονή ακόμα.</p>}
+      {sorted.length === 0 && (
+        <p style={{ color: 'var(--color-text-faint)', padding: '24px 0' }}>
+          Καμία διαμονή
+          <br />
+          Καταχώρησε ξενοδοχείο ή κατάλυμα και θα δεις τα check-in στο πρόγραμμα.
+        </p>
+      )}
       {sorted.map((stay) => (
         <StayCard key={stay.id} stay={stay} overlapping={overlapIds.has(stay.id)} onOpen={() => setEditing(stay)} />
       ))}
@@ -71,6 +77,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
       {(creating || editing) && (
         <StayForm
           initial={editing ?? undefined}
+          existingStays={trip.stays}
           onClose={() => {
             setCreating(false);
             setEditing(null);
@@ -81,11 +88,10 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
       )}
 
       {pendingDelete && (
-        <ConfirmDialog
-          title="Διαγραφή διαμονής"
-          message={`Θα διαγραφεί η διαμονή "${pendingDelete.name}".`}
+        <DeleteConfirmSheet
+          itemName={pendingDelete.name}
           onCancel={() => setPendingDelete(null)}
-          onConfirm={() => void remove(pendingDelete.id)}
+          onConfirm={() => remove(pendingDelete.id)}
         />
       )}
     </div>

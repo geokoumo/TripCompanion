@@ -87,18 +87,15 @@
   cursor: pointer;
 }
 
-.addRow {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-4);
-}
-
-.addInput {
-  flex: 1;
-  padding: 10px 12px;
+.addButton {
+  width: 100%;
+  padding: 12px;
   border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-border-strong);
-  background: var(--color-surface);
+  border: 1.5px dashed var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  margin-top: var(--space-4);
 }
 
 .footerActions {

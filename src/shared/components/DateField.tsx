@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { formatDateShort } from '../lib/dateFormat';
 import { CalendarDatePicker } from './CalendarDatePicker';
 import { FieldWrapper } from './Field';
+import { Modal } from './Modal';
 import styles from './DateTimeField.module.css';
 
 interface DateFieldProps {
@@ -19,26 +20,23 @@ export function DateField({ label, date, onChange, minDate, maxDate, error }: Da
   return (
     <FieldWrapper label={label} error={error}>
       <div className={styles.row}>
-        <button type="button" className={styles.pill} data-open={open} onClick={() => setOpen((v) => !v)}>
+        <button type="button" className={styles.pill} onClick={() => setOpen(true)}>
           {date ? formatDateShort(date) : 'Επίλεξε ημερομηνία'}
         </button>
-        {open && (
-          <>
-            <div className={styles.popoverBackdrop} onClick={() => setOpen(false)} />
-            <div className={styles.popover}>
-              <CalendarDatePicker
-                value={date}
-                minDate={minDate}
-                maxDate={maxDate}
-                onChange={(d) => {
-                  onChange(d);
-                  setOpen(false);
-                }}
-              />
-            </div>
-          </>
-        )}
       </div>
+      {open && (
+        <Modal title="Ημερομηνία" onClose={() => setOpen(false)}>
+          <CalendarDatePicker
+            value={date}
+            minDate={minDate}
+            maxDate={maxDate}
+            onChange={(d) => {
+              onChange(d);
+              setOpen(false);
+            }}
+          />
+        </Modal>
+      )}
     </FieldWrapper>
   );
 }

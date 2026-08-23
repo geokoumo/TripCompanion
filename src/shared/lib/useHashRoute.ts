@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { TripTab } from '../../features/trips/types';
 
-export type Route = { name: 'home' } | { name: 'trip'; tripId: string; tab: TripTab };
+export type Route =
+  | { name: 'home' }
+  | { name: 'trip'; tripId: string; tab: TripTab }
+  | { name: 'shared'; tripId: string };
 
 function parseHash(hash: string): Route {
   const clean = hash.replace(/^#\/?/, '');
@@ -9,6 +12,9 @@ function parseHash(hash: string): Route {
   if (parts[0] === 'trip' && parts[1]) {
     const tab = (parts[2] as TripTab) || 'overview';
     return { name: 'trip', tripId: parts[1], tab };
+  }
+  if (parts[0] === 'shared' && parts[1]) {
+    return { name: 'shared', tripId: parts[1] };
   }
   return { name: 'home' };
 }
@@ -23,7 +29,8 @@ export function useHashRoute(): [Route, (route: Route) => void] {
   }, []);
 
   const navigate = (next: Route) => {
-    const hash = next.name === 'home' ? '#/' : `#/trip/${next.tripId}/${next.tab}`;
+    const hash =
+      next.name === 'home' ? '#/' : next.name === 'shared' ? `#/shared/${next.tripId}` : `#/trip/${next.tripId}/${next.tab}`;
     window.location.hash = hash;
   };
 

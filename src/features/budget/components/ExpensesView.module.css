@@ -6,26 +6,32 @@
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-2);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
   cursor: pointer;
 }
 
 .left {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-.categoryLabel {
-  font-size: var(--fs-xs);
-  color: var(--color-text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.description {
+  font-size: var(--fs-item-title);
+  font-weight: 600;
+}
+
+.meta {
   font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--color-text-muted);
+  margin-top: 2px;
 }
 
-.note {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
+.amountBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .amount {
@@ -33,11 +39,18 @@
   font-weight: 600;
 }
 
+.originalAmount {
+  font-family: var(--font-mono);
+  font-size: 0.65625rem; /* 10.5px */
+  color: var(--color-text-faint);
+  margin-top: 2px;
+}
+
 .addButton {
   width: 100%;
   padding: 12px;
   border-radius: var(--radius-md);
-  border: 1.5px dashed var(--color-border-strong);
+  border: 1.5px dashed var(--color-border);
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;

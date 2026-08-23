@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styles from './CalendarDatePicker.module.css';
 
-const WEEKDAYS = ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'];
+const WEEKDAYS = ['Κυ', 'Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα'];
 const MONTHS = [
   'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος',
   'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος',
@@ -34,7 +34,7 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const firstOfMonth = new Date(year, month, 1);
-  const startWeekday = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
+  const startWeekday = firstOfMonth.getDay(); // Sunday = 0
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
 

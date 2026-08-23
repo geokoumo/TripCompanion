@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { LocalStorageTripRepository } from '../../data/repository/LocalStorageTripRepository';
 import type { TripRepository } from '../../data/repository/TripRepository';
 import type { Trip } from '../../features/trips/types';
-import { generateId } from '../../shared/lib/id';
 import { useToast } from './ToastProvider';
 
 const repository: TripRepository = new LocalStorageTripRepository();
@@ -13,7 +12,6 @@ interface TripsContextValue {
   refresh: () => Promise<void>;
   saveTrip: (trip: Trip) => Promise<void>;
   deleteTrip: (id: string) => Promise<void>;
-  duplicateTrip: (id: string) => Promise<void>;
 }
 
 const TripsContext = createContext<TripsContextValue | null>(null);
@@ -29,7 +27,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
       const loaded = await repository.getTrips();
       setTrips(loaded);
     } catch {
-      showToast('Αποτυχία φόρτωσης ταξιδιών', 'error');
+      showToast('Αποτυχία φόρτωσης ταξιδιών', { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -48,7 +46,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
           return exists ? prev.map((t) => (t.id === trip.id ? trip : t)) : [...prev, trip];
         });
       } catch {
-        showToast('Η αποθήκευση απέτυχε', 'error');
+        showToast('Η αποθήκευση απέτυχε. Δοκίμασε ξανά.', { variant: 'error' });
         throw new Error('save-failed');
       }
     },
@@ -61,33 +59,13 @@ export function TripsProvider({ children }: { children: ReactNode }) {
         await repository.deleteTrip(id);
         setTrips((prev) => prev.filter((t) => t.id !== id));
       } catch {
-        showToast('Η διαγραφή απέτυχε', 'error');
+        showToast('Η διαγραφή απέτυχε. Δοκίμασε ξανά.', { variant: 'error' });
       }
     },
     [showToast],
   );
 
-  const duplicateTrip = useCallback(
-    async (id: string) => {
-      const original = trips.find((t) => t.id === id);
-      if (!original) return;
-      const copy: Trip = {
-        ...original,
-        id: generateId(),
-        title: `${original.title} (αντίγραφο)`,
-        archived: false,
-        createdAt: new Date().toISOString(),
-      };
-      await saveTrip(copy);
-    },
-    [trips, saveTrip],
-  );
-
-  return (
-    <TripsContext.Provider value={{ trips, loading, refresh, saveTrip, deleteTrip, duplicateTrip }}>
-      {children}
-    </TripsContext.Provider>
-  );
+  return <TripsContext.Provider value={{ trips, loading, refresh, saveTrip, deleteTrip }}>{children}</TripsContext.Provider>;
 }
 
 export function useTripsContext(): TripsContextValue {

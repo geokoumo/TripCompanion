@@ -1,47 +1,69 @@
 import { FLIGHT_STATUSES } from '../../../config/constants';
-import { formatDateShort, formatDateNoYear, todayStr } from '../../../shared/lib/dateFormat';
-import { daysBetween } from '../../../shared/lib/dateFormat';
-import type { Trip, TripTab } from '../types';
-import { getTripStatus } from '../types';
+import { EmptyState } from '../../../shared/components/EmptyState';
+import { formatDateShort, formatDateNoYear, todayStr, daysBetween } from '../../../shared/lib/dateFormat';
+import { getTripDateRange } from '../lib/dateRange';
+import { getTripStatus, type Trip } from '../types';
 import styles from './OverviewTab.module.css';
 
 function statusLabel(status: string): string {
   return FLIGHT_STATUSES.find((s) => s.id === status)?.label ?? status;
 }
 
-interface OverviewTabProps {
-  trip: Trip;
-  onTabChange: (tab: TripTab) => void;
-}
-
-export function OverviewTab({ trip, onTabChange }: OverviewTabProps) {
-  const status = getTripStatus(trip);
+export function OverviewTab({ trip }: { trip: Trip }) {
+  const range = getTripDateRange(trip.legs, trip.flights);
+  const status = getTripStatus(range);
   const today = todayStr();
 
   const sortedFlights = [...trip.flights].sort((a, b) => (a.depDate + a.depTime).localeCompare(b.depDate + b.depTime));
-  const nextFlight = sortedFlights.find((f) => f.depDate + f.depTime >= today) ?? sortedFlights[0];
+  const nextFlight = sortedFlights.find((f) => f.depDate + f.depTime >= today) ?? sortedFlights[sortedFlights.length - 1];
 
   const activeStay = trip.stays.find((s) => s.checkinDate <= today && s.checkoutDate >= today);
   const sortedStays = [...trip.stays].sort((a, b) => (a.checkinDate + a.checkinTime).localeCompare(b.checkinDate + b.checkinTime));
-  const stayToShow = activeStay ?? sortedStays[0];
+  const stayToShow = activeStay ?? sortedStays.find((s) => s.checkinDate >= today) ?? sortedStays[sortedStays.length - 1];
 
   const sortedStops = [...trip.itineraryStops].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  const todaysStops = sortedStops.filter((s) => s.date === today);
   const nextStop = sortedStops.find((s) => s.date + s.time >= today) ?? sortedStops[0];
+
+  const nothingYet = trip.flights.length === 0 && trip.stays.length === 0 && trip.itineraryStops.length === 0;
+
+  let countdownKicker: string | null = null;
+  let countdownValue: string | null = null;
+  if (range && status !== 'completed') {
+    if (status === 'upcoming') {
+      const days = daysBetween(today, range.startDate);
+      countdownKicker = 'Αναχώρηση σε';
+      countdownValue = days === 1 ? '1 μέρα' : `${days} μέρες`;
+    } else if (status === 'today') {
+      countdownKicker = 'Ξεκινά';
+      countdownValue = 'σήμερα';
+    } else {
+      const daysSince = daysBetween(range.startDate, today);
+      countdownKicker = 'Ξεκίνησε';
+      countdownValue = daysSince === 1 ? '1 μέρα πριν' : `${daysSince} μέρες πριν`;
+    }
+  }
+
+  if (nothingYet) {
+    return (
+      <div className={styles.wrapper}>
+        <EmptyState headline="Τίποτα ακόμα" body="Πρόσθεσε πτήσεις ή διαμονή και θα εμφανιστούν εδώ." />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrapper}>
-      {status === 'upcoming' && (
+      {countdownKicker && range && (
         <div className={styles.countdownCard}>
-          <div className={styles.countdownLabel}>Αναχώρηση σε</div>
-          <div className={styles.countdownValue}>{daysBetween(today, trip.startDate)} μέρες</div>
+          <div className={styles.countdownLabel}>{countdownKicker}</div>
+          <div className={styles.countdownValue}>{countdownValue}</div>
           <div className={styles.countdownDates}>
-            {formatDateShort(trip.startDate)} → {formatDateShort(trip.endDate)}
+            {formatDateShort(range.startDate)} → {formatDateShort(range.endDate)}
           </div>
         </div>
       )}
 
-      {nextFlight ? (
+      {nextFlight && (
         <div className={styles.snapshotCard} data-tone="rust">
           <div className={styles.snapshotLabel}>Επόμενη πτήση</div>
           <div className={styles.snapshotTitle}>
@@ -51,13 +73,9 @@ export function OverviewTab({ trip, onTabChange }: OverviewTabProps) {
             {formatDateNoYear(nextFlight.depDate)} · {nextFlight.depTime} · {statusLabel(nextFlight.status).toLowerCase()}
           </div>
         </div>
-      ) : (
-        <button type="button" className={styles.emptyNote} onClick={() => onTabChange('flights')}>
-          Δεν έχουν προστεθεί πτήσεις ακόμα.
-        </button>
       )}
 
-      {stayToShow ? (
+      {stayToShow && (
         <div className={styles.snapshotCard} data-tone="teal">
           <div className={styles.snapshotLabel}>Διαμονή</div>
           <div className={styles.snapshotTitle}>{stayToShow.name}</div>
@@ -65,42 +83,16 @@ export function OverviewTab({ trip, onTabChange }: OverviewTabProps) {
             {formatDateNoYear(stayToShow.checkinDate)} {stayToShow.checkinTime} → {formatDateNoYear(stayToShow.checkoutDate)} {stayToShow.checkoutTime}
           </div>
         </div>
-      ) : (
-        <button type="button" className={styles.emptyNote} onClick={() => onTabChange('stays')}>
-          Δεν έχει προστεθεί διαμονή ακόμα.
-        </button>
       )}
 
-      {status === 'ongoing' ? (
-        todaysStops.length > 0 ? (
-          <div className={styles.snapshotCard} data-tone="brass">
-            <div className={styles.snapshotLabel}>Σήμερα</div>
-            {todaysStops.map((stop) => (
-              <div key={stop.id}>
-                <div className={styles.snapshotTitle}>{stop.title}</div>
-                <div className={styles.snapshotSubtitle}>
-                  {stop.time} {stop.location ? `· ${stop.location}` : ''}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <button type="button" className={styles.emptyNote} onClick={() => onTabChange('itinerary')}>
-            Δεν έχουν προγραμματιστεί στάσεις για σήμερα.
-          </button>
-        )
-      ) : nextStop ? (
+      {nextStop && (
         <div className={styles.snapshotCard} data-tone="brass">
-          <div className={styles.snapshotLabel}>Πρώτη στάση</div>
+          <div className={styles.snapshotLabel}>{status === 'ongoing' || status === 'today' ? 'Επόμενη στάση' : 'Πρώτη στάση'}</div>
           <div className={styles.snapshotTitle}>{nextStop.title}</div>
           <div className={styles.snapshotSubtitle}>
             {formatDateNoYear(nextStop.date)} · {nextStop.time} {nextStop.location ? `· ${nextStop.location}` : ''}
           </div>
         </div>
-      ) : (
-        <button type="button" className={styles.emptyNote} onClick={() => onTabChange('itinerary')}>
-          Δεν έχει προστεθεί πρόγραμμα ακόμα.
-        </button>
       )}
     </div>
   );

@@ -1,20 +1,39 @@
-.dots {
+.stepMeta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-2);
+}
+
+.progress {
   display: flex;
-  gap: 6px;
-  justify-content: center;
+  gap: 5px;
   margin-bottom: var(--space-4);
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
+.segment {
+  flex: 1;
+  height: 3px;
   border-radius: 999px;
-  background: var(--color-border-strong);
+  background: var(--color-border);
 }
 
-.dot[data-active='true'] {
+.segment[data-done='true'] {
   background: var(--color-rust);
-  width: 20px;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin: 0 0 var(--space-4);
+}
+
+.note {
+  color: var(--color-text-faint);
+  font-size: var(--fs-meta);
+  margin-top: var(--space-2);
 }
 
 .legItem,

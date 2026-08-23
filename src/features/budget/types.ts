@@ -5,7 +5,6 @@ export const BudgetCategorySchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Το όνομα είναι υποχρεωτικό'),
   color: z.enum(CATEGORY_COLORS),
-  limit: z.number().nonnegative().optional(),
 });
 
 export type BudgetCategory = z.infer<typeof BudgetCategorySchema>;

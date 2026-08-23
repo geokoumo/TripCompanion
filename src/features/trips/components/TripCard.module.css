@@ -1,9 +1,9 @@
 .card {
   background: var(--color-surface-raised);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
   padding: var(--space-5);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   cursor: pointer;
 }
 
@@ -16,9 +16,9 @@
 
 .title {
   font-family: var(--font-display);
-  font-size: var(--fs-lg);
+  font-size: var(--fs-card-title);
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .badgeRow {
@@ -28,9 +28,20 @@
   flex-shrink: 0;
 }
 
+.menuButton {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-md);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .dates {
   font-family: var(--font-mono);
-  font-size: var(--fs-sm);
+  font-size: 0.71875rem; /* 11.5px */
   color: var(--color-text-muted);
   margin-top: var(--space-2);
 }
@@ -44,5 +55,5 @@
 
 .destLabel {
   color: var(--color-text-muted);
-  font-size: var(--fs-base);
+  font-size: var(--fs-meta);
 }

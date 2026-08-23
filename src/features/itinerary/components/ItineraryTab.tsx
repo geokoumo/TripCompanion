@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import { dayNumber, weekdayShort, todayStr } from '../../../shared/lib/dateFormat';
+import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
+import { dayNumber, weekdayShort, todayStr, formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { generateId } from '../../../shared/lib/id';
+import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { rangesOverlap, toComparableMs } from '../../stays/lib/overlap';
 import type { Trip } from '../../trips/types';
+import { getTripDateRange } from '../../trips/lib/dateRange';
 import { buildAutoPulledEntries } from '../lib/autoPulledEntries';
 import type { Idea, ItineraryStop } from '../types';
 import { AutoPulledEntryCard } from './AutoPulledEntryCard';
@@ -32,7 +34,8 @@ function buildDayRange(startDate: string, endDate: string): string[] {
 
 export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const { showToast } = useToast();
-  const days = useMemo(() => buildDayRange(trip.startDate, trip.endDate), [trip.startDate, trip.endDate]);
+  const range = getTripDateRange(trip.legs, trip.flights);
+  const days = useMemo(() => (range ? buildDayRange(range.startDate, range.endDate) : []), [range?.startDate, range?.endDate]);
   const today = todayStr();
   const [selectedDate, setSelectedDate] = useState(() => (days.includes(today) ? today : days[0] ?? today));
 
@@ -62,33 +65,38 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
     }
   }
 
-  const legForDay = trip.legs.find((leg) => selectedDate >= leg.startDate && selectedDate <= leg.endDate);
+  const legsForDay = trip.legs.filter((leg) => selectedDate >= leg.startDate && selectedDate <= leg.endDate);
+  const legHeaderLabel = legsForDay
+    .map((l) => l.city || 'ΧΩΡΙΣ ΠΟΛΗ')
+    .join(' → ')
+    .toUpperCase();
 
   const saveStop = async (stop: ItineraryStop) => {
     await updateTrip((t) => {
       const exists = t.itineraryStops.some((s) => s.id === stop.id);
       return { ...t, itineraryStops: exists ? t.itineraryStops.map((s) => (s.id === stop.id ? stop : s)) : [...t.itineraryStops, stop] };
     });
-    showToast('Η στάση αποθηκεύτηκε', 'success');
+    showToast('Η στάση αποθηκεύτηκε.');
     setEditingStop(null);
     setCreatingStop(false);
   };
 
-  const removeStop = async (id: string) => {
-    await updateTrip((t) => ({ ...t, itineraryStops: t.itineraryStops.filter((s) => s.id !== id) }));
+  const removeStop = (id: string) => {
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'itineraryStops', id });
     setPendingDelete(null);
     setEditingStop(null);
-    showToast('Η στάση διαγράφηκε', 'success');
   };
 
   const addIdea = (idea: Idea) => updateTrip((t) => ({ ...t, ideas: [...t.ideas, idea] }));
-  const removeIdea = (id: string) => updateTrip((t) => ({ ...t, ideas: t.ideas.filter((i) => i.id !== id) }));
+  const removeIdea = (id: string) => deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'ideas', id });
   const assignIdeaToDay = (idea: Idea) => {
     const date = idea.suggestedDate ?? selectedDate;
+    const time = '12:00';
     const stop: ItineraryStop = {
       id: generateId(),
       date,
-      time: '09:00',
+      time,
+      durationMinutes: 60,
       title: idea.title,
       type: idea.type,
       location: idea.location,
@@ -102,7 +110,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       ideas: t.ideas.filter((i) => i.id !== idea.id),
       itineraryStops: [...t.itineraryStops, stop],
     }));
-    showToast(`Προστέθηκε στο πρόγραμμα στις ${date}`, 'success');
+    showToast(`Μπήκε στις ${formatDateNoYear(date)} στις ${time}.`);
   };
 
   return (
@@ -116,7 +124,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
         ))}
       </div>
 
-      {legForDay && <div className={styles.legHeader}>{legForDay.city.toUpperCase()}</div>}
+      {legsForDay.length > 0 && <div className={styles.legHeader}>{legHeaderLabel}</div>}
 
       {autoPulledForDay.map((entry) => (
         <AutoPulledEntryCard key={entry.id} entry={entry} />
@@ -124,7 +132,13 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       {stopsForDay.map((stop) => (
         <StopCard key={stop.id} stop={stop} travelers={trip.travelers} overlapping={overlapIds.has(stop.id)} onOpen={() => setEditingStop(stop)} />
       ))}
-      {autoPulledForDay.length === 0 && stopsForDay.length === 0 && <div className={styles.emptyDay}>Δεν υπάρχουν στάσεις για αυτή τη μέρα.</div>}
+      {autoPulledForDay.length === 0 && stopsForDay.length === 0 && (
+        <div className={styles.emptyDay}>
+          Κενή μέρα
+          <br />
+          Πρόσθεσε στάση ή τράβα μία από τις ιδέες σου παρακάτω.
+        </div>
+      )}
 
       <button type="button" className={styles.addStopButton} onClick={() => setCreatingStop(true)}>
         + Προσθήκη στάσης
@@ -153,11 +167,10 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       )}
 
       {pendingDelete && (
-        <ConfirmDialog
-          title="Διαγραφή στάσης"
-          message={`Θα διαγραφεί η στάση "${pendingDelete.title}".`}
+        <DeleteConfirmSheet
+          itemName={pendingDelete.title}
           onCancel={() => setPendingDelete(null)}
-          onConfirm={() => void removeStop(pendingDelete.id)}
+          onConfirm={() => removeStop(pendingDelete.id)}
         />
       )}
     </div>

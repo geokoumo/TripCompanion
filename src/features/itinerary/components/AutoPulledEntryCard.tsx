@@ -8,7 +8,7 @@ export function AutoPulledEntryCard({ entry }: { entry: AutoPulledEntry }) {
       <div className={styles.topRow}>
         <span className={styles.time}>{entry.time}</span>
         <StampBadge tone="gray" locked>
-          Κλειδωμένο
+          κλειδωμένο
         </StampBadge>
       </div>
       <div className={styles.title}>{entry.title}</div>

@@ -5,6 +5,7 @@ import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateTimeField } from '../../../shared/components/DateTimeField';
 import { FieldWrapper, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
+import { PresetChips } from '../../../shared/components/PresetChips';
 import { generateId } from '../../../shared/lib/id';
 import type { ItineraryStopTypeId } from '../../../config/constants';
 import type { Traveler } from '../../travelers/types';
@@ -29,11 +30,14 @@ const emptyStop = (date: string): ItineraryStop => ({
   done: false,
 });
 
+const DURATION_PRESETS = ['30′', '60′', '90′', '120′', '180′'];
+
 export function StopForm({ initial, defaultDate, travelers, onClose, onSave, onDelete }: StopFormProps) {
   const [stop, setStop] = useState<ItineraryStop>(initial ?? emptyStop(defaultDate));
-  const [useDuration, setUseDuration] = useState(Boolean(initial?.durationMinutes));
 
   const update = <K extends keyof ItineraryStop>(key: K, value: ItineraryStop[K]) => setStop((prev) => ({ ...prev, [key]: value }));
+
+  const applyDurationPreset = (preset: string) => update('durationMinutes', Number(preset.replace('′', '')));
 
   const toggleTraveler = (id: string) => {
     update('travelerIds', stop.travelerIds.includes(id) ? stop.travelerIds.filter((t) => t !== id) : [...stop.travelerIds, id]);
@@ -70,19 +74,9 @@ export function StopForm({ initial, defaultDate, travelers, onClose, onSave, onD
 
       <DateTimeField label="Ώρα" date={stop.date} time={stop.time} onDateChange={(d) => update('date', d)} onTimeChange={(t) => update('time', t)} />
 
-      {!useDuration ? (
-        <button type="button" onClick={() => setUseDuration(true)} style={{ background: 'none', border: 'none', color: 'var(--color-rust)', cursor: 'pointer', marginBottom: 12 }}>
-          + Προσθήκη διάρκειας
-        </button>
-      ) : (
-        <TextField
-          label="Διάρκεια (λεπτά)"
-          type="number"
-          min={5}
-          value={stop.durationMinutes ?? ''}
-          onChange={(e) => update('durationMinutes', e.target.value ? Number(e.target.value) : undefined)}
-        />
-      )}
+      <FieldWrapper label={stop.durationMinutes ? `Διάρκεια — ${stop.durationMinutes}′` : 'Διάρκεια (προαιρετικό)'}>
+        <PresetChips presets={DURATION_PRESETS} onSelect={applyDurationPreset} hideInput />
+      </FieldWrapper>
 
       <TextField label="Τοποθεσία" value={stop.location ?? ''} onChange={(e) => update('location', e.target.value)} />
 

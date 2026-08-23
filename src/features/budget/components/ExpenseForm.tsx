@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { CATEGORY_COLORS } from '../../../config/constants';
 import { Button } from '../../../shared/components/Button';
 import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
-import { FieldRow, FieldWrapper, TextAreaField, TextField } from '../../../shared/components/Field';
+import { FieldRow, FieldWrapper, MoreToggle, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { generateId } from '../../../shared/lib/id';
 import type { Traveler } from '../../travelers/types';
+import { getTripDateRange } from '../../trips/lib/dateRange';
 import type { Trip } from '../../trips/types';
 import type { BudgetCategory, Expense } from '../types';
 
@@ -13,29 +15,47 @@ interface ExpenseFormProps {
   trip: Trip;
   categories: BudgetCategory[];
   travelers: Traveler[];
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
   initial?: Expense;
   onClose: () => void;
   onSave: (expense: Expense) => void;
   onDelete?: () => void;
 }
 
+const OTHER = '__other__';
+
 const emptyExpense = (trip: Trip, travelers: Traveler[]): Expense => ({
   id: generateId(),
   amount: 0,
   currency: trip.homeCurrency,
   categoryId: '',
-  date: trip.startDate,
+  date: getTripDateRange(trip.legs, trip.flights)?.startDate ?? '',
   paidBy: travelers[0]?.id ?? '',
   splitAmong: travelers.map((t) => t.id),
 });
 
-export function ExpenseForm({ trip, categories, travelers, initial, onClose, onSave, onDelete }: ExpenseFormProps) {
+export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, onClose, onSave, onDelete }: ExpenseFormProps) {
   const [expense, setExpense] = useState<Expense>(initial ?? emptyExpense(trip, travelers));
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [showMore, setShowMore] = useState(Boolean(initial?.link));
+  const range = getTripDateRange(trip.legs, trip.flights);
 
   const update = <K extends keyof Expense>(key: K, value: Expense[K]) => setExpense((prev) => ({ ...prev, [key]: value }));
 
   const toggleSplit = (id: string) => {
     update('splitAmong', expense.splitAmong.includes(id) ? expense.splitAmong.filter((s) => s !== id) : [...expense.splitAmong, id]);
+  };
+
+  const confirmNewCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    const color = CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length]!;
+    const category: BudgetCategory = { id: generateId(), name, color };
+    await updateTrip((t) => ({ ...t, budgetCategories: [...t.budgetCategories, category] }));
+    update('categoryId', category.id);
+    setCreatingCategory(false);
+    setNewCategoryName('');
   };
 
   const needsRate = expense.currency !== trip.homeCurrency;
@@ -81,29 +101,53 @@ export function ExpenseForm({ trip, categories, travelers, initial, onClose, onS
         />
       )}
 
-      {categories.length === 0 ? (
-        <p style={{ color: 'var(--color-text-faint)' }}>Πρόσθεσε πρώτα μια κατηγορία στο tab «Κατηγορίες».</p>
-      ) : (
-        <FieldWrapper label="Κατηγορία">
-          <ChipSelect options={categories.map((c) => ({ id: c.id, label: c.name }))} value={expense.categoryId} onChange={(id) => update('categoryId', id)} />
+      <FieldWrapper label="Κατηγορία">
+        <ChipSelect
+          options={[...categories.map((c) => ({ id: c.id, label: c.name })), { id: OTHER, label: 'Άλλο' }]}
+          value={creatingCategory ? OTHER : expense.categoryId}
+          onChange={(id) => {
+            if (id === OTHER) {
+              setCreatingCategory(true);
+            } else {
+              setCreatingCategory(false);
+              update('categoryId', id);
+            }
+          }}
+        />
+      </FieldWrapper>
+      {creatingCategory && (
+        <TextField
+          label="Νέα κατηγορία"
+          autoFocus
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              void confirmNewCategory();
+            }
+          }}
+          placeholder="π.χ. Σουβενίρ"
+        />
+      )}
+
+      <TextField label="Περιγραφή" value={expense.note ?? ''} onChange={(e) => update('note', e.target.value)} placeholder="π.χ. Δείπνο" />
+
+      <DateField label="Ημερομηνία" date={expense.date} onChange={(d) => update('date', d)} minDate={range?.startDate} maxDate={range?.endDate} />
+
+      {travelers.length > 0 && (
+        <FieldWrapper label="Πλήρωσε">
+          <ChipSelect options={travelers.map((t) => ({ id: t.id, label: t.name }))} value={expense.paidBy} onChange={(id) => update('paidBy', id)} />
+        </FieldWrapper>
+      )}
+      {travelers.length > 1 && (
+        <FieldWrapper label="Μοιράστηκε ανάμεσα σε">
+          <ChipSelect options={travelers.map((t) => ({ id: t.id, label: t.name }))} value={expense.splitAmong} onChange={toggleSplit} multi />
         </FieldWrapper>
       )}
 
-      <DateField label="Ημερομηνία" date={expense.date} onChange={(d) => update('date', d)} minDate={trip.startDate} maxDate={trip.endDate} />
-
-      {travelers.length > 0 && (
-        <>
-          <FieldWrapper label="Πλήρωσε">
-            <ChipSelect options={travelers.map((t) => ({ id: t.id, label: t.name }))} value={expense.paidBy} onChange={(id) => update('paidBy', id)} />
-          </FieldWrapper>
-          <FieldWrapper label="Μοιράστηκε ανάμεσα σε">
-            <ChipSelect options={travelers.map((t) => ({ id: t.id, label: t.name }))} value={expense.splitAmong} onChange={toggleSplit} multi />
-          </FieldWrapper>
-        </>
-      )}
-
-      <TextField label="Σύνδεσμος" value={expense.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
-      <TextAreaField label="Σημείωση" value={expense.note ?? ''} onChange={(e) => update('note', e.target.value)} />
+      <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
+      {showMore && <TextField label="Σύνδεσμος απόδειξης" value={expense.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />}
     </Modal>
   );
 }

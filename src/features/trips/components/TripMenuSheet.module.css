@@ -1,0 +1,21 @@
+.row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 15px 0;
+  border: none;
+  background: none;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.96875rem; /* 15.5px */
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row[data-danger='true'] {
+  color: var(--color-rust);
+}

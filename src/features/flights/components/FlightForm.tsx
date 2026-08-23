@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FLIGHT_STATUSES } from '../../../config/constants';
+import { useToast } from '../../../app/providers/ToastProvider';
 import { Button } from '../../../shared/components/Button';
 import { DateTimeField } from '../../../shared/components/DateTimeField';
 import { FieldRow, MoreToggle, TextField } from '../../../shared/components/Field';
@@ -33,6 +34,7 @@ const emptyFlight = (): Flight => ({
 });
 
 export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormProps) {
+  const { showToast } = useToast();
   const [flight, setFlight] = useState<Flight>(initial ?? emptyFlight());
   const [showMore, setShowMore] = useState(Boolean(initial?.terminal || initial?.gate || initial?.bookingRef || initial?.link));
 
@@ -42,12 +44,23 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
   const arrTzKnown = Boolean(lookupAirportTimezone(flight.arrAirport || ''));
   const depTz = resolveTimezone(flight.depAirport || '', flight.depTimezoneOverride);
   const arrTz = resolveTimezone(flight.arrAirport || '', flight.arrTimezoneOverride);
+  const hasUnknownAirport = Boolean(flight.depAirport && !depTzKnown) || Boolean(flight.arrAirport && !arrTzKnown);
 
   const timeCheck = flight.depDate && flight.depTime && flight.arrDate && flight.arrTime ? checkFlightTimeOrder(flight) : null;
 
-  const canSave = flight.airline.trim() && flight.flightNumber.trim() && flight.depAirport.trim() && flight.arrAirport.trim() && flight.depDate && flight.depTime && flight.arrDate && flight.arrTime;
-
   const handleSave = () => {
+    if (!flight.flightNumber.trim() || !flight.depAirport.trim() || !flight.arrAirport.trim()) {
+      showToast('Λείπουν στοιχεία πτήσης — αριθμός, αναχώρηση, άφιξη.', { variant: 'error' });
+      return;
+    }
+    if (!flight.depDate || !flight.depTime || !flight.arrDate || !flight.arrTime) {
+      showToast('Λείπουν στοιχεία πτήσης — αριθμός, αναχώρηση, άφιξη.', { variant: 'error' });
+      return;
+    }
+    if (timeCheck && !timeCheck.unresolvedTimezone && !timeCheck.isValid) {
+      showToast('Η άφιξη πρέπει να είναι μετά την αναχώρηση (με βάση τις ζώνες ώρας).', { variant: 'error' });
+      return;
+    }
     if (flight.depTimezoneOverride) rememberAirportTimezone(flight.depAirport, flight.depTimezoneOverride);
     if (flight.arrTimezoneOverride) rememberAirportTimezone(flight.arrAirport, flight.arrTimezoneOverride);
     onSave(flight);
@@ -64,12 +77,27 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
               Διαγραφή
             </Button>
           )}
-          <Button variant="primary" disabled={!canSave} onClick={handleSave}>
+          <Button variant="primary" onClick={handleSave}>
             Αποθήκευση
           </Button>
         </>
       }
     >
+      {hasUnknownAirport && (
+        <div
+          style={{
+            background: 'var(--color-brass-soft)',
+            color: 'var(--color-brass)',
+            borderRadius: 'var(--radius-md)',
+            padding: '12px 14px',
+            fontSize: 'var(--fs-meta)',
+            marginBottom: 16,
+          }}
+        >
+          Ένα αεροδρόμιο δεν είναι στον πίνακα. Διάλεξε ζώνη ώρας χειροκίνητα — θα αποθηκευτεί για την επόμενη φορά.
+        </div>
+      )}
+
       <TextField
         label="Αριθμός πτήσης"
         autoFocus
@@ -96,7 +124,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
       {flight.depAirport && !depTzKnown && (
         <FieldRow>
           <div className={fieldStyles.field} style={{ flex: 1 }}>
-            <label className={fieldStyles.label}>Ζώνη ώρας αναχώρησης (άγνωστο αεροδρόμιο)</label>
+            <label className={fieldStyles.label}>Ζώνη ώρας αναχώρησης</label>
             <select
               className={fieldStyles.select}
               value={flight.depTimezoneOverride ?? ''}
@@ -130,7 +158,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
       {flight.arrAirport && !arrTzKnown && (
         <FieldRow>
           <div className={fieldStyles.field} style={{ flex: 1 }}>
-            <label className={fieldStyles.label}>Ζώνη ώρας άφιξης (άγνωστο αεροδρόμιο)</label>
+            <label className={fieldStyles.label}>Ζώνη ώρας άφιξης</label>
             <select
               className={fieldStyles.select}
               value={flight.arrTimezoneOverride ?? ''}
@@ -145,10 +173,6 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
             </select>
           </div>
         </FieldRow>
-      )}
-
-      {timeCheck && !timeCheck.unresolvedTimezone && !timeCheck.isValid && (
-        <p style={{ color: 'var(--color-rust)', fontSize: 13 }}>Η άφιξη πρέπει να είναι μετά την αναχώρηση.</p>
       )}
 
       <div className={fieldStyles.field}>

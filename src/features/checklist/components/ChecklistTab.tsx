@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { CHECKLIST_CATEGORIES } from '../../../config/constants';
-import { PresetChips } from '../../../shared/components/PresetChips';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import { generateId } from '../../../shared/lib/id';
+import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import type { Trip } from '../../trips/types';
 import { saveMasterTemplate } from '../lib/templates';
 import type { ChecklistItem } from '../types';
+import { AddChecklistItemSheet } from './AddChecklistItemSheet';
 import { CategorySection } from './CategorySection';
 import { TravelerTabs } from './TravelerTabs';
 import styles from './ChecklistTab.module.css';
@@ -18,7 +19,7 @@ interface ChecklistTabProps {
 export function ChecklistTab({ trip, updateTrip }: ChecklistTabProps) {
   const { showToast } = useToast();
   const [activeId, setActiveId] = useState(trip.travelers[0]?.id ?? '');
-  const [newItemText, setNewItemText] = useState('');
+  const [adding, setAdding] = useState(false);
 
   if (trip.travelers.length === 0) {
     return <p style={{ color: 'var(--color-text-faint)', padding: '16px 0' }}>Δεν υπάρχουν ταξιδιώτες.</p>;
@@ -42,20 +43,17 @@ export function ChecklistTab({ trip, updateTrip }: ChecklistTabProps) {
       checklistItems: t.checklistItems.map((i) => (i.id === id ? { ...i, done: !i.done } : i)),
     }));
 
-  const remove = (id: string) =>
-    void updateTrip((t) => ({ ...t, checklistItems: t.checklistItems.filter((i) => i.id !== id) }));
+  const remove = (id: string) => deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'checklistItems', id });
 
-  const addItem = (category: string) => {
-    const text = newItemText.trim();
-    if (!text) return;
-    const item: ChecklistItem = { id: generateId(), travelerId: activeTravelerId, text, category, quantity: 1, done: false };
+  const addItem = (values: Pick<ChecklistItem, 'text' | 'category' | 'quantity'>) => {
+    const item: ChecklistItem = { id: generateId(), travelerId: activeTravelerId, done: false, ...values };
     void updateTrip((t) => ({ ...t, checklistItems: [...t.checklistItems, item] }));
-    setNewItemText('');
+    setAdding(false);
   };
 
   const saveAsTemplate = () => {
     saveMasterTemplate(items);
-    showToast('Αποθηκεύτηκε ως πρότυπο', 'success');
+    showToast('Αποθηκεύτηκε ως πρότυπο.');
   };
 
   return (
@@ -66,37 +64,23 @@ export function ChecklistTab({ trip, updateTrip }: ChecklistTabProps) {
         <div className={styles.progressFill} style={{ width: `${progress}%` }} />
       </div>
 
-      {items.length === 0 && <p style={{ color: 'var(--color-text-faint)' }}>Δεν υπάρχουν αντικείμενα ακόμα.</p>}
+      {items.length === 0 && <EmptyState headline="Άδεια βαλίτσα" body="Πρόσθεσε αντικείμενα ή ξεκίνα από ένα πρότυπο." />}
 
       {[...byCategory.entries()].map(([category, categoryItems]) => (
         <CategorySection key={category} category={category} items={categoryItems} onToggle={toggle} onRemove={remove} />
       ))}
 
-      <div className={styles.addRow}>
-        <input
-          className={styles.addInput}
-          value={newItemText}
-          onChange={(e) => setNewItemText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && newItemText.trim()) {
-              e.preventDefault();
-              addItem('Λοιπά');
-            }
-          }}
-          placeholder="Νέο αντικείμενο…"
-        />
-      </div>
-      {newItemText.trim() && (
-        <div style={{ marginTop: 8 }}>
-          <PresetChips presets={CHECKLIST_CATEGORIES} onSelect={addItem} freeTextPlaceholder="Άλλη κατηγορία…" />
-        </div>
-      )}
+      <button type="button" className={styles.addButton} onClick={() => setAdding(true)}>
+        + Νέο αντικείμενο
+      </button>
 
       <div className={styles.footerActions}>
         <button type="button" className={styles.linkButton} onClick={saveAsTemplate}>
           Αποθήκευση ως πρότυπο
         </button>
       </div>
+
+      {adding && <AddChecklistItemSheet onClose={() => setAdding(false)} onSave={addItem} />}
     </div>
   );
 }

@@ -29,7 +29,7 @@ export function StopCard({ stop, travelers, overlapping, onOpen }: StopCardProps
         {travelerLabel}
         {durationLabel && ` · ${durationLabel}`}
       </div>
-      {overlapping && <div className={styles.warning}>Επικαλύπτεται με άλλη στάση</div>}
+      {overlapping && <div className={styles.warning}>Χρονική επικάλυψη με το επόμενο. Επιτρέπεται.</div>}
     </div>
   );
 }

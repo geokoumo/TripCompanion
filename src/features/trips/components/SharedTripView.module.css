@@ -1,0 +1,73 @@
+.screen {
+  min-height: 100vh;
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+.banner {
+  background: var(--color-brass-soft);
+  color: var(--color-brass);
+  text-align: center;
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header {
+  padding: var(--space-5) var(--space-5) 0;
+}
+
+.exitLink {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-body);
+  cursor: pointer;
+  margin-bottom: var(--space-3);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--fs-header-title);
+  font-weight: 600;
+}
+
+.dates {
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin-top: 4px;
+}
+
+.tabChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.tabChip {
+  font-size: var(--fs-chip);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-faint);
+  background: var(--color-bg);
+}
+
+.section {
+  padding: 0 var(--space-5);
+  margin-top: var(--space-6);
+}
+
+.sectionTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}

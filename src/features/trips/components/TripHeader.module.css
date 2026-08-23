@@ -29,20 +29,31 @@
 }
 
 .shareButton {
-  border: 1.5px solid var(--color-border-strong);
+  border: 1px solid var(--color-border);
   background: var(--color-surface-raised);
   border-radius: var(--radius-pill);
   padding: 8px 16px;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-chip);
   font-weight: 500;
+  cursor: pointer;
+}
+
+.menuButton {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-md);
   cursor: pointer;
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: var(--fs-header-title);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
 }
 
 .dates {

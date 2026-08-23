@@ -1,8 +1,8 @@
 .button {
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: var(--fs-base);
-  padding: 12px 20px;
+  font-size: var(--fs-button);
+  padding: 13px 20px;
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
@@ -27,7 +27,7 @@
 .button[data-variant='secondary'] {
   background: var(--color-surface-raised);
   color: var(--color-text);
-  border: 1.5px solid var(--color-border-strong);
+  border: 1px solid var(--color-border);
 }
 
 .button[data-variant='danger'] {
@@ -43,16 +43,16 @@
 
 .fab {
   position: fixed;
-  bottom: var(--space-6);
-  right: var(--space-5);
-  width: 56px;
-  height: 56px;
+  bottom: 46px;
+  right: 18px;
+  width: 54px;
+  height: 54px;
   border-radius: 999px;
   background: var(--color-rust);
   color: var(--color-text-on-accent);
   border: none;
   font-size: 1.75rem;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-elevated);
   cursor: pointer;
   z-index: 50;
 }

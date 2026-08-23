@@ -1,31 +1,40 @@
 import { Modal } from './Modal';
 import { Button } from './Button';
 
-interface ConfirmDialogProps {
-  title: string;
-  message: string;
-  confirmLabel?: string;
+interface DeleteConfirmSheetProps {
+  itemName: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-export function ConfirmDialog({ title, message, confirmLabel = 'Διαγραφή', onConfirm, onCancel }: ConfirmDialogProps) {
+/** The one delete-confirmation pattern used everywhere: flight, stay, stop, expense, trip. */
+export function DeleteConfirmSheet({ itemName, onConfirm, onCancel }: DeleteConfirmSheetProps) {
   return (
     <Modal
-      title={title}
+      title="Διαγραφή;"
       onClose={onCancel}
       footer={
-        <>
-          <Button variant="secondary" onClick={onCancel}>
-            Ακύρωση
-          </Button>
-          <Button variant="primary" onClick={onConfirm}>
-            {confirmLabel}
-          </Button>
-        </>
+        <Button variant="primary" onClick={onConfirm}>
+          Ναι, διαγραφή
+        </Button>
       }
     >
-      <p style={{ color: 'var(--color-text-muted)', paddingBottom: 16 }}>{message}</p>
+      <p style={{ color: 'var(--color-text)', paddingTop: 4 }}>
+        Θα διαγραφεί «{itemName}». Δεν επηρεάζονται άλλες καρτέλες.
+      </p>
+      <div
+        style={{
+          background: 'var(--color-rust-soft)',
+          color: 'var(--color-rust)',
+          borderRadius: 'var(--radius-md)',
+          padding: '12px 14px',
+          fontSize: 'var(--fs-meta)',
+          marginTop: 12,
+          marginBottom: 16,
+        }}
+      >
+        Η ενέργεια δεν αναιρείται από εδώ — θα έχεις όμως 5 δευτερόλεπτα «Αναίρεση» στο μήνυμα που ακολουθεί.
+      </div>
     </Modal>
   );
 }
