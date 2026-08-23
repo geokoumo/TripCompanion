@@ -17,10 +17,18 @@ interface DateFieldProps {
 export function DateField({ label, date, onChange, minDate, maxDate, error }: DateFieldProps) {
   const [open, setOpen] = useState(false);
 
+  const openPicker = () => {
+    // Blur whatever's focused (e.g. a text field with the keyboard still up)
+    // before mounting the picker sheet — otherwise on iOS the still-open
+    // keyboard can leave the new fixed-position sheet rendered offset.
+    (document.activeElement as HTMLElement | null)?.blur();
+    setOpen(true);
+  };
+
   return (
     <FieldWrapper label={label} error={error}>
       <div className={styles.row}>
-        <button type="button" className={styles.pill} onClick={() => setOpen(true)}>
+        <button type="button" className={styles.pill} onClick={openPicker}>
           {date ? formatDateShort(date) : 'Επίλεξε ημερομηνία'}
         </button>
       </div>

@@ -39,6 +39,12 @@
   font-weight: 600;
 }
 
+.amountUnknown {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-brass);
+}
+
 .originalAmount {
   font-family: var(--font-mono);
   font-size: 0.65625rem; /* 10.5px */

@@ -14,8 +14,13 @@ interface CategoriesViewProps {
 export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
   const spentByCategory = new Map<string, number>();
   let total = 0;
+  let unconvertedCount = 0;
   for (const expense of trip.expenses) {
     const amountHome = expenseAmountInHome(expense, trip.homeCurrency);
+    if (amountHome === null) {
+      unconvertedCount += 1;
+      continue;
+    }
     total += amountHome;
     spentByCategory.set(expense.categoryId, (spentByCategory.get(expense.categoryId) ?? 0) + amountHome);
   }
@@ -34,6 +39,11 @@ export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
         <div className={styles.totalValue}>
           {total.toFixed(2)} {trip.homeCurrency}
         </div>
+        {unconvertedCount > 0 && (
+          <div className={styles.unconvertedNote}>
+            {unconvertedCount === 1 ? '1 έξοδο' : `${unconvertedCount} έξοδα`} χωρίς ισοτιμία — δεν προσμετρήθηκε στο σύνολο.
+          </div>
+        )}
       </div>
 
       {trip.budgetCategories.map((category) => {

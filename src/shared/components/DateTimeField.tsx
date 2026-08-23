@@ -32,13 +32,21 @@ export function DateTimeField({
 }: DateTimeFieldProps) {
   const [open, setOpen] = useState<'date' | 'time' | null>(null);
 
+  const openPicker = (which: 'date' | 'time') => {
+    // Blur whatever's focused (e.g. a text field with the keyboard still up)
+    // before mounting the picker sheet — otherwise on iOS the still-open
+    // keyboard can leave the new fixed-position sheet rendered offset.
+    (document.activeElement as HTMLElement | null)?.blur();
+    setOpen(which);
+  };
+
   return (
     <FieldWrapper label={label} caption={caption} error={error}>
       <div className={styles.row}>
-        <button type="button" className={styles.pill} onClick={() => setOpen('date')}>
+        <button type="button" className={styles.pill} onClick={() => openPicker('date')}>
           {date ? formatDateShort(date) : 'Επίλεξε ημερομηνία'}
         </button>
-        <button type="button" className={styles.pill} onClick={() => setOpen('time')}>
+        <button type="button" className={styles.pill} onClick={() => openPicker('time')}>
           {time || '--:--'}
         </button>
       </div>

@@ -59,7 +59,8 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
   };
 
   const needsRate = expense.currency !== trip.homeCurrency;
-  const canSave = expense.amount > 0 && expense.categoryId && expense.date && expense.paidBy && expense.splitAmong.length > 0;
+  const hasRate = !needsRate || (expense.exchangeRateToHome !== undefined && expense.exchangeRateToHome > 0);
+  const canSave = expense.amount > 0 && expense.categoryId && expense.date && expense.paidBy && expense.splitAmong.length > 0 && hasRate;
 
   return (
     <Modal
@@ -98,6 +99,7 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
           value={expense.exchangeRateToHome ?? ''}
           onChange={(e) => update('exchangeRateToHome', e.target.value ? Number(e.target.value) : undefined)}
           placeholder="π.χ. 1.08"
+          error={!hasRate ? 'Χρειάζεται ισοτιμία πριν αποθηκευτεί το έξοδο.' : undefined}
         />
       )}
 

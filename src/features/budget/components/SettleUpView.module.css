@@ -70,3 +70,9 @@
   margin-top: var(--space-5);
   line-height: 1.4;
 }
+
+.unconvertedNote {
+  color: var(--color-brass);
+  font-size: var(--fs-meta);
+  margin-top: var(--space-2);
+}

@@ -61,7 +61,7 @@
   --screen-padding-top: 58px;
 
   /* Typography families */
-  --font-display: 'Fraunces', Georgia, serif;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-body: 'Work Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
 

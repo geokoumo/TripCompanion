@@ -21,6 +21,7 @@ function BudgetReadOnly({ trip }: { trip: Trip }) {
   let total = 0;
   for (const expense of trip.expenses) {
     const amountHome = expenseAmountInHome(expense, trip.homeCurrency);
+    if (amountHome === null) continue;
     total += amountHome;
     spentByCategory.set(expense.categoryId, (spentByCategory.get(expense.categoryId) ?? 0) + amountHome);
   }

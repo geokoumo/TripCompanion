@@ -66,9 +66,13 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
               </div>
             </div>
             <div className={styles.amountBlock}>
-              <span className={styles.amount}>
-                {amountHome.toFixed(2)} {trip.homeCurrency}
-              </span>
+              {amountHome === null ? (
+                <span className={styles.amountUnknown}>χωρίς ισοτιμία</span>
+              ) : (
+                <span className={styles.amount}>
+                  {amountHome.toFixed(2)} {trip.homeCurrency}
+                </span>
+              )}
               {differsCurrency && (
                 <span className={styles.originalAmount}>
                   {expense.amount.toFixed(2)} {expense.currency}

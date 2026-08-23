@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import styles from './Modal.module.css';
 
 interface ModalProps {
@@ -9,6 +10,8 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, children, footer }: ModalProps) {
+  useBodyScrollLock();
+
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">

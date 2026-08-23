@@ -6,11 +6,16 @@ import styles from './SettleUpView.module.css';
 
 export function SettleUpView({ trip }: { trip: Trip }) {
   const travelerIds = trip.travelers.map((t) => t.id);
-  const expenses = trip.expenses.map((e) => ({
-    amountHome: expenseAmountInHome(e, trip.homeCurrency),
-    paidBy: e.paidBy,
-    splitAmong: e.splitAmong,
-  }));
+  const expenses: { amountHome: number; paidBy: string; splitAmong: string[] }[] = [];
+  let unconvertedCount = 0;
+  for (const e of trip.expenses) {
+    const amountHome = expenseAmountInHome(e, trip.homeCurrency);
+    if (amountHome === null) {
+      unconvertedCount += 1;
+      continue;
+    }
+    expenses.push({ amountHome, paidBy: e.paidBy, splitAmong: e.splitAmong });
+  }
 
   const { balances, payments } = computeSettleUp(travelerIds, expenses);
 
@@ -69,6 +74,11 @@ export function SettleUpView({ trip }: { trip: Trip }) {
           ? `Τα ποσά υπολογίζονται από τα καταχωρημένα έξοδα με την ισοτιμία που όρισες χειροκίνητα (1 ${foreignExpense.currency} = ${foreignExpense.exchangeRateToHome} ${trip.homeCurrency}). Άλλαξέ την επεξεργαζόμενος/η το έξοδο.`
           : `Τα ποσά υπολογίζονται από τα καταχωρημένα έξοδα στο νόμισμα ${trip.homeCurrency}.`}
       </p>
+      {unconvertedCount > 0 && (
+        <p className={styles.unconvertedNote}>
+          {unconvertedCount === 1 ? '1 έξοδο' : `${unconvertedCount} έξοδα`} χωρίς ισοτιμία δεν προσμετρήθηκαν εδώ.
+        </p>
+      )}
     </div>
   );
 }

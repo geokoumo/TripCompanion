@@ -21,6 +21,10 @@ export function TripsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
+  // Assigned every render (cheap — just a closure swap) so it's always
+  // current before any effect below runs, including the initial-load one.
+  repository.onRecordError = (message: string) => showToast(message, { variant: 'error' });
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
