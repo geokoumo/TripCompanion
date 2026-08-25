@@ -93,6 +93,11 @@ export function StayForm({ initial, existingStays, onClose, onSave, onDelete }: 
         onTimeChange={(t) => update('checkoutTime', t)}
         minDate={stay.checkinDate || undefined}
       />
+      {hasFullDates && !datesValid && (
+        <p style={{ color: 'var(--color-rust)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
+          Το check-out πρέπει να είναι μετά ή ίδιο με το check-in.
+        </p>
+      )}
 
       {overlapsLive && (
         <div

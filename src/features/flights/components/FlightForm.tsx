@@ -155,6 +155,11 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         onTimeChange={(t) => update('arrTime', t)}
         caption={arrTz ? timezoneDisplayLabel(arrTz) : undefined}
       />
+      {timeCheck && !timeCheck.unresolvedTimezone && !timeCheck.isValid && (
+        <p style={{ color: 'var(--color-rust)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
+          Η άφιξη πρέπει να είναι μετά την αναχώρηση (με βάση τις ζώνες ώρας).
+        </p>
+      )}
       {flight.arrAirport && !arrTzKnown && (
         <FieldRow>
           <div className={fieldStyles.field} style={{ flex: 1 }}>

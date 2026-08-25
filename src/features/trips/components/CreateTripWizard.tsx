@@ -224,7 +224,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
               </button>
             </div>
           ))}
-          <div className={styles.addRow}>
+          <div className={styles.travelerAddRow}>
             <TextField
               label="Όνομα ταξιδιώτη"
               value={travelerName}
@@ -237,7 +237,12 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
               }}
               placeholder="π.χ. Μαρία"
             />
-            <Button variant="primary" onClick={addTraveler}>
+            <Button
+              variant="primary"
+              style={{ flex: '0 0 auto', width: 48, height: 48, padding: 0, marginBottom: 'var(--space-4)' }}
+              onClick={addTraveler}
+              aria-label="Προσθήκη ταξιδιώτη"
+            >
               +
             </Button>
           </div>
