@@ -2,6 +2,8 @@ import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { FlightCard } from '../../flights/components/FlightCard';
 import { StayCard } from '../../stays/components/StayCard';
 import { expenseAmountInHome } from '../../budget/lib/currency';
+import { AutoPulledEntryCard } from '../../itinerary/components/AutoPulledEntryCard';
+import { buildAutoPulledEntries } from '../../itinerary/lib/autoPulledEntries';
 import { formatDateNoYear, formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { TRIP_TABS, type Trip, type TripTab } from '../types';
@@ -73,17 +75,37 @@ function ChecklistReadOnly({ trip }: { trip: Trip }) {
   );
 }
 
-function ItineraryReadOnly({ trip }: { trip: Trip }) {
-  const sorted = [...trip.itineraryStops].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  return (
-    <>
-      {sorted.map((stop) => (
-        <div key={stop.id} style={{ borderLeft: '3px solid var(--color-brass)', padding: '8px 12px', marginBottom: 8, background: 'var(--color-surface-raised)', borderRadius: 8 }}>
+// The owner's own itinerary tab merges in flight/stay departures, arrivals,
+// check-ins and check-outs as read-only "auto-pulled" entries (see
+// ItineraryTab.tsx). The shared view must do the same — otherwise a
+// recipient's itinerary silently omits every flight/stay, even though those
+// tabs were explicitly shared. Auto-pulled entries only appear here when
+// their source tab (flights/stays) was itself included in the share, so a
+// sender who excluded flights doesn't leak flight details via the itinerary.
+function ItineraryReadOnly({ trip, includedTabs }: { trip: Trip; includedTabs: Set<TripTab> }) {
+  const autoPulled = buildAutoPulledEntries(includedTabs.has('flights') ? trip.flights : [], includedTabs.has('stays') ? trip.stays : []);
+
+  const rows = [
+    ...autoPulled.map((entry) => ({ key: entry.id, date: entry.date, time: entry.time, node: <AutoPulledEntryCard entry={entry} /> })),
+    ...trip.itineraryStops.map((stop) => ({
+      key: stop.id,
+      date: stop.date,
+      time: stop.time,
+      node: (
+        <div style={{ borderLeft: '3px solid var(--color-brass)', padding: '8px 12px', marginBottom: 8, background: 'var(--color-surface-raised)', borderRadius: 8 }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-text-muted)' }}>
             {formatDateNoYear(stop.date)} · {stop.time}
           </div>
           <div style={{ fontWeight: 600 }}>{stop.title}</div>
         </div>
+      ),
+    })),
+  ].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+  return (
+    <>
+      {rows.map((row) => (
+        <div key={row.key}>{row.node}</div>
       ))}
     </>
   );
@@ -108,6 +130,8 @@ export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () 
 
   const range = getTripDateRange(trip.legs, trip.flights);
   const included = new Set(trip.shareSettings.includedTabs);
+  const hasItineraryContent =
+    trip.itineraryStops.length > 0 || (included.has('flights') && trip.flights.length > 0) || (included.has('stays') && trip.stays.length > 0);
 
   return (
     <div className={styles.screen}>
@@ -151,10 +175,10 @@ export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () 
         </div>
       )}
 
-      {included.has('itinerary') && trip.itineraryStops.length > 0 && (
+      {included.has('itinerary') && hasItineraryContent && (
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Πρόγραμμα</div>
-          <ItineraryReadOnly trip={trip} />
+          <ItineraryReadOnly trip={trip} includedTabs={included} />
         </div>
       )}
 
