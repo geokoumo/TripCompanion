@@ -74,3 +74,60 @@
   margin-top: 2px;
 }
 
+.flightSnapshotTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flightNumberChip {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--fs-eyebrow);
+  color: var(--color-rust);
+  background: var(--color-rust-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+}
+
+.flightRoute {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.flightAirportCodeRight {
+  text-align: right;
+}
+
+.flightAirportCode {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.flightTime {
+  font-family: var(--font-mono);
+  font-size: var(--fs-data);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.flightRouteMiddle {
+  flex: 1;
+  position: relative;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.flightRouteArrow {
+  position: absolute;
+  right: -3px;
+  top: -6px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+

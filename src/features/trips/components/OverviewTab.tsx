@@ -65,12 +65,28 @@ export function OverviewTab({ trip }: { trip: Trip }) {
 
       {nextFlight && (
         <div className={styles.snapshotCard} data-tone="rust">
-          <div className={styles.snapshotLabel}>Επόμενη πτήση</div>
-          <div className={styles.snapshotTitle}>
-            {nextFlight.airline} {nextFlight.flightNumber} · {nextFlight.depAirport} → {nextFlight.arrAirport}
+          <div className={styles.flightSnapshotTop}>
+            <div className={styles.snapshotLabel}>Επόμενη πτήση</div>
+            <span className={styles.flightNumberChip}>{nextFlight.flightNumber}</span>
+          </div>
+          <div className={styles.flightRoute}>
+            <div>
+              <div className={styles.flightAirportCode}>{nextFlight.depAirport}</div>
+              <div className={styles.flightTime}>{nextFlight.depTime}</div>
+            </div>
+            <div className={styles.flightRouteMiddle}>
+              <div className={styles.flightRouteLine} />
+              <span className={styles.flightRouteArrow} aria-hidden="true">
+                ▶
+              </span>
+            </div>
+            <div className={styles.flightAirportCodeRight}>
+              <div className={styles.flightAirportCode}>{nextFlight.arrAirport}</div>
+              <div className={styles.flightTime}>{nextFlight.arrTime}</div>
+            </div>
           </div>
           <div className={styles.snapshotSubtitle}>
-            {formatDateNoYear(nextFlight.depDate)} · {nextFlight.depTime} · {statusLabel(nextFlight.status).toLowerCase()}
+            {nextFlight.airline} · {formatDateNoYear(nextFlight.depDate)} · {statusLabel(nextFlight.status).toLowerCase()}
           </div>
         </div>
       )}

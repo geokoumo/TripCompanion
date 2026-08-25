@@ -7,11 +7,36 @@
   cursor: pointer;
 }
 
+.card[data-cancelled='true'] {
+  opacity: 0.72;
+}
+
 .topRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-3);
+}
+
+.airlineGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.airlineBadge {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .airlineLine {
@@ -64,10 +89,42 @@
 }
 
 .durationLine {
+  position: relative;
   width: 48px;
   height: 1px;
   background: var(--color-border-strong);
   margin: 4px auto;
+}
+
+.durationDot {
+  position: absolute;
+  top: -2.5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-rust);
+}
+
+.card[data-cancelled='true'] .durationDot {
+  background: var(--color-text-muted);
+}
+
+.durationDot[data-side='left'] {
+  left: -2.5px;
+}
+
+.durationDot[data-side='right'] {
+  right: -2.5px;
+}
+
+.planeGlyph {
+  font-size: 11px;
+  color: var(--color-rust);
+  line-height: 1;
+}
+
+.card[data-cancelled='true'] .planeGlyph {
+  color: var(--color-text-muted);
 }
 
 .nextDay {
@@ -82,8 +139,22 @@
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
   font-family: var(--font-mono);
-  font-size: var(--fs-field-label);
-  color: var(--color-text-muted);
+  font-size: var(--fs-data);
+  color: var(--color-text);
   display: flex;
+  align-items: baseline;
   gap: var(--space-4);
+}
+
+.footerItem[data-align='end'] {
+  margin-left: auto;
+}
+
+.footerLabel {
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-right: 5px;
 }

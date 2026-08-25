@@ -16,12 +16,16 @@ export function FlightCard({ flight, onOpen }: { flight: Flight; onOpen: () => v
   const duration = computeFlightDuration(flight);
   const statusLabel = FLIGHT_STATUSES.find((s) => s.id === flight.status)?.label ?? flight.status;
   const nextDay = flight.arrDate > flight.depDate;
+  const isCancelled = flight.status === 'cancelled';
 
   return (
-    <div className={styles.card} onClick={onOpen}>
+    <div className={styles.card} data-cancelled={isCancelled} onClick={onOpen}>
       <div className={styles.topRow}>
-        <span className={styles.airlineLine}>
-          {flight.airline} · {flight.flightNumber}
+        <span className={styles.airlineGroup}>
+          <span className={styles.airlineBadge}>{flight.airline.slice(0, 2).toUpperCase()}</span>
+          <span className={styles.airlineLine}>
+            {flight.airline} · {flight.flightNumber}
+          </span>
         </span>
         <StampBadge tone={STATUS_TONE[flight.status] ?? 'gray'}>{statusLabel}</StampBadge>
       </div>
@@ -35,7 +39,13 @@ export function FlightCard({ flight, onOpen }: { flight: Flight; onOpen: () => v
         </div>
         <div className={styles.middle}>
           {duration && <div className={styles.duration}>{duration.label}</div>}
-          <div className={styles.durationLine} />
+          <div className={styles.durationLine}>
+            <span className={styles.durationDot} data-side="left" />
+            <span className={styles.durationDot} data-side="right" />
+          </div>
+          <div className={styles.planeGlyph} aria-hidden="true">
+            ✈
+          </div>
           {nextDay && <div className={styles.nextDay}>+1 μέρα</div>}
         </div>
         <div className={styles.alignRight}>
@@ -48,9 +58,24 @@ export function FlightCard({ flight, onOpen }: { flight: Flight; onOpen: () => v
       </div>
       {(flight.terminal || flight.gate || flight.bookingRef) && (
         <div className={styles.footer}>
-          {flight.terminal && <span>Τερμ. {flight.terminal}</span>}
-          {flight.gate && <span>Πύλη {flight.gate}</span>}
-          {flight.bookingRef && <span>{flight.bookingRef}</span>}
+          {flight.terminal && (
+            <span className={styles.footerItem}>
+              <span className={styles.footerLabel}>Τερμ.</span>
+              {flight.terminal}
+            </span>
+          )}
+          {flight.gate && (
+            <span className={styles.footerItem}>
+              <span className={styles.footerLabel}>Gate</span>
+              {flight.gate}
+            </span>
+          )}
+          {flight.bookingRef && (
+            <span className={styles.footerItem} data-align="end">
+              <span className={styles.footerLabel}>Κωδ.</span>
+              {flight.bookingRef}
+            </span>
+          )}
         </div>
       )}
     </div>
