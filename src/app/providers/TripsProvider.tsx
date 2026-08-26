@@ -43,30 +43,35 @@ export function TripsProvider({ children }: { children: ReactNode }) {
 
   const saveTrip = useCallback(
     async (trip: Trip) => {
+      const previous = trips;
+      setTrips((prev) => {
+        const exists = prev.some((t) => t.id === trip.id);
+        return exists ? prev.map((t) => (t.id === trip.id ? trip : t)) : [...prev, trip];
+      });
       try {
         await repository.saveTrip(trip);
-        setTrips((prev) => {
-          const exists = prev.some((t) => t.id === trip.id);
-          return exists ? prev.map((t) => (t.id === trip.id ? trip : t)) : [...prev, trip];
-        });
       } catch {
+        setTrips(previous);
         showToast('Η αποθήκευση απέτυχε. Δοκίμασε ξανά.', { variant: 'error' });
         throw new Error('save-failed');
       }
     },
-    [showToast],
+    [trips, showToast],
   );
 
   const deleteTrip = useCallback(
     async (id: string) => {
+      const previous = trips;
+      setTrips((prev) => prev.filter((t) => t.id !== id));
       try {
         await repository.deleteTrip(id);
-        setTrips((prev) => prev.filter((t) => t.id !== id));
       } catch {
+        setTrips(previous);
         showToast('Η διαγραφή απέτυχε. Δοκίμασε ξανά.', { variant: 'error' });
+        throw new Error('delete-failed');
       }
     },
-    [showToast],
+    [trips, showToast],
   );
 
   return <TripsContext.Provider value={{ trips, loading, refresh, saveTrip, deleteTrip }}>{children}</TripsContext.Provider>;

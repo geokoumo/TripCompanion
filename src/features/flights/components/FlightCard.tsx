@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { AIRPORT_CITY_NAMES, FLIGHT_STATUSES } from '../../../config/constants';
 import { StampBadge } from '../../../shared/components/StampBadge';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
@@ -12,14 +13,14 @@ const STATUS_TONE: Record<string, 'teal' | 'brass' | 'rust' | 'gray'> = {
   landed: 'gray',
 };
 
-export function FlightCard({ flight, onOpen }: { flight: Flight; onOpen: () => void }) {
+function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flight: Flight) => void }) {
   const duration = computeFlightDuration(flight);
   const statusLabel = FLIGHT_STATUSES.find((s) => s.id === flight.status)?.label ?? flight.status;
   const nextDay = flight.arrDate > flight.depDate;
   const isCancelled = flight.status === 'cancelled';
 
   return (
-    <div className={styles.card} data-cancelled={isCancelled} onClick={onOpen}>
+    <div className={styles.card} data-cancelled={isCancelled} onClick={() => onOpen(flight)}>
       <div className={styles.topRow}>
         <span className={styles.airlineGroup}>
           <span className={styles.airlineBadge}>{flight.airline.slice(0, 2).toUpperCase()}</span>
@@ -81,3 +82,5 @@ export function FlightCard({ flight, onOpen }: { flight: Flight; onOpen: () => v
     </div>
   );
 }
+
+export const FlightCard = memo(FlightCardComponent);

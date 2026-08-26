@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { dayNumber, weekdayShort, todayStr, formatDateNoYear } from '../../../shared/lib/dateFormat';
@@ -65,6 +65,8 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
     }
   }
 
+  const openStop = useCallback((stop: ItineraryStop) => setEditingStop(stop), []);
+
   const legsForDay = trip.legs.filter((leg) => selectedDate >= leg.startDate && selectedDate <= leg.endDate);
   const legHeaderLabel = legsForDay
     .map((l) => l.city || 'ΧΩΡΙΣ ΠΟΛΗ')
@@ -130,7 +132,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
         <AutoPulledEntryCard key={entry.id} entry={entry} />
       ))}
       {stopsForDay.map((stop) => (
-        <StopCard key={stop.id} stop={stop} travelers={trip.travelers} overlapping={overlapIds.has(stop.id)} onOpen={() => setEditingStop(stop)} />
+        <StopCard key={stop.id} stop={stop} travelers={trip.travelers} overlapping={overlapIds.has(stop.id)} onOpen={openStop} />
       ))}
       {autoPulledForDay.length === 0 && stopsForDay.length === 0 && (
         <div className={styles.emptyDay}>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
+import { downloadTripAsJson } from '../lib/tripFile';
 import { TRIP_TABS, type Trip, type TripTab } from '../types';
 import { ShareSheet } from './ShareSheet';
 import { TripMenuSheet } from './TripMenuSheet';
@@ -74,6 +75,7 @@ export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveTogg
           onClose={() => setMenuOpen(false)}
           onShare={() => setShareOpen(true)}
           onDuplicate={onDuplicate}
+          onExport={() => downloadTripAsJson(trip)}
           onArchiveToggle={onArchiveToggle}
           onDelete={onDeleteRequest}
         />

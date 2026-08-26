@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { useTrips } from '../hooks/useTrips';
+import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
 import type { Trip } from '../types';
 import { CreateTripWizard } from './CreateTripWizard';
 import { ShareSheet } from './ShareSheet';
@@ -25,9 +26,32 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const [shareTrip, setShareTrip] = useState<Trip | null>(null);
   const [duplicateSource, setDuplicateSource] = useState<Trip | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Trip | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const visible = trips.filter((t) => (filter === 'active' ? !t.archived : t.archived));
   const todayLabel = formatDateShort(new Date().toISOString().slice(0, 10));
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    let imported: Trip;
+    try {
+      const text = await file.text();
+      imported = parseImportedTrip(text);
+    } catch {
+      showToast('Το αρχείο δεν είναι έγκυρο ταξίδι.', { variant: 'error' });
+      return;
+    }
+
+    try {
+      await saveTrip(imported);
+      showToast('Το ταξίδι εισήχθη.');
+    } catch {
+      // saveTrip already surfaced its own error toast
+    }
+  };
 
   const confirmDeleteTrip = () => {
     if (!pendingDelete) return;
@@ -52,6 +76,10 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
         <button type="button" className={styles.filterChip} data-active={filter === 'archived'} onClick={() => setFilter('archived')}>
           Αρχείο
         </button>
+        <button type="button" className={styles.importButton} onClick={() => importInputRef.current?.click()}>
+          Εισαγωγή ταξιδιού
+        </button>
+        <input ref={importInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={(e) => void handleImportFile(e)} />
       </div>
 
       {!loading && visible.length === 0 && (
@@ -87,6 +115,7 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
           onClose={() => setMenuTrip(null)}
           onShare={() => setShareTrip(menuTrip)}
           onDuplicate={() => setDuplicateSource(menuTrip)}
+          onExport={() => downloadTripAsJson(menuTrip)}
           onArchiveToggle={() => void saveTrip({ ...menuTrip, archived: !menuTrip.archived })}
           onDelete={() => setPendingDelete(menuTrip)}
         />

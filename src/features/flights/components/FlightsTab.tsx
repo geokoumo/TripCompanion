@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { Trip } from '../../trips/types';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
@@ -20,6 +20,7 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
   const [pendingDelete, setPendingDelete] = useState<Flight | null>(null);
 
   const sorted = [...trip.flights].sort((a, b) => (a.depDate + a.depTime).localeCompare(b.depDate + b.depTime));
+  const openFlight = useCallback((flight: Flight) => setEditing(flight), []);
 
   const save = async (flight: Flight) => {
     try {
@@ -51,7 +52,7 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
         </p>
       )}
       {sorted.map((flight) => (
-        <FlightCard key={flight.id} flight={flight} onOpen={() => setEditing(flight)} />
+        <FlightCard key={flight.id} flight={flight} onOpen={openFlight} />
       ))}
 
       <Fab onClick={() => setCreating(true)} />

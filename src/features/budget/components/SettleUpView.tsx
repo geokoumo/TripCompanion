@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { AvatarChip } from '../../../shared/components/AvatarChip';
 import type { Trip } from '../../trips/types';
 import { expenseAmountInHome } from '../lib/currency';
@@ -5,19 +6,21 @@ import { computeSettleUp } from '../lib/settleUp';
 import styles from './SettleUpView.module.css';
 
 export function SettleUpView({ trip }: { trip: Trip }) {
-  const travelerIds = trip.travelers.map((t) => t.id);
-  const expenses: { amountHome: number; paidBy: string; splitAmong: string[] }[] = [];
-  let unconvertedCount = 0;
-  for (const e of trip.expenses) {
-    const amountHome = expenseAmountInHome(e, trip.homeCurrency);
-    if (amountHome === null) {
-      unconvertedCount += 1;
-      continue;
+  const { balances, payments, unconvertedCount } = useMemo(() => {
+    const travelerIds = trip.travelers.map((t) => t.id);
+    const expenses: { amountHome: number; paidBy: string; splitAmong: string[] }[] = [];
+    let unconvertedCount = 0;
+    for (const e of trip.expenses) {
+      const amountHome = expenseAmountInHome(e, trip.homeCurrency);
+      if (amountHome === null) {
+        unconvertedCount += 1;
+        continue;
+      }
+      expenses.push({ amountHome, paidBy: e.paidBy, splitAmong: e.splitAmong });
     }
-    expenses.push({ amountHome, paidBy: e.paidBy, splitAmong: e.splitAmong });
-  }
-
-  const { balances, payments } = computeSettleUp(travelerIds, expenses);
+    const { balances, payments } = computeSettleUp(travelerIds, expenses);
+    return { balances, payments, unconvertedCount };
+  }, [trip.expenses, trip.travelers, trip.homeCurrency]);
 
   const foreignExpense = trip.expenses.find((e) => e.currency !== trip.homeCurrency && e.exchangeRateToHome);
 

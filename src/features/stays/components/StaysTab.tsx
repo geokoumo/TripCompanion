@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
@@ -39,6 +39,8 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
     }
   }
 
+  const openStay = useCallback((stay: Stay) => setEditing(stay), []);
+
   const save = async (stay: Stay) => {
     try {
       await updateTrip((t) => {
@@ -69,7 +71,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
         </p>
       )}
       {sorted.map((stay) => (
-        <StayCard key={stay.id} stay={stay} overlapping={overlapIds.has(stay.id)} onOpen={() => setEditing(stay)} />
+        <StayCard key={stay.id} stay={stay} overlapping={overlapIds.has(stay.id)} onOpen={openStay} />
       ))}
 
       <Fab onClick={() => setCreating(true)} />

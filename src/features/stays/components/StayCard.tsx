@@ -1,14 +1,15 @@
+import { memo } from 'react';
 import { StampBadge } from '../../../shared/components/StampBadge';
 import { daysBetween, formatDateNoYear } from '../../../shared/lib/dateFormat';
 import type { Stay } from '../types';
 import styles from './StayCard.module.css';
 
-export function StayCard({ stay, onOpen, overlapping }: { stay: Stay; onOpen: () => void; overlapping: boolean }) {
+function StayCardComponent({ stay, onOpen, overlapping }: { stay: Stay; onOpen: (stay: Stay) => void; overlapping: boolean }) {
   const nights = daysBetween(stay.checkinDate, stay.checkoutDate);
   const nightsLabel = nights === 1 ? '1 νύχτα' : `${nights} νύχτες`;
 
   return (
-    <div className={styles.card} onClick={onOpen}>
+    <div className={styles.card} onClick={() => onOpen(stay)}>
       <div className={styles.topRow}>
         <div>
           <div className={styles.name}>{stay.name}</div>
@@ -47,3 +48,5 @@ export function StayCard({ stay, onOpen, overlapping }: { stay: Stay; onOpen: ()
     </div>
   );
 }
+
+export const StayCard = memo(StayCardComponent);
