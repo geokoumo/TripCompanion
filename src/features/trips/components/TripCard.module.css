@@ -21,13 +21,6 @@
   line-height: 1.2;
 }
 
-.badgeRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
 .menuButton {
   width: 26px;
   height: 26px;
@@ -39,21 +32,16 @@
   flex-shrink: 0;
 }
 
-.dates {
+.subtitle {
   font-family: var(--font-mono);
   font-size: 0.71875rem; /* 11.5px */
   color: var(--color-text-muted);
   margin-top: var(--space-2);
 }
 
-.destRow {
+.footerRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: var(--space-3);
-}
-
-.destLabel {
-  color: var(--color-text-muted);
-  font-size: var(--fs-meta);
 }

@@ -17,33 +17,29 @@ export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
   const status = trip.archived ? 'completed' : getTripStatus(range);
   const tone = trip.archived ? 'gray' : status === 'ongoing' || status === 'today' ? 'teal' : status === 'completed' ? 'gray' : 'rust';
 
+  const dest = destinationLabel(trip.legs);
+  const subtitle = range ? `${formatDateShort(range.startDate)} – ${formatDateShort(range.endDate)}${dest ? ` · ${dest}` : ''}` : dest;
+
   return (
     <div className={styles.card} onClick={onOpen}>
       <div className={styles.topRow}>
         <span className={styles.title}>{trip.title}</span>
-        <span className={styles.badgeRow}>
-          <StampBadge tone={tone}>{statusStampLabel(trip)}</StampBadge>
-          <button
-            type="button"
-            className={styles.menuButton}
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenMenu();
-            }}
-            aria-label="Περισσότερα"
-          >
-            ···
-          </button>
-        </span>
+        <StampBadge tone={tone}>{statusStampLabel(trip)}</StampBadge>
       </div>
-      {range && (
-        <div className={styles.dates}>
-          {formatDateShort(range.startDate)} – {formatDateShort(range.endDate)}
-        </div>
-      )}
-      <div className={styles.destRow}>
-        <span className={styles.destLabel}>{destinationLabel(trip.legs)}</span>
+      {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
+      <div className={styles.footerRow}>
         <AvatarRow travelers={trip.travelers} />
+        <button
+          type="button"
+          className={styles.menuButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenMenu();
+          }}
+          aria-label="Περισσότερα"
+        >
+          ···
+        </button>
       </div>
     </div>
   );

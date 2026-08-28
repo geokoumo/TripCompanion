@@ -92,7 +92,7 @@ function ItineraryReadOnly({ trip, includedTabs }: { trip: Trip; includedTabs: S
       date: stop.date,
       time: stop.time,
       node: (
-        <div style={{ borderLeft: '3px solid var(--color-brass)', padding: '8px 12px', marginBottom: 8, background: 'var(--color-surface-raised)', borderRadius: 8 }}>
+        <div style={{ borderLeft: '3px solid var(--color-border-strong)', padding: '8px 12px', marginBottom: 8, background: 'var(--color-surface-raised)', borderRadius: 8 }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-text-muted)' }}>
             {formatDateNoYear(stop.date)} · {stop.time}
           </div>

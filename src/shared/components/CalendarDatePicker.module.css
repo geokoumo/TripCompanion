@@ -76,5 +76,5 @@
 }
 
 .day[data-today='true']:not([data-selected='true']) {
-  background: var(--color-brass-soft);
+  background: var(--color-gray-soft);
 }

@@ -53,8 +53,8 @@
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: var(--color-brass-soft);
-  color: var(--color-brass);
+  background: var(--color-gray-soft);
+  color: var(--color-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -65,9 +65,9 @@
 
 .warning {
   margin-top: var(--space-2);
-  color: var(--color-brass);
+  color: var(--color-rust);
   font-size: var(--fs-meta);
-  background: var(--color-brass-soft);
+  background: var(--color-rust-soft);
   padding: 8px 12px;
   border-radius: var(--radius-sm);
 }

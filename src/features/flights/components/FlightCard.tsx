@@ -6,9 +6,9 @@ import { computeFlightDuration } from '../lib/duration';
 import type { Flight } from '../types';
 import styles from './FlightCard.module.css';
 
-const STATUS_TONE: Record<string, 'teal' | 'brass' | 'rust' | 'gray'> = {
+const STATUS_TONE: Record<string, 'teal' | 'rust' | 'gray'> = {
   scheduled: 'teal',
-  delayed: 'brass',
+  delayed: 'rust',
   cancelled: 'rust',
   landed: 'gray',
 };
@@ -22,11 +22,8 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
   return (
     <div className={styles.card} data-cancelled={isCancelled} onClick={() => onOpen(flight)}>
       <div className={styles.topRow}>
-        <span className={styles.airlineGroup}>
-          <span className={styles.airlineBadge}>{flight.airline.slice(0, 2).toUpperCase()}</span>
-          <span className={styles.airlineLine}>
-            {flight.airline} · {flight.flightNumber}
-          </span>
+        <span className={styles.airlineLine}>
+          {flight.airline} · {flight.flightNumber}
         </span>
         <StampBadge tone={STATUS_TONE[flight.status] ?? 'gray'}>{statusLabel}</StampBadge>
       </div>
@@ -40,13 +37,6 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
         </div>
         <div className={styles.middle}>
           {duration && <div className={styles.duration}>{duration.label}</div>}
-          <div className={styles.durationLine}>
-            <span className={styles.durationDot} data-side="left" />
-            <span className={styles.durationDot} data-side="right" />
-          </div>
-          <div className={styles.planeGlyph} aria-hidden="true">
-            ✈
-          </div>
           {nextDay && <div className={styles.nextDay}>+1 μέρα</div>}
         </div>
         <div className={styles.alignRight}>

@@ -2,33 +2,40 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  font-family: var(--font-body);
+  font-size: var(--fs-chip);
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  background: var(--color-gray-soft);
+  color: var(--color-text-muted);
+}
+
+.badge[data-tone='rust'] {
+  background: var(--color-rust-soft);
+  color: var(--color-rust);
+}
+.badge[data-tone='teal'] {
+  background: var(--color-teal-soft);
+  color: var(--color-teal);
+}
+.badge[data-tone='gray'] {
+  background: var(--color-gray-soft);
+  color: var(--color-text-muted);
+}
+
+/* The itinerary's "κλειδωμένο" tag marks a read-only source, not a state
+   value — kept visually distinct from status pills as a plain outlined tag
+   rather than a soft-fill pill, so the two don't read as the same signal. */
+.badge[data-locked='true'] {
+  background: transparent;
+  border: 1px dashed var(--color-border-strong);
+  color: var(--color-text-faint);
   font-family: var(--font-mono);
   font-size: var(--fs-stamp);
   font-weight: 400;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  border: 1.5px solid currentColor;
-  white-space: nowrap;
-  transform: rotate(-3deg);
-  background: transparent;
-}
-
-.badge[data-tone='rust'] {
-  color: var(--color-rust);
-}
-.badge[data-tone='teal'] {
-  color: var(--color-teal);
-}
-.badge[data-tone='brass'] {
-  color: var(--color-brass);
-}
-.badge[data-tone='gray'] {
-  color: var(--color-text-muted);
-}
-
-.badge[data-locked='true'] {
-  border-style: dashed;
-  transform: none;
+  padding: 3px 9px;
 }

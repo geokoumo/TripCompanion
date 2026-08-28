@@ -65,20 +65,11 @@ export function OverviewTab({ trip }: { trip: Trip }) {
 
       {nextFlight && (
         <div className={styles.snapshotCard} data-tone="rust">
-          <div className={styles.flightSnapshotTop}>
-            <div className={styles.snapshotLabel}>Επόμενη πτήση</div>
-            <span className={styles.flightNumberChip}>{nextFlight.flightNumber}</span>
-          </div>
+          <div className={styles.snapshotLabel}>Επόμενη πτήση · {nextFlight.flightNumber}</div>
           <div className={styles.flightRoute}>
             <div>
               <div className={styles.flightAirportCode}>{nextFlight.depAirport}</div>
               <div className={styles.flightTime}>{nextFlight.depTime}</div>
-            </div>
-            <div className={styles.flightRouteMiddle}>
-              <div className={styles.flightRouteLine} />
-              <span className={styles.flightRouteArrow} aria-hidden="true">
-                ▶
-              </span>
             </div>
             <div className={styles.flightAirportCodeRight}>
               <div className={styles.flightAirportCode}>{nextFlight.arrAirport}</div>
@@ -102,7 +93,7 @@ export function OverviewTab({ trip }: { trip: Trip }) {
       )}
 
       {nextStop && (
-        <div className={styles.snapshotCard} data-tone="brass">
+        <div className={styles.snapshotCard}>
           <div className={styles.snapshotLabel}>{status === 'ongoing' || status === 'today' ? 'Επόμενη στάση' : 'Πρώτη στάση'}</div>
           <div className={styles.snapshotTitle}>{nextStop.title}</div>
           <div className={styles.snapshotSubtitle}>

@@ -6,8 +6,8 @@
 }
 
 .banner {
-  background: var(--color-brass-soft);
-  color: var(--color-brass);
+  background: var(--color-gray-soft);
+  color: var(--color-text-muted);
   text-align: center;
   padding: 10px;
   font-family: var(--font-mono);

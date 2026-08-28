@@ -3,7 +3,7 @@ import { CATEGORY_COLORS } from '../../../config/constants';
 import { Button } from '../../../shared/components/Button';
 import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
-import { FieldRow, FieldWrapper, MoreToggle, TextField } from '../../../shared/components/Field';
+import { FieldWrapper, MoreToggle, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { generateId } from '../../../shared/lib/id';
 import type { Traveler } from '../../travelers/types';
@@ -23,6 +23,7 @@ interface ExpenseFormProps {
 }
 
 const OTHER = '__other__';
+const CURRENCY_OTHER = '__other_currency__';
 
 const emptyExpense = (trip: Trip, travelers: Traveler[]): Expense => ({
   id: generateId(),
@@ -40,6 +41,9 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
   const [newCategoryName, setNewCategoryName] = useState('');
   const [showMore, setShowMore] = useState(Boolean(initial?.link));
   const range = getTripDateRange(trip.legs, trip.flights);
+
+  const knownCurrencies = Array.from(new Set([trip.homeCurrency, ...trip.legs.map((l) => l.currency)]));
+  const [creatingCurrency, setCreatingCurrency] = useState(() => !knownCurrencies.includes(expense.currency));
 
   const update = <K extends keyof Expense>(key: K, value: Expense[K]) => setExpense((prev) => ({ ...prev, [key]: value }));
 
@@ -79,18 +83,40 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
         </>
       }
     >
-      <FieldRow>
-        <TextField
-          label="Ποσό"
-          autoFocus
-          type="number"
-          min={0}
-          step="0.01"
-          value={expense.amount || ''}
-          onChange={(e) => update('amount', Number(e.target.value))}
+      <TextField
+        label="Ποσό"
+        autoFocus
+        type="number"
+        min={0}
+        step="0.01"
+        value={expense.amount || ''}
+        onChange={(e) => update('amount', Number(e.target.value))}
+      />
+
+      <FieldWrapper label="Νόμισμα">
+        <ChipSelect
+          options={[...knownCurrencies.map((c) => ({ id: c, label: c })), { id: CURRENCY_OTHER, label: 'Άλλο' }]}
+          value={creatingCurrency ? CURRENCY_OTHER : expense.currency}
+          onChange={(id) => {
+            if (id === CURRENCY_OTHER) {
+              setCreatingCurrency(true);
+            } else {
+              setCreatingCurrency(false);
+              update('currency', id);
+            }
+          }}
         />
-        <TextField label="Νόμισμα" value={expense.currency} onChange={(e) => update('currency', e.target.value.toUpperCase())} />
-      </FieldRow>
+      </FieldWrapper>
+      {creatingCurrency && (
+        <TextField
+          label="Άλλο νόμισμα"
+          autoFocus
+          value={expense.currency}
+          onChange={(e) => update('currency', e.target.value.toUpperCase())}
+          placeholder="π.χ. THB"
+        />
+      )}
+
       {needsRate && (
         <TextField
           label={`Ισοτιμία προς ${trip.homeCurrency}`}

@@ -65,14 +65,22 @@
   letter-spacing: 0.02em;
 }
 
-.warning {
-  margin-top: var(--space-3);
-  color: var(--color-brass);
-  font-size: var(--fs-meta);
-  background: var(--color-brass-soft);
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
+.statusArea {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+}
+
+.nightsText {
+  color: var(--color-text-muted);
+  font-size: var(--fs-chip);
+}
+
+/* Small icon-only cue — the full descriptive warning only appears in the
+   add/edit sheet, where the user is actually looking at it to resolve it. */
+.overlapIcon {
+  color: var(--color-rust);
+  font-size: var(--fs-meta);
+  line-height: 1;
 }

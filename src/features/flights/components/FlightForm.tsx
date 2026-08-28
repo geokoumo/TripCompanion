@@ -6,9 +6,11 @@ import { DateTimeField } from '../../../shared/components/DateTimeField';
 import { FieldRow, MoreToggle, TextField } from '../../../shared/components/Field';
 import fieldStyles from '../../../shared/components/Field.module.css';
 import { Modal } from '../../../shared/components/Modal';
+import { PresetChips } from '../../../shared/components/PresetChips';
 import { StampToggle } from '../../../shared/components/StampToggle';
 import { generateId } from '../../../shared/lib/id';
 import { checkFlightTimeOrder } from '../lib/flightTime';
+import { getRecentValues, rememberRecentValue } from '../lib/recentValues';
 import { lookupAirportTimezone, MANUAL_TIMEZONE_OPTIONS, rememberAirportTimezone, resolveTimezone, timezoneDisplayLabel } from '../lib/timezones';
 import type { FlightStatusId } from '../../../config/constants';
 import type { Flight } from '../types';
@@ -37,6 +39,8 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
   const { showToast } = useToast();
   const [flight, setFlight] = useState<Flight>(initial ?? emptyFlight());
   const [showMore, setShowMore] = useState(Boolean(initial?.terminal || initial?.gate || initial?.bookingRef || initial?.link));
+  const [recentAirlines] = useState(() => getRecentValues('airline'));
+  const [recentAirports] = useState(() => getRecentValues('airport'));
 
   const update = <K extends keyof Flight>(key: K, value: Flight[K]) => setFlight((prev) => ({ ...prev, [key]: value }));
 
@@ -63,6 +67,9 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
     }
     if (flight.depTimezoneOverride) rememberAirportTimezone(flight.depAirport, flight.depTimezoneOverride);
     if (flight.arrTimezoneOverride) rememberAirportTimezone(flight.arrAirport, flight.arrTimezoneOverride);
+    rememberRecentValue('airline', flight.airline);
+    rememberRecentValue('airport', flight.depAirport);
+    rememberRecentValue('airport', flight.arrAirport);
     onSave(flight);
   };
 
@@ -86,8 +93,8 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
       {hasUnknownAirport && (
         <div
           style={{
-            background: 'var(--color-brass-soft)',
-            color: 'var(--color-brass)',
+            background: 'var(--color-rust-soft)',
+            color: 'var(--color-rust)',
             borderRadius: 'var(--radius-md)',
             padding: '12px 14px',
             fontSize: 'var(--fs-meta)',
@@ -105,8 +112,10 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         onChange={(e) => update('flightNumber', e.target.value)}
         placeholder="EK 106"
       />
+      {recentAirlines.length > 0 && <PresetChips presets={recentAirlines} onSelect={(v) => update('airline', v)} hideInput />}
       <TextField label="Αεροπορική" value={flight.airline} onChange={(e) => update('airline', e.target.value)} placeholder="Emirates" />
 
+      {recentAirports.length > 0 && <PresetChips presets={recentAirports} onSelect={(v) => update('depAirport', v)} hideInput />}
       <TextField
         label="Αναχώρηση (κωδικός)"
         value={flight.depAirport}
@@ -141,6 +150,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         </FieldRow>
       )}
 
+      {recentAirports.length > 0 && <PresetChips presets={recentAirports} onSelect={(v) => update('arrAirport', v)} hideInput />}
       <TextField
         label="Άφιξη (κωδικός)"
         value={flight.arrAirport}

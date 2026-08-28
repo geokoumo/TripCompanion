@@ -18,11 +18,10 @@ import type { Leg, Trip } from '../types';
 import { isEndOnOrAfterStart } from '../validation';
 import styles from './CreateTripWizard.module.css';
 
-const STEPS = ['Βασικά', 'Πόλεις', 'Ταξιδιώτες', 'Βαλίτσα', 'Επιβεβαίωση'] as const;
+const STEPS = ['Βασικά', 'Ταξιδιώτες & Βαλίτσα', 'Επιβεβαίωση'] as const;
 
 const STEP_SUBTITLES: Record<number, string> = {
   0: 'Μόνο αυτά χρειάζονται. Τα υπόλοιπα βήματα μπορείς να τα προσπεράσεις.',
-  1: 'Πρόσθεσε στάσεις αν είναι πολυπροορισμό ταξίδι.',
 };
 
 const STARTER_CATEGORY_NAMES = BUDGET_CATEGORY_PRESETS.slice(0, 3);
@@ -50,6 +49,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
   const [legs, setLegs] = useState<Leg[]>([]);
   const [legCity, setLegCity] = useState('');
   const [legCountry, setLegCountry] = useState('');
+  const [showCityFields, setShowCityFields] = useState(false);
 
   const [travelers, setTravelers] = useState<Traveler[]>([]);
   const [travelerName, setTravelerName] = useState('');
@@ -189,11 +189,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
             <p style={{ color: 'var(--color-rust)', fontSize: 13 }}>Η λήξη πρέπει να είναι μετά ή ίδια με την έναρξη.</p>
           )}
           <p className={styles.note}>Οι παρελθοντικές ημερομηνίες επιτρέπονται — μπορείς να καταγράψεις παλιό ταξίδι.</p>
-        </>
-      )}
 
-      {step === 1 && (
-        <>
           {legs.map((leg) => (
             <div key={leg.id} className={styles.legItem}>
               <span>
@@ -204,17 +200,25 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
               </button>
             </div>
           ))}
-          <div className={styles.addRow}>
-            <TextField label="Πόλη" value={legCity} onChange={(e) => setLegCity(e.target.value)} placeholder="Τόκιο" />
-            <TextField label="Χώρα" value={legCountry} onChange={(e) => setLegCountry(e.target.value)} placeholder="Ιαπωνία" />
-          </div>
-          <Button variant="secondary" onClick={addLeg}>
-            + Προσθήκη πόλης
-          </Button>
+          {showCityFields ? (
+            <>
+              <div className={styles.addRow}>
+                <TextField label="Πόλη" value={legCity} onChange={(e) => setLegCity(e.target.value)} placeholder="Τόκιο" />
+                <TextField label="Χώρα" value={legCountry} onChange={(e) => setLegCountry(e.target.value)} placeholder="Ιαπωνία" />
+              </div>
+              <Button variant="secondary" onClick={addLeg}>
+                + Προσθήκη πόλης
+              </Button>
+            </>
+          ) : (
+            <button type="button" className={styles.addCityToggle} onClick={() => setShowCityFields(true)}>
+              + Πρόσθεσε πόλη
+            </button>
+          )}
         </>
       )}
 
-      {step === 2 && (
+      {step === 1 && (
         <>
           {travelers.map((t) => (
             <div key={t.id} className={styles.travelerItem}>
@@ -247,27 +251,28 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
             </Button>
           </div>
           <p className={styles.note}>Το χρώμα ανατίθεται αυτόματα με τη σειρά προσθήκης.</p>
+
+          <div className={styles.stepDivider} />
+
+          {duplicateSeed ? (
+            <p className={styles.note}>Η βαλίτσα θα αντιγραφεί από το αρχικό ταξίδι.</p>
+          ) : (
+            <>
+              <ChipSelect
+                options={[
+                  ...TEMPLATE_NAMES.map((name) => ({ id: name, label: name })),
+                  ...(hasMasterTemplate() ? [{ id: '__master__', label: 'Αποθηκευμένο πρότυπο' }] : []),
+                ]}
+                value={template ?? ''}
+                onChange={(id) => setTemplate(id)}
+              />
+              <p className={styles.note}>Το πρότυπο απλώς προσυμπληρώνει τη λίστα. Μπορείς να αλλάξεις τα πάντα μετά.</p>
+            </>
+          )}
         </>
       )}
 
-      {step === 3 &&
-        (duplicateSeed ? (
-          <p className={styles.note}>Η βαλίτσα θα αντιγραφεί από το αρχικό ταξίδι.</p>
-        ) : (
-          <>
-            <ChipSelect
-              options={[
-                ...TEMPLATE_NAMES.map((name) => ({ id: name, label: name })),
-                ...(hasMasterTemplate() ? [{ id: '__master__', label: 'Αποθηκευμένο πρότυπο' }] : []),
-              ]}
-              value={template ?? ''}
-              onChange={(id) => setTemplate(id)}
-            />
-            <p className={styles.note}>Το πρότυπο απλώς προσυμπληρώνει τη λίστα. Μπορείς να αλλάξεις τα πάντα μετά.</p>
-          </>
-        ))}
-
-      {step === 4 && (
+      {step === 2 && (
         <>
           <div className={styles.summaryRow}>
             <span className={styles.summaryLabel}>Τίτλος</span>

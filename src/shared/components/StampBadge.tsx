@@ -3,7 +3,7 @@ import styles from './StampBadge.module.css';
 
 interface StampBadgeProps {
   children: ReactNode;
-  tone?: 'rust' | 'teal' | 'brass' | 'gray';
+  tone?: 'rust' | 'teal' | 'gray';
   locked?: boolean;
 }
 

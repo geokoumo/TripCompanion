@@ -102,8 +102,8 @@ export function StayForm({ initial, existingStays, onClose, onSave, onDelete }: 
       {overlapsLive && (
         <div
           style={{
-            background: 'var(--color-brass-soft)',
-            color: 'var(--color-brass)',
+            background: 'var(--color-rust-soft)',
+            color: 'var(--color-rust)',
             borderRadius: 'var(--radius-md)',
             padding: '12px 14px',
             fontSize: 'var(--fs-meta)',

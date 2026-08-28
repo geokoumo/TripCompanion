@@ -43,12 +43,12 @@
 }
 
 .toast[data-variant='warn'] {
-  background: var(--color-brass-soft);
-  border-color: var(--color-brass);
-  color: var(--color-brass);
+  background: var(--color-gray-soft);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
 }
 .toast[data-variant='warn'] .dot {
-  background: var(--color-brass);
+  background: var(--color-text-muted);
 }
 
 .toast[data-variant='neutral'] .dot {

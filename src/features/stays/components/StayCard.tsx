@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { StampBadge } from '../../../shared/components/StampBadge';
 import { daysBetween, formatDateNoYear } from '../../../shared/lib/dateFormat';
 import type { Stay } from '../types';
 import styles from './StayCard.module.css';
@@ -15,7 +14,14 @@ function StayCardComponent({ stay, onOpen, overlapping }: { stay: Stay; onOpen: 
           <div className={styles.name}>{stay.name}</div>
           <div className={styles.address}>{stay.address}</div>
         </div>
-        {nights > 0 && <StampBadge tone="teal">{nightsLabel}</StampBadge>}
+        <div className={styles.statusArea}>
+          {overlapping && (
+            <span className={styles.overlapIcon} role="img" aria-label="Επικάλυψη με άλλη διαμονή" title="Επικάλυψη με άλλη διαμονή">
+              ⚠
+            </span>
+          )}
+          {nights > 0 && <span className={styles.nightsText}>{nightsLabel}</span>}
+        </div>
       </div>
       <div className={styles.divider} />
       <div className={styles.grid}>
@@ -39,11 +45,6 @@ function StayCardComponent({ stay, onOpen, overlapping }: { stay: Stay; onOpen: 
             <span className={styles.label}>Κωδ.</span> {stay.bookingRef}
           </div>
         </>
-      )}
-      {overlapping && (
-        <div className={styles.warning}>
-          <span aria-hidden="true">⚠</span> Επικάλυψη με άλλη διαμονή σε αυτές τις νύχτες. Επιτρέπεται — έλεγξέ το.
-        </div>
       )}
     </div>
   );

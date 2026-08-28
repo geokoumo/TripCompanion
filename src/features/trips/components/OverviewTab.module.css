@@ -49,9 +49,6 @@
 .snapshotCard[data-tone='teal'] {
   border-left-color: var(--color-teal);
 }
-.snapshotCard[data-tone='brass'] {
-  border-left-color: var(--color-brass);
-}
 
 .snapshotLabel {
   font-family: var(--font-mono);
@@ -74,25 +71,10 @@
   margin-top: 2px;
 }
 
-.flightSnapshotTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flightNumberChip {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: var(--fs-eyebrow);
-  color: var(--color-rust);
-  background: var(--color-rust-soft);
-  border-radius: var(--radius-pill);
-  padding: 2px 8px;
-}
-
 .flightRoute {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
   margin-top: var(--space-2);
 }
@@ -116,18 +98,4 @@
   margin-top: 2px;
 }
 
-.flightRouteMiddle {
-  flex: 1;
-  position: relative;
-  height: 1px;
-  background: var(--color-border);
-}
-
-.flightRouteArrow {
-  position: absolute;
-  right: -3px;
-  top: -6px;
-  font-size: 10px;
-  color: var(--color-text-muted);
-}
 

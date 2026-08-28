@@ -36,8 +36,8 @@
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  background: var(--color-purple-soft);
-  color: var(--color-purple);
+  background: var(--color-gray-soft);
+  color: var(--color-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
