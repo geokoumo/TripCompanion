@@ -44,6 +44,9 @@ export const TripSchema = z.object({
   itineraryStops: z.array(ItineraryStopSchema).default([]),
   ideas: z.array(IdeaSchema).default([]),
   budgetCategories: z.array(BudgetCategorySchema).default([]),
+  // Overall trip budget target, set by the user from the budget overview —
+  // undefined means "not set yet", never a fabricated default.
+  budget: z.number().nonnegative().optional(),
   expenses: z.array(ExpenseSchema).default([]),
   checklistItems: z.array(ChecklistItemSchema).default([]),
   shareSettings: ShareSettingsSchema.default({ enabled: false, includedTabs: [] }),

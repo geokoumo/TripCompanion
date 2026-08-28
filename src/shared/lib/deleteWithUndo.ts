@@ -24,12 +24,15 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
   id,
   deletedMessage = 'Διαγράφηκε.',
 }: DeleteWithUndoParams<K>): void {
+  const key = arrayKey as unknown as string;
+
   void (async () => {
     let snapshot: { id: string } | undefined;
     await updateTrip((t) => {
-      const list = t[arrayKey] as unknown as { id: string }[];
+      const record = t as unknown as Record<string, { id: string }[]>;
+      const list = record[key]!;
       snapshot = list.find((item) => item.id === id);
-      return { ...t, [arrayKey]: list.filter((item) => item.id !== id) };
+      return { ...t, [key]: list.filter((item) => item.id !== id) };
     });
 
     showToast(deletedMessage, {
@@ -39,8 +42,9 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
         onClick: () => {
           if (!snapshot) return;
           void updateTrip((t) => {
-            const list = t[arrayKey] as unknown as { id: string }[];
-            return { ...t, [arrayKey]: [...list, snapshot] };
+            const record = t as unknown as Record<string, { id: string }[]>;
+            const list = record[key]!;
+            return { ...t, [key]: [...list, snapshot] };
           });
         },
       },

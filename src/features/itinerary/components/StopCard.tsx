@@ -19,7 +19,7 @@ function StopCardComponent({ stop, travelers, overlapping, onOpen }: StopCardPro
   return (
     <div className={styles.card} onClick={() => onOpen(stop)}>
       <div className={styles.topRow}>
-        <span className={styles.time}>{stop.time}</span>
+        <span className={styles.time}>{stop.allDay ? 'Όλη μέρα' : stop.time}</span>
         <span className={styles.badges}>
           <span className={styles.typeBadge}>{type?.letter}</span>
         </span>

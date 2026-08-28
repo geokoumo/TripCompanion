@@ -1,0 +1,21 @@
+.allDayRow {
+  margin-bottom: var(--space-3);
+}
+
+.allDayToggle {
+  font-family: var(--font-body);
+  font-size: var(--fs-chip);
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.allDayToggle[data-active='true'] {
+  background: var(--color-rust);
+  border-color: var(--color-rust);
+  color: var(--color-text-on-accent);
+}

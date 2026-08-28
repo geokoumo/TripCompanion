@@ -1,13 +1,19 @@
-.totalCard {
+.summaryCard {
   background: var(--color-surface-raised);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
-  text-align: center;
   margin-bottom: var(--space-4);
   border: 1px solid var(--color-border);
 }
 
-.totalLabel {
+.summaryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.summaryLabel {
   font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);
   color: var(--color-text-faint);
@@ -15,17 +21,103 @@
   letter-spacing: 0.12em;
 }
 
-.totalValue {
+.summaryTotal {
   font-family: var(--font-display);
   font-size: var(--fs-budget-total);
   font-weight: 600;
   margin-top: 4px;
 }
 
+.summaryBudgetCol {
+  text-align: right;
+}
+
+.summaryBudgetValue {
+  display: block;
+  margin-top: 4px;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-data);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.budgetInput {
+  display: block;
+  margin-top: 4px;
+  margin-left: auto;
+  width: 110px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--fs-data);
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
 .unconvertedNote {
   color: var(--color-brass);
   font-size: var(--fs-meta);
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.segmentedBar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-bg);
+  margin-top: var(--space-4);
+}
+
+.segment {
+  height: 100%;
+}
+
+.segment[data-color='rust'] { background: var(--color-rust); }
+.segment[data-color='teal'] { background: var(--color-teal); }
+.segment[data-color='brass'] { background: var(--color-brass); }
+.segment[data-color='purple'] { background: var(--color-purple); }
+.segment[data-color='gray'] { background: var(--color-gray); }
+
+.summaryFooterRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-3);
+  font-size: var(--fs-meta);
+  color: var(--color-text-muted);
+}
+
+.remainingLabel {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.overBudgetLabel {
+  color: var(--color-rust);
+  font-weight: 600;
+}
+
+.legendRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-meta);
+  color: var(--color-text-muted);
 }
 
 .categoryCard {

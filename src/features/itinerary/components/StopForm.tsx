@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ITINERARY_STOP_TYPES } from '../../../config/constants';
 import { Button } from '../../../shared/components/Button';
 import { ChipSelect } from '../../../shared/components/ChipSelect';
+import { DateField } from '../../../shared/components/DateField';
 import { DateTimeField } from '../../../shared/components/DateTimeField';
 import { FieldWrapper, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
@@ -10,6 +11,7 @@ import { generateId } from '../../../shared/lib/id';
 import type { ItineraryStopTypeId } from '../../../config/constants';
 import type { Traveler } from '../../travelers/types';
 import type { ItineraryStop } from '../types';
+import styles from './StopForm.module.css';
 
 interface StopFormProps {
   initial?: ItineraryStop;
@@ -24,6 +26,7 @@ const emptyStop = (date: string): ItineraryStop => ({
   id: generateId(),
   date,
   time: '',
+  allDay: false,
   title: '',
   type: 'sight',
   travelerIds: [],
@@ -37,13 +40,22 @@ export function StopForm({ initial, defaultDate, travelers, onClose, onSave, onD
 
   const update = <K extends keyof ItineraryStop>(key: K, value: ItineraryStop[K]) => setStop((prev) => ({ ...prev, [key]: value }));
 
+  const toggleAllDay = () => {
+    setStop((prev) => {
+      const allDay = !prev.allDay;
+      // A stop can't have both a specific time and be all-day — clear the
+      // time/duration fields when switching into all-day so nothing stale lingers.
+      return { ...prev, allDay, time: allDay ? undefined : prev.time, durationMinutes: allDay ? undefined : prev.durationMinutes };
+    });
+  };
+
   const applyDurationPreset = (preset: string) => update('durationMinutes', Number(preset.replace('′', '')));
 
   const toggleTraveler = (id: string) => {
     update('travelerIds', stop.travelerIds.includes(id) ? stop.travelerIds.filter((t) => t !== id) : [...stop.travelerIds, id]);
   };
 
-  const canSave = stop.title.trim() && stop.date && stop.time;
+  const canSave = stop.title.trim() && stop.date && (stop.allDay || stop.time);
 
   return (
     <Modal
@@ -72,11 +84,22 @@ export function StopForm({ initial, defaultDate, travelers, onClose, onSave, onD
         />
       </FieldWrapper>
 
-      <DateTimeField label="Ώρα" date={stop.date} time={stop.time} onDateChange={(d) => update('date', d)} onTimeChange={(t) => update('time', t)} />
+      <div className={styles.allDayRow}>
+        <button type="button" className={styles.allDayToggle} data-active={stop.allDay} onClick={toggleAllDay}>
+          Όλη μέρα
+        </button>
+      </div>
 
-      <FieldWrapper label={stop.durationMinutes ? `Διάρκεια — ${stop.durationMinutes}′` : 'Διάρκεια (προαιρετικό)'}>
-        <PresetChips presets={DURATION_PRESETS} onSelect={applyDurationPreset} hideInput />
-      </FieldWrapper>
+      {stop.allDay ? (
+        <DateField label="Ημερομηνία" date={stop.date} onChange={(d) => update('date', d)} />
+      ) : (
+        <>
+          <DateTimeField label="Ώρα" date={stop.date} time={stop.time ?? ''} onDateChange={(d) => update('date', d)} onTimeChange={(t) => update('time', t)} />
+          <FieldWrapper label={stop.durationMinutes ? `Διάρκεια — ${stop.durationMinutes}′` : 'Διάρκεια (προαιρετικό)'}>
+            <PresetChips presets={DURATION_PRESETS} onSelect={applyDurationPreset} hideInput />
+          </FieldWrapper>
+        </>
+      )}
 
       <TextField label="Τοποθεσία" value={stop.location ?? ''} onChange={(e) => update('location', e.target.value)} />
 

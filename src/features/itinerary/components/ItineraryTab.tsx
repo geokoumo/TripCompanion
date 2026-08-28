@@ -4,10 +4,10 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { dayNumber, weekdayShort, todayStr, formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { generateId } from '../../../shared/lib/id';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
-import { rangesOverlap, toComparableMs } from '../../stays/lib/overlap';
 import type { Trip } from '../../trips/types';
 import { getTripDateRange } from '../../trips/lib/dateRange';
 import { buildAutoPulledEntries } from '../lib/autoPulledEntries';
+import { computeOverlappingStopIds } from '../lib/stopOverlap';
 import type { Idea, ItineraryStop } from '../types';
 import { AutoPulledEntryCard } from './AutoPulledEntryCard';
 import { IdeasBacklog } from './IdeasBacklog';
@@ -45,25 +45,11 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
 
   const autoPulled = useMemo(() => buildAutoPulledEntries(trip.flights, trip.stays), [trip.flights, trip.stays]);
   const autoPulledForDay = autoPulled.filter((e) => e.date === selectedDate);
-  const stopsForDay = trip.itineraryStops.filter((s) => s.date === selectedDate).sort((a, b) => a.time.localeCompare(b.time));
+  const stopsForDay = trip.itineraryStops.filter((s) => s.date === selectedDate);
+  const allDayStopsForDay = stopsForDay.filter((s) => s.allDay);
+  const timedStopsForDay = stopsForDay.filter((s) => !s.allDay).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
 
-  const overlapIds = new Set<string>();
-  for (let i = 0; i < stopsForDay.length; i++) {
-    const a = stopsForDay[i]!;
-    if (!a.durationMinutes) continue;
-    const aStart = toComparableMs(a.date, a.time);
-    const aEnd = aStart + a.durationMinutes * 60_000;
-    for (let j = i + 1; j < stopsForDay.length; j++) {
-      const b = stopsForDay[j]!;
-      if (!b.durationMinutes) continue;
-      const bStart = toComparableMs(b.date, b.time);
-      const bEnd = bStart + b.durationMinutes * 60_000;
-      if (rangesOverlap(aStart, aEnd, bStart, bEnd)) {
-        overlapIds.add(a.id);
-        overlapIds.add(b.id);
-      }
-    }
-  }
+  const overlapIds = computeOverlappingStopIds(stopsForDay);
 
   const openStop = useCallback((stop: ItineraryStop) => setEditingStop(stop), []);
 
@@ -98,6 +84,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       id: generateId(),
       date,
       time,
+      allDay: false,
       durationMinutes: 60,
       title: idea.title,
       type: idea.type,
@@ -128,10 +115,19 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
 
       {legsForDay.length > 0 && <div className={styles.legHeader}>{legHeaderLabel}</div>}
 
+      {allDayStopsForDay.length > 0 && (
+        <>
+          <div className={styles.legHeader}>Όλη μέρα</div>
+          {allDayStopsForDay.map((stop) => (
+            <StopCard key={stop.id} stop={stop} travelers={trip.travelers} overlapping={overlapIds.has(stop.id)} onOpen={openStop} />
+          ))}
+        </>
+      )}
+
       {autoPulledForDay.map((entry) => (
         <AutoPulledEntryCard key={entry.id} entry={entry} />
       ))}
-      {stopsForDay.map((stop) => (
+      {timedStopsForDay.map((stop) => (
         <StopCard key={stop.id} stop={stop} travelers={trip.travelers} overlapping={overlapIds.has(stop.id)} onOpen={openStop} />
       ))}
       {autoPulledForDay.length === 0 && stopsForDay.length === 0 && (
