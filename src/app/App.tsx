@@ -3,6 +3,7 @@ import { TripDetailScreen } from '../features/trips/components/TripDetailScreen'
 import { SharedTripView } from '../features/trips/components/SharedTripView';
 import { useHashRoute } from '../shared/lib/useHashRoute';
 import { ErrorBoundary } from './ErrorBoundary';
+import { AuthProvider } from './providers/AuthProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './providers/ToastProvider';
 import { TripsProvider } from './providers/TripsProvider';
@@ -32,11 +33,13 @@ export function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <TripsProvider>
-          <ErrorBoundary>
-            <Router />
-          </ErrorBoundary>
-        </TripsProvider>
+        <AuthProvider>
+          <TripsProvider>
+            <ErrorBoundary>
+              <Router />
+            </ErrorBoundary>
+          </TripsProvider>
+        </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
   );

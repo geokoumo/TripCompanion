@@ -19,6 +19,30 @@
   margin-top: 6px;
 }
 
+.accountRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.accountEmail {
+  color: var(--color-text-muted);
+  font-size: var(--fs-chip);
+}
+
+.accountButton {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-weight: 500;
+  font-size: var(--fs-chip);
+  cursor: pointer;
+}
+
 .filters {
   display: flex;
   align-items: center;

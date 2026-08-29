@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
+import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { AuthSheet } from '../../auth/components/AuthSheet';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
@@ -20,8 +22,10 @@ interface TripListScreenProps {
 export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const { trips, loading, saveTrip, deleteTrip } = useTrips();
   const { showToast } = useToast();
+  const { user, enabled, signOut } = useAuth();
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const [menuTrip, setMenuTrip] = useState<Trip | null>(null);
   const [shareTrip, setShareTrip] = useState<Trip | null>(null);
   const [duplicateSource, setDuplicateSource] = useState<Trip | null>(null);
@@ -66,6 +70,22 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
 
   return (
     <div className={styles.screen}>
+      {enabled && (
+        <div className={styles.accountRow}>
+          {user ? (
+            <>
+              <span className={styles.accountEmail}>{user.email}</span>
+              <button type="button" className={styles.accountButton} onClick={() => void signOut()}>
+                Αποσύνδεση
+              </button>
+            </>
+          ) : (
+            <button type="button" className={styles.accountButton} onClick={() => setAuthOpen(true)}>
+              Σύνδεση
+            </button>
+          )}
+        </div>
+      )}
       <h1 className={styles.title}>Τα ταξίδια μου</h1>
       <div className={styles.subtitle}>Σήμερα {todayLabel}</div>
 
@@ -139,6 +159,8 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
       {pendingDelete && (
         <DeleteConfirmSheet itemName={pendingDelete.title} onCancel={() => setPendingDelete(null)} onConfirm={confirmDeleteTrip} />
       )}
+
+      {authOpen && <AuthSheet onClose={() => setAuthOpen(false)} />}
     </div>
   );
 }
