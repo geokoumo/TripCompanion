@@ -9,9 +9,10 @@ interface WheelColumnProps {
   selected: number;
   onSelect: (value: number) => void;
   pad?: number;
+  disabled?: (value: number) => boolean;
 }
 
-function WheelColumn({ values, selected, onSelect, pad = 2 }: WheelColumnProps) {
+function WheelColumn({ values, selected, onSelect, pad = 2, disabled }: WheelColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ function WheelColumn({ values, selected, onSelect, pad = 2 }: WheelColumnProps) 
     const index = Math.round(el.scrollTop / ITEM_HEIGHT);
     const clamped = Math.min(Math.max(index, 0), values.length - 1);
     const value = values[clamped];
-    if (value !== undefined && value !== selected) {
+    if (value !== undefined && value !== selected && !disabled?.(value)) {
       onSelect(value);
     }
   };
@@ -43,16 +44,22 @@ function WheelColumn({ values, selected, onSelect, pad = 2 }: WheelColumnProps) 
       onWheel={() => setTimeout(handleScrollEnd, 60)}
     >
       <div className={styles.spacer} style={{ height: pad * ITEM_HEIGHT }} />
-      {values.map((v) => (
-        <div
-          key={v}
-          className={styles.item}
-          data-active={v === selected}
-          onClick={() => onSelect(v)}
-        >
-          {String(v).padStart(2, '0')}
-        </div>
-      ))}
+      {values.map((v) => {
+        const isDisabled = disabled?.(v) ?? false;
+        return (
+          <div
+            key={v}
+            className={styles.item}
+            data-active={v === selected}
+            data-disabled={isDisabled}
+            onClick={() => {
+              if (!isDisabled) onSelect(v);
+            }}
+          >
+            {String(v).padStart(2, '0')}
+          </div>
+        );
+      })}
       <div className={styles.spacer} style={{ height: pad * ITEM_HEIGHT }} />
     </div>
   );
@@ -61,9 +68,11 @@ function WheelColumn({ values, selected, onSelect, pad = 2 }: WheelColumnProps) 
 interface WheelTimePickerProps {
   value: string; // HH:mm
   onChange: (value: string) => void;
+  /** True when a given hour/minute combination falls inside an occupied range (Round 8 hard block). */
+  isTimeDisabled?: (hour: number, minute: number) => boolean;
 }
 
-export function WheelTimePicker({ value, onChange }: WheelTimePickerProps) {
+export function WheelTimePicker({ value, onChange, isTimeDisabled }: WheelTimePickerProps) {
   const [hourStr, minuteStr] = value.split(':');
   const hour = Number(hourStr ?? 0);
   const rawMinute = Number(minuteStr ?? 0);
@@ -75,6 +84,12 @@ export function WheelTimePicker({ value, onChange }: WheelTimePickerProps) {
   const setHour = (h: number) => onChange(`${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
   const setMinute = (m: number) => onChange(`${String(hour).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
 
+  // An hour is only fully disabled (non-selectable) when every 5-minute slot
+  // within it is occupied; a partially-occupied hour stays selectable and
+  // instead disables just the conflicting minutes once it's the active hour.
+  const isHourDisabled = (h: number) => (isTimeDisabled ? minutes.every((m) => isTimeDisabled(h, m)) : false);
+  const isMinuteDisabled = (m: number) => isTimeDisabled?.(hour, m) ?? false;
+
   return (
     <div>
       <div className={styles.presets}>
@@ -85,9 +100,9 @@ export function WheelTimePicker({ value, onChange }: WheelTimePickerProps) {
         ))}
       </div>
       <div className={styles.wrapper}>
-        <WheelColumn values={hours} selected={hour} onSelect={setHour} />
+        <WheelColumn values={hours} selected={hour} onSelect={setHour} disabled={isHourDisabled} />
         <span className={styles.separator}>:</span>
-        <WheelColumn values={minutes} selected={minute} onSelect={setMinute} />
+        <WheelColumn values={minutes} selected={minute} onSelect={setMinute} disabled={isMinuteDisabled} />
       </div>
     </div>
   );

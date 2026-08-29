@@ -17,6 +17,8 @@ interface DateTimeFieldProps {
   maxDate?: string;
   caption?: string;
   error?: string;
+  badge?: string;
+  isTimeDisabled?: (hour: number, minute: number) => boolean;
 }
 
 export function DateTimeField({
@@ -29,6 +31,8 @@ export function DateTimeField({
   maxDate,
   caption,
   error,
+  badge,
+  isTimeDisabled,
 }: DateTimeFieldProps) {
   const [open, setOpen] = useState<'date' | 'time' | null>(null);
 
@@ -41,7 +45,7 @@ export function DateTimeField({
   };
 
   return (
-    <FieldWrapper label={label} caption={caption} error={error}>
+    <FieldWrapper label={label} caption={caption} error={error} badge={badge}>
       <div className={styles.row}>
         <button type="button" className={styles.pill} onClick={() => openPicker('date')}>
           {date ? formatDateShort(date) : 'Επίλεξε ημερομηνία'}
@@ -73,7 +77,7 @@ export function DateTimeField({
             </Button>
           }
         >
-          <WheelTimePicker value={time || '00:00'} onChange={onTimeChange} />
+          <WheelTimePicker value={time || '00:00'} onChange={onTimeChange} isTimeDisabled={isTimeDisabled} />
         </Modal>
       )}
     </FieldWrapper>

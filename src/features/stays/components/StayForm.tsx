@@ -4,6 +4,7 @@ import { Button } from '../../../shared/components/Button';
 import { DateTimeField } from '../../../shared/components/DateTimeField';
 import { FieldRow, MoreToggle, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
+import { PresetChips } from '../../../shared/components/PresetChips';
 import { generateId } from '../../../shared/lib/id';
 import { isEndOnOrAfterStart } from '../../trips/validation';
 import { dateTimeRangesOverlap } from '../lib/overlap';
@@ -12,6 +13,7 @@ import type { Stay } from '../types';
 interface StayFormProps {
   initial?: Stay;
   existingStays: Stay[];
+  recentLocations: string[];
   onClose: () => void;
   onSave: (stay: Stay) => void;
   onDelete?: () => void;
@@ -34,7 +36,7 @@ function toRange(stay: Stay) {
   };
 }
 
-export function StayForm({ initial, existingStays, onClose, onSave, onDelete }: StayFormProps) {
+export function StayForm({ initial, existingStays, recentLocations, onClose, onSave, onDelete }: StayFormProps) {
   const { showToast } = useToast();
   const [stay, setStay] = useState<Stay>(initial ?? emptyStay());
   const [showMore, setShowMore] = useState(Boolean(initial?.phone || initial?.bookingRef || initial?.notes || initial?.link));
@@ -76,6 +78,7 @@ export function StayForm({ initial, existingStays, onClose, onSave, onDelete }: 
       }
     >
       <TextField label="Όνομα" autoFocus value={stay.name} onChange={(e) => update('name', e.target.value)} placeholder="π.χ. Shinjuku Granbell Hotel" />
+      {recentLocations.length > 0 && <PresetChips presets={recentLocations} onSelect={(v) => update('address', v)} hideInput />}
       <TextField label="Διεύθυνση" value={stay.address} onChange={(e) => update('address', e.target.value)} placeholder="Απαραίτητο πεδίο" />
 
       <DateTimeField

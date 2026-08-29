@@ -1,0 +1,39 @@
+.pasteToggle {
+  border: none;
+  background: none;
+  color: var(--color-rust);
+  font-weight: 600;
+  font-size: var(--fs-meta);
+  cursor: pointer;
+  padding: var(--space-2) 0;
+  margin-bottom: var(--space-3);
+}
+
+.pasteBox {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.pasteActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.parseError {
+  color: var(--color-rust);
+  font-size: var(--fs-meta);
+  margin: var(--space-2) 0 0;
+}
+
+.autoNote {
+  background: var(--color-rust-soft);
+  color: var(--color-rust);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: var(--fs-meta);
+  margin-bottom: var(--space-4);
+}

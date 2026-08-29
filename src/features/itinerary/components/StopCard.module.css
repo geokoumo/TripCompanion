@@ -62,12 +62,3 @@
   font-weight: 700;
   font-size: 0.7rem;
 }
-
-.warning {
-  margin-top: var(--space-2);
-  color: var(--color-rust);
-  font-size: var(--fs-meta);
-  background: var(--color-rust-soft);
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-}

@@ -3,17 +3,20 @@ import { FLIGHT_STATUSES } from '../../../config/constants';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Button } from '../../../shared/components/Button';
 import { DateTimeField } from '../../../shared/components/DateTimeField';
-import { FieldRow, MoreToggle, TextField } from '../../../shared/components/Field';
+import { FieldRow, MoreToggle, TextAreaField, TextField } from '../../../shared/components/Field';
 import fieldStyles from '../../../shared/components/Field.module.css';
 import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
 import { StampToggle } from '../../../shared/components/StampToggle';
 import { generateId } from '../../../shared/lib/id';
+import { matchAirlineDomain } from '../lib/airlineDomains';
 import { checkFlightTimeOrder } from '../lib/flightTime';
+import { hasParsedFields, parseFlightText } from '../lib/parseFlightText';
 import { getRecentValues, rememberRecentValue } from '../lib/recentValues';
 import { lookupAirportTimezone, MANUAL_TIMEZONE_OPTIONS, rememberAirportTimezone, resolveTimezone, timezoneDisplayLabel } from '../lib/timezones';
 import type { FlightStatusId } from '../../../config/constants';
 import type { Flight } from '../types';
+import styles from './FlightForm.module.css';
 
 interface FlightFormProps {
   initial?: Flight;
@@ -41,8 +44,39 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
   const [showMore, setShowMore] = useState(Boolean(initial?.terminal || initial?.gate || initial?.bookingRef || initial?.link));
   const [recentAirlines] = useState(() => getRecentValues('airline'));
   const [recentAirports] = useState(() => getRecentValues('airport'));
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [parseFailed, setParseFailed] = useState(false);
+  const [autoFilledKeys, setAutoFilledKeys] = useState<Set<keyof Flight>>(new Set());
 
-  const update = <K extends keyof Flight>(key: K, value: Flight[K]) => setFlight((prev) => ({ ...prev, [key]: value }));
+  const update = <K extends keyof Flight>(key: K, value: Flight[K]) => {
+    setFlight((prev) => ({ ...prev, [key]: value }));
+    setAutoFilledKeys((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  };
+
+  const badgeFor = (key: keyof Flight) => (autoFilledKeys.has(key) ? 'αυτόματο' : undefined);
+
+  const applyParsedText = () => {
+    const parsed = parseFlightText(pasteText);
+    if (!hasParsedFields(parsed)) {
+      setParseFailed(true);
+      return;
+    }
+    setParseFailed(false);
+    setFlight((prev) => ({ ...prev, ...parsed }));
+    const filledKeys = Object.keys(parsed) as (keyof Flight)[];
+    setAutoFilledKeys((prev) => new Set([...prev, ...filledKeys]));
+    if (filledKeys.includes('bookingRef')) setShowMore(true);
+    setPasteOpen(false);
+    setPasteText('');
+  };
+
+  const suggestedAirline = !flight.airline && flight.link ? matchAirlineDomain(flight.link) : undefined;
 
   const depTzKnown = Boolean(lookupAirportTimezone(flight.depAirport || ''));
   const arrTzKnown = Boolean(lookupAirportTimezone(flight.arrAirport || ''));
@@ -90,6 +124,42 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         </>
       }
     >
+      {!pasteOpen ? (
+        <button type="button" className={styles.pasteToggle} onClick={() => setPasteOpen(true)}>
+          Επικόλλησε από email
+        </button>
+      ) : (
+        <div className={styles.pasteBox}>
+          <TextAreaField
+            label="Κείμενο επιβεβαίωσης"
+            autoFocus
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            placeholder="Επικόλλησε εδώ το κείμενο της επιβεβαίωσης…"
+          />
+          {parseFailed && <p className={styles.parseError}>Δεν αναγνωρίστηκαν στοιχεία πτήσης σε αυτό το κείμενο.</p>}
+          <div className={styles.pasteActions}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setPasteOpen(false);
+                setPasteText('');
+                setParseFailed(false);
+              }}
+            >
+              Άκυρο
+            </Button>
+            <Button variant="primary" onClick={applyParsedText}>
+              Ανάλυση κειμένου
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {autoFilledKeys.size > 0 && (
+        <p className={styles.autoNote}>Κάποια πεδία συμπληρώθηκαν αυτόματα — έλεγξέ τα πριν αποθηκεύσεις.</p>
+      )}
+
       {hasUnknownAirport && (
         <div
           style={{
@@ -111,8 +181,10 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         value={flight.flightNumber}
         onChange={(e) => update('flightNumber', e.target.value)}
         placeholder="EK 106"
+        badge={badgeFor('flightNumber')}
       />
       {recentAirlines.length > 0 && <PresetChips presets={recentAirlines} onSelect={(v) => update('airline', v)} hideInput />}
+      {suggestedAirline && <PresetChips presets={[suggestedAirline]} onSelect={(v) => update('airline', v)} hideInput />}
       <TextField label="Αεροπορική" value={flight.airline} onChange={(e) => update('airline', e.target.value)} placeholder="Emirates" />
 
       {recentAirports.length > 0 && <PresetChips presets={recentAirports} onSelect={(v) => update('depAirport', v)} hideInput />}
@@ -121,6 +193,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         value={flight.depAirport}
         onChange={(e) => update('depAirport', e.target.value.toUpperCase())}
         placeholder="ATH"
+        badge={badgeFor('depAirport')}
       />
       <DateTimeField
         label="Ώρα αναχώρησης"
@@ -129,6 +202,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         onDateChange={(d) => update('depDate', d)}
         onTimeChange={(t) => update('depTime', t)}
         caption={depTz ? timezoneDisplayLabel(depTz) : undefined}
+        badge={badgeFor('depDate') ?? badgeFor('depTime')}
       />
       {flight.depAirport && !depTzKnown && (
         <FieldRow>
@@ -156,6 +230,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         value={flight.arrAirport}
         onChange={(e) => update('arrAirport', e.target.value.toUpperCase())}
         placeholder="DXB"
+        badge={badgeFor('arrAirport')}
       />
       <DateTimeField
         label="Ώρα άφιξης"
@@ -164,6 +239,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         onDateChange={(d) => update('arrDate', d)}
         onTimeChange={(t) => update('arrTime', t)}
         caption={arrTz ? timezoneDisplayLabel(arrTz) : undefined}
+        badge={badgeFor('arrDate') ?? badgeFor('arrTime')}
       />
       {timeCheck && !timeCheck.unresolvedTimezone && !timeCheck.isValid && (
         <p style={{ color: 'var(--color-rust)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
@@ -204,7 +280,12 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
             <TextField label="Τερματικός" value={flight.terminal ?? ''} onChange={(e) => update('terminal', e.target.value)} />
             <TextField label="Πύλη" value={flight.gate ?? ''} onChange={(e) => update('gate', e.target.value)} />
           </FieldRow>
-          <TextField label="Κωδικός κράτησης" value={flight.bookingRef ?? ''} onChange={(e) => update('bookingRef', e.target.value)} />
+          <TextField
+            label="Κωδικός κράτησης"
+            value={flight.bookingRef ?? ''}
+            onChange={(e) => update('bookingRef', e.target.value)}
+            badge={badgeFor('bookingRef')}
+          />
         </>
       )}
     </Modal>

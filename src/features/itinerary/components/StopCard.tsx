@@ -7,11 +7,10 @@ import styles from './StopCard.module.css';
 interface StopCardProps {
   stop: ItineraryStop;
   travelers: Traveler[];
-  overlapping: boolean;
   onOpen: (stop: ItineraryStop) => void;
 }
 
-function StopCardComponent({ stop, travelers, overlapping, onOpen }: StopCardProps) {
+function StopCardComponent({ stop, travelers, onOpen }: StopCardProps) {
   const type = ITINERARY_STOP_TYPES.find((t) => t.id === stop.type);
   const travelerLabel = stop.travelerIds.length === 0 ? 'όλοι' : travelers.filter((t) => stop.travelerIds.includes(t.id)).map((t) => t.name).join(', ');
   const durationLabel = stop.durationMinutes ? `${Math.round(stop.durationMinutes / 60) > 0 ? `${Math.floor(stop.durationMinutes / 60)}ω ` : ''}${stop.durationMinutes % 60}λ` : null;
@@ -30,7 +29,6 @@ function StopCardComponent({ stop, travelers, overlapping, onOpen }: StopCardPro
         {travelerLabel}
         {durationLabel && ` · ${durationLabel}`}
       </div>
-      {overlapping && <div className={styles.warning}>Χρονική επικάλυψη με το επόμενο. Επιτρέπεται.</div>}
     </div>
   );
 }

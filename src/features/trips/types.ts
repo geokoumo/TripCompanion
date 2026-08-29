@@ -47,6 +47,10 @@ export const TripSchema = z.object({
   // Overall trip budget target, set by the user from the budget overview —
   // undefined means "not set yet", never a fabricated default.
   budget: z.number().nonnegative().optional(),
+  // Per-trip remembered location strings (itinerary stop location, stay
+  // address), most-recent-first, offered back as suggestion chips. Scoped to
+  // this trip only — never shared across trips.
+  rememberedLocations: z.array(z.string()).default([]),
   expenses: z.array(ExpenseSchema).default([]),
   checklistItems: z.array(ChecklistItemSchema).default([]),
   shareSettings: ShareSettingsSchema.default({ enabled: false, includedTabs: [] }),

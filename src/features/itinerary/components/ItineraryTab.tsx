@@ -6,8 +6,8 @@ import { generateId } from '../../../shared/lib/id';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import type { Trip } from '../../trips/types';
 import { getTripDateRange } from '../../trips/lib/dateRange';
+import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
 import { buildAutoPulledEntries } from '../lib/autoPulledEntries';
-import { computeOverlappingStopIds } from '../lib/stopOverlap';
 import type { Idea, ItineraryStop } from '../types';
 import { AutoPulledEntryCard } from './AutoPulledEntryCard';
 import { IdeasBacklog } from './IdeasBacklog';
@@ -49,8 +49,6 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const allDayStopsForDay = stopsForDay.filter((s) => s.allDay);
   const timedStopsForDay = stopsForDay.filter((s) => !s.allDay).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
 
-  const overlapIds = computeOverlappingStopIds(stopsForDay);
-
   const openStop = useCallback((stop: ItineraryStop) => setEditingStop(stop), []);
 
   const legsForDay = trip.legs.filter((leg) => selectedDate >= leg.startDate && selectedDate <= leg.endDate);
@@ -62,7 +60,9 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const saveStop = async (stop: ItineraryStop) => {
     await updateTrip((t) => {
       const exists = t.itineraryStops.some((s) => s.id === stop.id);
-      return { ...t, itineraryStops: exists ? t.itineraryStops.map((s) => (s.id === stop.id ? stop : s)) : [...t.itineraryStops, stop] };
+      const itineraryStops = exists ? t.itineraryStops.map((s) => (s.id === stop.id ? stop : s)) : [...t.itineraryStops, stop];
+      const rememberedLocations = stop.location ? addRememberedLocation(t.rememberedLocations, stop.location) : t.rememberedLocations;
+      return { ...t, itineraryStops, rememberedLocations };
     });
     showToast('Η στάση αποθηκεύτηκε.');
     setEditingStop(null);
@@ -119,7 +119,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
         <>
           <div className={styles.legHeader}>Όλη μέρα</div>
           {allDayStopsForDay.map((stop) => (
-            <StopCard key={stop.id} stop={stop} travelers={trip.travelers} overlapping={overlapIds.has(stop.id)} onOpen={openStop} />
+            <StopCard key={stop.id} stop={stop} travelers={trip.travelers} onOpen={openStop} />
           ))}
         </>
       )}
@@ -128,7 +128,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
         <AutoPulledEntryCard key={entry.id} entry={entry} />
       ))}
       {timedStopsForDay.map((stop) => (
-        <StopCard key={stop.id} stop={stop} travelers={trip.travelers} overlapping={overlapIds.has(stop.id)} onOpen={openStop} />
+        <StopCard key={stop.id} stop={stop} travelers={trip.travelers} onOpen={openStop} />
       ))}
       {autoPulledForDay.length === 0 && stopsForDay.length === 0 && (
         <div className={styles.emptyDay}>
@@ -154,7 +154,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
         <StopForm
           initial={editingStop ?? undefined}
           defaultDate={selectedDate}
-          travelers={trip.travelers}
+          trip={trip}
           onClose={() => {
             setCreatingStop(false);
             setEditingStop(null);

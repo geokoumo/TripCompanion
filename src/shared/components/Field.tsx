@@ -5,13 +5,18 @@ interface FieldWrapperProps {
   label: string;
   error?: string;
   caption?: string;
+  /** Small tag next to the label (e.g. "αυτόματο") marking a value the app filled in, not the user. */
+  badge?: string;
   children: ReactNode;
 }
 
-export function FieldWrapper({ label, error, caption, children }: FieldWrapperProps) {
+export function FieldWrapper({ label, error, caption, badge, children }: FieldWrapperProps) {
   return (
     <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
+      <div className={styles.labelRow}>
+        <label className={styles.label}>{label}</label>
+        {badge && <span className={styles.badge}>{badge}</span>}
+      </div>
       {children}
       {caption && <div className={styles.caption}>{caption}</div>}
       {error && <div className={styles.error}>{error}</div>}
@@ -23,11 +28,12 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
   caption?: string;
+  badge?: string;
 }
 
-export function TextField({ label, error, caption, className, ...rest }: TextFieldProps) {
+export function TextField({ label, error, caption, badge, className, ...rest }: TextFieldProps) {
   return (
-    <FieldWrapper label={label} error={error} caption={caption}>
+    <FieldWrapper label={label} error={error} caption={caption} badge={badge}>
       <input className={`${styles.input} ${className ?? ''}`} {...rest} />
     </FieldWrapper>
   );

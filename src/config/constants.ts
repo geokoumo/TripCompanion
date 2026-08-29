@@ -128,3 +128,99 @@ export const COUNTRY_CURRENCY: Record<string, string> = {
   Ταϊλάνδη: 'THB',
   'Ηνωμένα Αραβικά Εμιράτα': 'AED',
 };
+
+// Small hand-curated link-domain -> airline-name table, same "grows over
+// time" pattern as the airport table. Pure string matching against pasted
+// link text — never used to fetch or verify anything.
+export const AIRLINE_DOMAINS: Record<string, string> = {
+  'aegeanair.com': 'Aegean',
+  'ryanair.com': 'Ryanair',
+  'easyjet.com': 'easyJet',
+  'lufthansa.com': 'Lufthansa',
+  'emirates.com': 'Emirates',
+  'qatarairways.com': 'Qatar Airways',
+  'britishairways.com': 'British Airways',
+  'airfrance.com': 'Air France',
+  'klm.com': 'KLM',
+  'turkishairlines.com': 'Turkish Airlines',
+  'ana.co.jp': 'ANA',
+  'jal.co.jp': 'Japan Airlines',
+  'united.com': 'United',
+  'delta.com': 'Delta',
+  'aa.com': 'American Airlines',
+  'wizzair.com': 'Wizz Air',
+  'vueling.com': 'Vueling',
+  'norwegian.com': 'Norwegian',
+  'swiss.com': 'Swiss',
+  'austrian.com': 'Austrian',
+};
+
+export interface CommonCity {
+  el: string;
+  en: string;
+  country: string;
+}
+
+// Small hand-curated list of common travel-destination cities (Greek display
+// name + Latin name + country), same "grows over time" pattern as the
+// airport table. Starter set — not exhaustive.
+export const COMMON_CITIES: CommonCity[] = [
+  { el: 'Αθήνα', en: 'Athens', country: 'Ελλάδα' },
+  { el: 'Θεσσαλονίκη', en: 'Thessaloniki', country: 'Ελλάδα' },
+  { el: 'Πάτρα', en: 'Patras', country: 'Ελλάδα' },
+  { el: 'Ηράκλειο', en: 'Heraklion', country: 'Ελλάδα' },
+  { el: 'Ρόδος', en: 'Rhodes', country: 'Ελλάδα' },
+  { el: 'Σαντορίνη', en: 'Santorini', country: 'Ελλάδα' },
+  { el: 'Μύκονος', en: 'Mykonos', country: 'Ελλάδα' },
+  { el: 'Κέρκυρα', en: 'Corfu', country: 'Ελλάδα' },
+  { el: 'Χανιά', en: 'Chania', country: 'Ελλάδα' },
+  { el: 'Ναύπλιο', en: 'Nafplio', country: 'Ελλάδα' },
+  { el: 'Παρίσι', en: 'Paris', country: 'Γαλλία' },
+  { el: 'Λυών', en: 'Lyon', country: 'Γαλλία' },
+  { el: 'Νίκαια', en: 'Nice', country: 'Γαλλία' },
+  { el: 'Μασσαλία', en: 'Marseille', country: 'Γαλλία' },
+  { el: 'Λονδίνο', en: 'London', country: 'Ηνωμένο Βασίλειο' },
+  { el: 'Μάντσεστερ', en: 'Manchester', country: 'Ηνωμένο Βασίλειο' },
+  { el: 'Εδιμβούργο', en: 'Edinburgh', country: 'Ηνωμένο Βασίλειο' },
+  { el: 'Ρώμη', en: 'Rome', country: 'Ιταλία' },
+  { el: 'Μιλάνο', en: 'Milan', country: 'Ιταλία' },
+  { el: 'Βενετία', en: 'Venice', country: 'Ιταλία' },
+  { el: 'Φλωρεντία', en: 'Florence', country: 'Ιταλία' },
+  { el: 'Νάπολη', en: 'Naples', country: 'Ιταλία' },
+  { el: 'Βαρκελώνη', en: 'Barcelona', country: 'Ισπανία' },
+  { el: 'Μαδρίτη', en: 'Madrid', country: 'Ισπανία' },
+  { el: 'Σεβίλλη', en: 'Seville', country: 'Ισπανία' },
+  { el: 'Βαλένθια', en: 'Valencia', country: 'Ισπανία' },
+  { el: 'Λισαβόνα', en: 'Lisbon', country: 'Πορτογαλία' },
+  { el: 'Πόρτο', en: 'Porto', country: 'Πορτογαλία' },
+  { el: 'Άμστερνταμ', en: 'Amsterdam', country: 'Ολλανδία' },
+  { el: 'Βερολίνο', en: 'Berlin', country: 'Γερμανία' },
+  { el: 'Μόναχο', en: 'Munich', country: 'Γερμανία' },
+  { el: 'Φρανκφούρτη', en: 'Frankfurt', country: 'Γερμανία' },
+  { el: 'Αμβούργο', en: 'Hamburg', country: 'Γερμανία' },
+  { el: 'Βιέννη', en: 'Vienna', country: 'Αυστρία' },
+  { el: 'Ζυρίχη', en: 'Zurich', country: 'Ελβετία' },
+  { el: 'Γενεύη', en: 'Geneva', country: 'Ελβετία' },
+  { el: 'Πράγα', en: 'Prague', country: 'Τσεχία' },
+  { el: 'Βουδαπέστη', en: 'Budapest', country: 'Ουγγαρία' },
+  { el: 'Βαρσοβία', en: 'Warsaw', country: 'Πολωνία' },
+  { el: 'Κοπεγχάγη', en: 'Copenhagen', country: 'Δανία' },
+  { el: 'Στοκχόλμη', en: 'Stockholm', country: 'Σουηδία' },
+  { el: 'Όσλο', en: 'Oslo', country: 'Νορβηγία' },
+  { el: 'Δουβλίνο', en: 'Dublin', country: 'Ιρλανδία' },
+  { el: 'Κωνσταντινούπολη', en: 'Istanbul', country: 'Τουρκία' },
+  { el: 'Ντουμπάι', en: 'Dubai', country: 'Ηνωμένα Αραβικά Εμιράτα' },
+  { el: 'Τόκιο', en: 'Tokyo', country: 'Ιαπωνία' },
+  { el: 'Κιότο', en: 'Kyoto', country: 'Ιαπωνία' },
+  { el: 'Οσάκα', en: 'Osaka', country: 'Ιαπωνία' },
+  { el: 'Μπανγκόκ', en: 'Bangkok', country: 'Ταϊλάνδη' },
+  { el: 'Σιγκαπούρη', en: 'Singapore', country: 'Σιγκαπούρη' },
+  { el: 'Χονγκ Κονγκ', en: 'Hong Kong', country: 'Χονγκ Κονγκ' },
+  { el: 'Σεούλ', en: 'Seoul', country: 'Νότια Κορέα' },
+  { el: 'Νέα Υόρκη', en: 'New York', country: 'Ηνωμένες Πολιτείες' },
+  { el: 'Λος Άντζελες', en: 'Los Angeles', country: 'Ηνωμένες Πολιτείες' },
+  { el: 'Σικάγο', en: 'Chicago', country: 'Ηνωμένες Πολιτείες' },
+  { el: 'Μαϊάμι', en: 'Miami', country: 'Ηνωμένες Πολιτείες' },
+  { el: 'Τορόντο', en: 'Toronto', country: 'Καναδάς' },
+  { el: 'Σίδνεϊ', en: 'Sydney', country: 'Αυστραλία' },
+];

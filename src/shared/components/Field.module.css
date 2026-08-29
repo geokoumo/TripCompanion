@@ -10,7 +10,25 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--color-text-muted);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: var(--space-2);
+}
+
+.badge {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-rust);
+  background: var(--color-rust-soft);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
 }
 
 .input,

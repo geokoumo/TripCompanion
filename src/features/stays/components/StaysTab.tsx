@@ -4,6 +4,7 @@ import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import type { Trip } from '../../trips/types';
+import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
 import { dateTimeRangesOverlap } from '../lib/overlap';
 import type { Stay } from '../types';
 import { StayCard } from './StayCard';
@@ -45,7 +46,9 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
     try {
       await updateTrip((t) => {
         const exists = t.stays.some((s) => s.id === stay.id);
-        return { ...t, stays: exists ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay] };
+        const stays = exists ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
+        const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
+        return { ...t, stays, rememberedLocations };
       });
       showToast('Η διαμονή αποθηκεύτηκε.');
       setEditing(null);
@@ -80,6 +83,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
         <StayForm
           initial={editing ?? undefined}
           existingStays={trip.stays}
+          recentLocations={trip.rememberedLocations}
           onClose={() => {
             setCreating(false);
             setEditing(null);

@@ -5,6 +5,7 @@ import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
+import { PresetChips } from '../../../shared/components/PresetChips';
 import { generateId } from '../../../shared/lib/id';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { suggestCurrencyForCountry } from '../../budget/lib/currency';
@@ -14,6 +15,7 @@ import { nextAvatarColor } from '../../travelers/lib/avatarColors';
 import type { Traveler } from '../../travelers/types';
 import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { countryForCity, suggestCities } from '../lib/cityAutocomplete';
 import type { Leg, Trip } from '../types';
 import { isEndOnOrAfterStart } from '../validation';
 import styles from './CreateTripWizard.module.css';
@@ -75,6 +77,12 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
     setLegCountry('');
   };
 
+  const applyCitySuggestion = (cityName: string) => {
+    setLegCity(cityName);
+    const country = countryForCity(cityName);
+    if (country) setLegCountry(country);
+  };
+
   const addTraveler = () => {
     if (!travelerName.trim()) return;
     setTravelers((prev) => [...prev, { id: generateId(), name: travelerName.trim(), avatarColor: nextAvatarColor(prev.length) }]);
@@ -114,6 +122,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
       itineraryStops: [],
       ideas: [],
       budgetCategories,
+      rememberedLocations: [],
       expenses: [],
       checklistItems,
       shareSettings: { enabled: false, includedTabs: [] },
@@ -202,6 +211,9 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
           ))}
           {showCityFields ? (
             <>
+              {suggestCities(legCity).length > 0 && (
+                <PresetChips presets={suggestCities(legCity)} onSelect={applyCitySuggestion} hideInput />
+              )}
               <div className={styles.addRow}>
                 <TextField label="Πόλη" value={legCity} onChange={(e) => setLegCity(e.target.value)} placeholder="Τόκιο" />
                 <TextField label="Χώρα" value={legCountry} onChange={(e) => setLegCountry(e.target.value)} placeholder="Ιαπωνία" />
