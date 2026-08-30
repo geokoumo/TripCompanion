@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SCHEMA_VERSION } from '../../config/constants';
+import { SCHEMA_VERSION, TRAVELER_AVATAR_COLORS } from '../../config/constants';
 import { TravelerSchema } from '../travelers/types';
 import { FlightSchema } from '../flights/types';
 import { StaySchema } from '../stays/types';
@@ -59,6 +59,22 @@ export const TripSchema = z.object({
 });
 
 export type Trip = z.infer<typeof TripSchema>;
+
+// The lightweight shape the Home/trip-list screen actually needs — everything
+// list_trips() returns, and nothing that would require assembling a trip's
+// full nested data just to render a card. Never construct one of these by
+// hand from a partial Trip; always go through lib/tripListItem.ts.
+export const TripListItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  archived: z.boolean(),
+  startDate: z.string().nullable(),
+  endDate: z.string().nullable(),
+  cities: z.array(z.string()).default([]),
+  travelers: z.array(z.object({ name: z.string(), avatarColor: z.enum(TRAVELER_AVATAR_COLORS) })).default([]),
+});
+
+export type TripListItem = z.infer<typeof TripListItemSchema>;
 
 export type TripStatus = 'upcoming' | 'today' | 'ongoing' | 'completed';
 

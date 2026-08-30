@@ -16,12 +16,12 @@ export function AvatarChip({ name, color, size = 'md' }: AvatarChipProps) {
   );
 }
 
-export function AvatarRow({ travelers }: { travelers: { id: string; name: string; avatarColor: TravelerAvatarColor }[] }) {
+export function AvatarRow({ travelers }: { travelers: { id?: string; name: string; avatarColor: TravelerAvatarColor }[] }) {
   if (travelers.length === 0) return null;
   return (
     <span className={styles.row}>
-      {travelers.map((t) => (
-        <AvatarChip key={t.id} name={t.name} color={t.avatarColor} size="sm" />
+      {travelers.map((t, i) => (
+        <AvatarChip key={t.id ?? `${t.name}-${i}`} name={t.name} color={t.avatarColor} size="sm" />
       ))}
     </span>
   );

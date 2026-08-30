@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { LoadingScreen } from '../../../app/LoadingScreen';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { OverviewTab } from './OverviewTab';
 import { FlightsTab } from '../../flights/components/FlightsTab';
@@ -21,11 +22,15 @@ interface TripDetailScreenProps {
 }
 
 export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: TripDetailScreenProps) {
-  const { trip, updateTrip, saveTrip } = useTrip(tripId);
+  const { trip, loading, updateTrip, saveTrip } = useTrip(tripId);
   const { deleteTrip } = useTripsContext();
   const { showToast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   if (!trip) {
     return <div style={{ padding: 32 }}>Το ταξίδι δεν βρέθηκε.</div>;

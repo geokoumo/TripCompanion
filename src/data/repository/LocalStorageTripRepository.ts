@@ -1,4 +1,5 @@
-import { TripSchema, type Trip } from '../../features/trips/types';
+import { TripSchema, type Trip, type TripListItem } from '../../features/trips/types';
+import { tripToListItem } from '../../features/trips/lib/tripListItem';
 import { migrateTrip } from '../migrations';
 import { storageAdapter } from '../storage/storageAdapter';
 import type { TripRepository } from './TripRepository';
@@ -76,19 +77,19 @@ export class LocalStorageTripRepository implements TripRepository {
   /** Wired up by the app shell so a record that fails to load surfaces a toast instead of silently vanishing. */
   onRecordError: (message: string) => void = () => {};
 
-  async getTrips(): Promise<Trip[]> {
+  async getTrips(): Promise<TripListItem[]> {
     migrateLegacyStorage();
     const list = readRawList();
-    const trips: Trip[] = [];
+    const items: TripListItem[] = [];
     for (const record of list) {
       try {
         const migrated = migrateTrip(record);
-        trips.push(TripSchema.parse(migrated));
+        items.push(tripToListItem(TripSchema.parse(migrated)));
       } catch {
         this.onRecordError('Αποτυχία φόρτωσης ενός ταξιδιού.');
       }
     }
-    return trips;
+    return items;
   }
 
   async getTrip(id: string): Promise<Trip | null> {

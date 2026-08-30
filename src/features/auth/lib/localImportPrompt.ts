@@ -23,11 +23,19 @@ export function useLocalTripsImportPrompt(active: boolean) {
     if (storageAdapter.get(SHOWN_FLAG_KEY)) return;
 
     let cancelled = false;
-    void new LocalStorageTripRepository().getTrips().then((trips) => {
-      if (cancelled) return;
-      storageAdapter.set(SHOWN_FLAG_KEY, '1');
-      if (trips.length > 0) setLocalTrips(trips);
-    });
+    const repository = new LocalStorageTripRepository();
+    // getTrips() only returns list summaries now — this prompt needs the
+    // full trips to actually import, so fetch each one by id (cheap: local
+    // storage, no network, and this only ever runs once per device).
+    void repository
+      .getTrips()
+      .then((items) => Promise.all(items.map((item) => repository.getTrip(item.id))))
+      .then((loaded) => {
+        if (cancelled) return;
+        storageAdapter.set(SHOWN_FLAG_KEY, '1');
+        const trips = loaded.filter((t): t is Trip => t !== null);
+        if (trips.length > 0) setLocalTrips(trips);
+      });
     return () => {
       cancelled = true;
     };

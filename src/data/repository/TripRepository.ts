@@ -1,7 +1,9 @@
-import type { Trip } from '../../features/trips/types';
+import type { Trip, TripListItem } from '../../features/trips/types';
 
 export interface TripRepository {
-  getTrips(): Promise<Trip[]>;
+  /** Lightweight summaries for the Home/trip-list screen — never a per-trip full fetch. */
+  getTrips(): Promise<TripListItem[]>;
+  /** The full nested trip, for opening a specific trip (or any write). */
   getTrip(id: string): Promise<Trip | null>;
   saveTrip(trip: Trip): Promise<void>;
   deleteTrip(id: string): Promise<void>;

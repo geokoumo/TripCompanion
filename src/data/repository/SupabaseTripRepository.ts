@@ -1,16 +1,15 @@
 import { supabase } from '../supabase/client';
-import { TripSchema, type Trip } from '../../features/trips/types';
+import { TripListItemSchema, TripSchema, type Trip, type TripListItem } from '../../features/trips/types';
 import type { TripRepository } from './TripRepository';
 
 /**
- * Backs the account-signed-in data path. Every read/write goes through the
- * get_full_trip/upsert_full_trip RPCs (schema.sql / full_trip_rpcs.sql) —
- * never hand-rolled table queries — because the nested-object mapping
- * (legs, travelers, flights, stays, itinerary, budget, checklist) and the
- * ownership checks already live there, tested. Every RPC response is parsed
- * through TripSchema before it reaches the app, so a schema/mapping mismatch
- * surfaces immediately as a thrown error instead of a malformed trip
- * silently propagating into the UI.
+ * Backs the account-signed-in data path. Nested-object assembly always goes
+ * through a Postgres function (list_trips/get_full_trip/upsert_full_trip —
+ * see supabase/migrations/) rather than hand-rolled table-by-table queries,
+ * because that mapping and the ownership checks already live there, tested.
+ * Every RPC response is parsed through a Zod schema before it reaches the
+ * app, so a schema/mapping mismatch surfaces immediately as a thrown error
+ * instead of a malformed object silently propagating into the UI.
  */
 export class SupabaseTripRepository implements TripRepository {
   onRecordError: (message: string) => void = () => {};
@@ -20,28 +19,23 @@ export class SupabaseTripRepository implements TripRepository {
     return supabase;
   }
 
-  async getTrips(): Promise<Trip[]> {
-    // Only `id` is fetched directly from the trips table — the exact shape of
-    // that table beyond id/ownership isn't something this codebase has
-    // visibility into (schema.sql lives outside the app repo), so listing
-    // fields like title/dates can't safely be selected by name here without
-    // risking a guess at a column that doesn't exist. Once those column
-    // names are confirmed, swap this for a lighter list query/RPC instead of
-    // a get_full_trip call per trip.
-    const { data, error } = await this.client().from('trips').select('id');
+  async getTrips(): Promise<TripListItem[]> {
+    // One round trip, not one get_full_trip call per trip — list_trips()
+    // returns exactly the summary the Home screen needs (schema.sql /
+    // list_trips.sql, now committed under supabase/migrations/).
+    const { data, error } = await this.client().rpc('list_trips');
     if (error) throw error;
 
-    const ids = (data ?? []).map((row) => row.id as string);
-    const trips: Trip[] = [];
-    for (const id of ids) {
+    const rows: unknown[] = Array.isArray(data) ? data : [];
+    const items: TripListItem[] = [];
+    for (const row of rows) {
       try {
-        const trip = await this.getTrip(id);
-        if (trip) trips.push(trip);
+        items.push(TripListItemSchema.parse(row));
       } catch {
         this.onRecordError('Αποτυχία φόρτωσης ενός ταξιδιού.');
       }
     }
-    return trips;
+    return items;
   }
 
   async getTrip(id: string): Promise<Trip | null> {

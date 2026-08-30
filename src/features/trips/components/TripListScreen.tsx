@@ -22,7 +22,7 @@ interface TripListScreenProps {
 }
 
 export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
-  const { trips, loading, saveTrip, deleteTrip } = useTrips();
+  const { trips, loading, saveTrip, deleteTrip, getFullTrip } = useTrips();
   const { showToast } = useToast();
   const { user, enabled, signOut } = useAuth();
   const { localTrips, dismiss: dismissLocalTripsPrompt } = useLocalTripsImportPrompt(!!user);
@@ -58,6 +58,14 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
     } catch {
       // saveTrip already surfaced its own error toast
     }
+  };
+
+  // TripCard only carries the list summary — the "..." menu (and everything
+  // reachable from it: share/duplicate/archive/delete) needs the full trip,
+  // so fetch it once here rather than bulk-loading full trips up front.
+  const openMenuFor = async (id: string) => {
+    const full = await getFullTrip(id);
+    if (full) setMenuTrip(full);
   };
 
   const confirmDeleteTrip = () => {
@@ -117,7 +125,7 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
       )}
 
       {visible.map((trip) => (
-        <TripCard key={trip.id} trip={trip} onOpen={() => onOpenTrip(trip.id)} onOpenMenu={() => setMenuTrip(trip)} />
+        <TripCard key={trip.id} trip={trip} onOpen={() => onOpenTrip(trip.id)} onOpenMenu={() => void openMenuFor(trip.id)} />
       ))}
 
       <Fab onClick={() => setWizardOpen(true)} />

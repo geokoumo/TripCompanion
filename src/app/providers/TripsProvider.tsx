@@ -2,14 +2,18 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { LocalStorageTripRepository } from '../../data/repository/LocalStorageTripRepository';
 import { SupabaseTripRepository } from '../../data/repository/SupabaseTripRepository';
 import type { TripRepository } from '../../data/repository/TripRepository';
-import type { Trip } from '../../features/trips/types';
+import { tripToListItem } from '../../features/trips/lib/tripListItem';
+import type { Trip, TripListItem } from '../../features/trips/types';
 import { useAuth } from './AuthProvider';
 import { useToast } from './ToastProvider';
 
 interface TripsContextValue {
-  trips: Trip[];
+  /** Home/trip-list summaries only — never a full trip's nested data. */
+  trips: TripListItem[];
   loading: boolean;
   refresh: () => Promise<void>;
+  /** Fetches one trip's full nested data — for opening it, or before editing it from a list-only view (menu/share/duplicate). */
+  getFullTrip: (id: string) => Promise<Trip | null>;
   saveTrip: (trip: Trip) => Promise<void>;
   deleteTrip: (id: string) => Promise<void>;
 }
@@ -17,7 +21,7 @@ interface TripsContextValue {
 const TripsContext = createContext<TripsContextValue | null>(null);
 
 export function TripsProvider({ children }: { children: ReactNode }) {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<TripListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
   const { user } = useAuth();
@@ -54,12 +58,25 @@ export function TripsProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
+  const getFullTrip = useCallback(
+    async (id: string): Promise<Trip | null> => {
+      try {
+        return await repository.getTrip(id);
+      } catch {
+        showToast('Αποτυχία φόρτωσης ταξιδιού.', { variant: 'error' });
+        return null;
+      }
+    },
+    [repository, showToast],
+  );
+
   const saveTrip = useCallback(
     async (trip: Trip) => {
+      const item = tripToListItem(trip);
       const previous = trips;
       setTrips((prev) => {
-        const exists = prev.some((t) => t.id === trip.id);
-        return exists ? prev.map((t) => (t.id === trip.id ? trip : t)) : [...prev, trip];
+        const exists = prev.some((t) => t.id === item.id);
+        return exists ? prev.map((t) => (t.id === item.id ? item : t)) : [...prev, item];
       });
       try {
         await repository.saveTrip(trip);
@@ -87,7 +104,9 @@ export function TripsProvider({ children }: { children: ReactNode }) {
     [trips, repository, showToast],
   );
 
-  return <TripsContext.Provider value={{ trips, loading, refresh, saveTrip, deleteTrip }}>{children}</TripsContext.Provider>;
+  return (
+    <TripsContext.Provider value={{ trips, loading, refresh, getFullTrip, saveTrip, deleteTrip }}>{children}</TripsContext.Provider>
+  );
 }
 
 export function useTripsContext(): TripsContextValue {

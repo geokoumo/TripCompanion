@@ -1,4 +1,5 @@
-import { useTripsContext } from '../../../app/providers/TripsProvider';
+import { LoadingScreen } from '../../../app/LoadingScreen';
+import { useTrip } from '../hooks/useTrip';
 import { FlightCard } from '../../flights/components/FlightCard';
 import { StayCard } from '../../stays/components/StayCard';
 import { expenseAmountInHome } from '../../budget/lib/currency';
@@ -112,8 +113,11 @@ function ItineraryReadOnly({ trip, includedTabs }: { trip: Trip; includedTabs: S
 }
 
 export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () => void }) {
-  const { trips } = useTripsContext();
-  const trip = trips.find((t) => t.id === tripId);
+  const { trip, loading } = useTrip(tripId);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   if (!trip || !trip.shareSettings.enabled) {
     return (
