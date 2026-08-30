@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { AuthSheet } from '../../auth/components/AuthSheet';
+import { LocalTripsImportPrompt } from '../../auth/components/LocalTripsImportPrompt';
+import { useLocalTripsImportPrompt } from '../../auth/lib/localImportPrompt';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
@@ -23,6 +25,7 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const { trips, loading, saveTrip, deleteTrip } = useTrips();
   const { showToast } = useToast();
   const { user, enabled, signOut } = useAuth();
+  const { localTrips, dismiss: dismissLocalTripsPrompt } = useLocalTripsImportPrompt(!!user);
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -161,6 +164,8 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
       )}
 
       {authOpen && <AuthSheet onClose={() => setAuthOpen(false)} />}
+
+      {localTrips && <LocalTripsImportPrompt localTrips={localTrips} onClose={dismissLocalTripsPrompt} />}
     </div>
   );
 }

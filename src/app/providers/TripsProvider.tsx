@@ -1,10 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { LocalStorageTripRepository } from '../../data/repository/LocalStorageTripRepository';
+import { SupabaseTripRepository } from '../../data/repository/SupabaseTripRepository';
 import type { TripRepository } from '../../data/repository/TripRepository';
 import type { Trip } from '../../features/trips/types';
+import { useAuth } from './AuthProvider';
 import { useToast } from './ToastProvider';
-
-const repository: TripRepository = new LocalStorageTripRepository();
 
 interface TripsContextValue {
   trips: Trip[];
@@ -20,12 +20,25 @@ export function TripsProvider({ children }: { children: ReactNode }) {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
+  const { user } = useAuth();
+
+  // Signed in -> Supabase is the data source; signed out -> back to local
+  // storage, unchanged from how the app has always worked for anyone not
+  // signed in. Only recreated when the signed-in user actually changes, not
+  // on every render.
+  const repository = useMemo<TripRepository>(
+    () => (user ? new SupabaseTripRepository() : new LocalStorageTripRepository()),
+    [user?.id],
+  );
 
   // Assigned every render (cheap — just a closure swap) so it's always
   // current before any effect below runs, including the initial-load one.
   repository.onRecordError = (message: string) => showToast(message, { variant: 'error' });
 
   const refresh = useCallback(async () => {
+    // Clear immediately: when `repository` just switched (sign-in/out), the
+    // previous data source's trips must never stay visible even briefly.
+    setTrips([]);
     setLoading(true);
     try {
       const loaded = await repository.getTrips();
@@ -35,7 +48,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [repository, showToast]);
 
   useEffect(() => {
     void refresh();
@@ -56,7 +69,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
         throw new Error('save-failed');
       }
     },
-    [trips, showToast],
+    [trips, repository, showToast],
   );
 
   const deleteTrip = useCallback(
@@ -71,7 +84,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
         throw new Error('delete-failed');
       }
     },
-    [trips, showToast],
+    [trips, repository, showToast],
   );
 
   return <TripsContext.Provider value={{ trips, loading, refresh, saveTrip, deleteTrip }}>{children}</TripsContext.Provider>;

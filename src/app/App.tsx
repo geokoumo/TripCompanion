@@ -1,9 +1,11 @@
+import { ResetPasswordScreen } from '../features/auth/components/ResetPasswordScreen';
 import { TripListScreen } from '../features/trips/components/TripListScreen';
 import { TripDetailScreen } from '../features/trips/components/TripDetailScreen';
 import { SharedTripView } from '../features/trips/components/SharedTripView';
 import { useHashRoute } from '../shared/lib/useHashRoute';
 import { ErrorBoundary } from './ErrorBoundary';
-import { AuthProvider } from './providers/AuthProvider';
+import { LoadingScreen } from './LoadingScreen';
+import { AuthProvider, useAuth } from './providers/AuthProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './providers/ToastProvider';
 import { TripsProvider } from './providers/TripsProvider';
@@ -29,16 +31,31 @@ function Router() {
   return <TripListScreen onOpenTrip={(tripId) => navigate({ name: 'trip', tripId, tab: 'overview' })} />;
 }
 
+// Gates the app behind the initial auth-session resolution — otherwise a
+// signed-in user briefly sees a signed-out shell (and, once the repository
+// switch lands, could even glimpse the other data source) before the real
+// session is known.
+function AuthGatedApp() {
+  const { loading, recoveryMode } = useAuth();
+
+  if (loading) return <LoadingScreen />;
+  if (recoveryMode) return <ResetPasswordScreen />;
+
+  return (
+    <TripsProvider>
+      <ErrorBoundary>
+        <Router />
+      </ErrorBoundary>
+    </TripsProvider>
+  );
+}
+
 export function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
-          <TripsProvider>
-            <ErrorBoundary>
-              <Router />
-            </ErrorBoundary>
-          </TripsProvider>
+          <AuthGatedApp />
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
