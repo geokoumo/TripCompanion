@@ -14,11 +14,11 @@
 
 .badge[data-tone='rust'] {
   background: var(--color-rust-soft);
-  color: var(--color-rust);
+  color: var(--color-rust-on-soft);
 }
 .badge[data-tone='teal'] {
   background: var(--color-teal-soft);
-  color: var(--color-teal);
+  color: var(--color-teal-on-soft);
 }
 .badge[data-tone='gray'] {
   background: var(--color-gray-soft);

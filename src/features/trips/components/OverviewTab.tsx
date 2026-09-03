@@ -3,6 +3,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { formatDateShort, formatDateNoYear, todayStr, daysBetween } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { getTripStatus, type Trip } from '../types';
+import { StatGrid } from './StatGrid';
 import styles from './OverviewTab.module.css';
 
 function statusLabel(status: string): string {
@@ -46,6 +47,8 @@ export function OverviewTab({ trip }: { trip: Trip }) {
   if (nothingYet) {
     return (
       <div className={styles.wrapper}>
+        {trip.description && <p className={styles.description}>{trip.description}</p>}
+        <StatGrid trip={trip} />
         <EmptyState headline="Τίποτα ακόμα" body="Πρόσθεσε πτήσεις ή διαμονή και θα εμφανιστούν εδώ." />
       </div>
     );
@@ -53,6 +56,9 @@ export function OverviewTab({ trip }: { trip: Trip }) {
 
   return (
     <div className={styles.wrapper}>
+      {trip.description && <p className={styles.description}>{trip.description}</p>}
+      <StatGrid trip={trip} />
+
       {countdownKicker && range && (
         <div className={styles.countdownCard}>
           <div className={styles.countdownLabel}>{countdownKicker}</div>

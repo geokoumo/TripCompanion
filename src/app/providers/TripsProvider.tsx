@@ -3,6 +3,7 @@ import { LocalStorageTripRepository } from '../../data/repository/LocalStorageTr
 import { SupabaseTripRepository } from '../../data/repository/SupabaseTripRepository';
 import type { TripRepository } from '../../data/repository/TripRepository';
 import { tripToListItem } from '../../features/trips/lib/tripListItem';
+import type { SearchResultGroup } from '../../features/search/types';
 import type { Trip, TripListItem } from '../../features/trips/types';
 import { useAuth } from './AuthProvider';
 import { useToast } from './ToastProvider';
@@ -16,6 +17,7 @@ interface TripsContextValue {
   getFullTrip: (id: string) => Promise<Trip | null>;
   saveTrip: (trip: Trip) => Promise<void>;
   deleteTrip: (id: string) => Promise<void>;
+  searchTrips: (query: string) => Promise<SearchResultGroup[]>;
 }
 
 const TripsContext = createContext<TripsContextValue | null>(null);
@@ -104,8 +106,22 @@ export function TripsProvider({ children }: { children: ReactNode }) {
     [trips, repository, showToast],
   );
 
+  const searchTrips = useCallback(
+    async (query: string): Promise<SearchResultGroup[]> => {
+      try {
+        return await repository.searchTrips(query);
+      } catch {
+        showToast('Η αναζήτηση απέτυχε.', { variant: 'error' });
+        return [];
+      }
+    },
+    [repository, showToast],
+  );
+
   return (
-    <TripsContext.Provider value={{ trips, loading, refresh, getFullTrip, saveTrip, deleteTrip }}>{children}</TripsContext.Provider>
+    <TripsContext.Provider value={{ trips, loading, refresh, getFullTrip, saveTrip, deleteTrip, searchTrips }}>
+      {children}
+    </TripsContext.Provider>
   );
 }
 

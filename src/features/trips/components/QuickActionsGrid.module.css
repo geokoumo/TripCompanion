@@ -1,0 +1,32 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+}
+
+.tile[data-tone='rust'] {
+  background: var(--color-rust-soft);
+  color: var(--color-rust-on-soft);
+}
+
+.tile[data-tone='teal'] {
+  background: var(--color-teal-soft);
+  color: var(--color-teal-on-soft);
+}
+
+.label {
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+}

@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/client';
+import { SearchResultGroupSchema, type SearchResultGroup } from '../../features/search/types';
 import { TripListItemSchema, TripSchema, type Trip, type TripListItem } from '../../features/trips/types';
 import type { TripRepository } from './TripRepository';
 
@@ -55,5 +56,22 @@ export class SupabaseTripRepository implements TripRepository {
     // RLS + the cascade chain in schema.sql handles removing every child row.
     const { error } = await this.client().from('trips').delete().eq('id', id);
     if (error) throw error;
+  }
+
+  async searchTrips(query: string): Promise<SearchResultGroup[]> {
+    if (!query.trim()) return [];
+    const { data, error } = await this.client().rpc('search_trips', { _query: query.trim() });
+    if (error) throw error;
+
+    const rows: unknown[] = Array.isArray(data) ? data : [];
+    const groups: SearchResultGroup[] = [];
+    for (const row of rows) {
+      try {
+        groups.push(SearchResultGroupSchema.parse(row));
+      } catch {
+        this.onRecordError('Αποτυχία αναζήτησης.');
+      }
+    }
+    return groups;
   }
 }

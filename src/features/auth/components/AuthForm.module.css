@@ -1,0 +1,32 @@
+.card {
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--fs-header-title);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+
+.link {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--color-rust);
+  font-size: var(--fs-meta);
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.info {
+  color: var(--color-teal);
+  font-size: var(--fs-meta);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--fs-meta);
+}

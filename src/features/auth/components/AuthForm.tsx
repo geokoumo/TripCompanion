@@ -2,11 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { Button } from '../../../shared/components/Button';
 import { TextField } from '../../../shared/components/Field';
-import { Modal } from '../../../shared/components/Modal';
-
-interface AuthSheetProps {
-  onClose: () => void;
-}
+import styles from './AuthForm.module.css';
 
 type Mode = 'signIn' | 'signUp' | 'forgot';
 
@@ -22,7 +18,8 @@ const SUBMIT_LABELS: Record<Mode, string> = {
   forgot: 'Αποστολή συνδέσμου',
 };
 
-export function AuthSheet({ onClose }: AuthSheetProps) {
+/** Bare sign-in/sign-up/forgot-password form — the Account tab's signed-out state, no modal wrapper. */
+export function AuthForm() {
   const { signIn, signUp, resetPassword } = useAuth();
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
@@ -71,21 +68,15 @@ export function AuthSheet({ onClose }: AuthSheetProps) {
     if (mode === 'signUp') {
       setInfo('Ελέγξτε το email σας για επιβεβαίωση, μετά συνδεθείτε.');
       changeMode('signIn');
-      return;
     }
-    onClose();
+    // On a successful sign-in, AuthProvider's session update flows through
+    // useAuth() automatically — the Account tab re-renders into the
+    // signed-in view on its own, no explicit navigation needed here.
   };
 
   return (
-    <Modal
-      title={TITLES[mode]}
-      onClose={onClose}
-      footer={
-        <Button variant="primary" onClick={() => void submit()} disabled={submitting}>
-          {SUBMIT_LABELS[mode]}
-        </Button>
-      }
-    >
+    <div className={styles.card}>
+      <div className={styles.title}>{TITLES[mode]}</div>
       <TextField label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       {mode !== 'forgot' && (
         <TextField
@@ -97,28 +88,22 @@ export function AuthSheet({ onClose }: AuthSheetProps) {
           error={error}
         />
       )}
-      {mode === 'forgot' && error && <p style={{ color: 'var(--color-danger)', fontSize: 'var(--fs-meta)' }}>{error}</p>}
-      {info && <p style={{ color: 'var(--color-teal)', fontSize: 'var(--fs-meta)' }}>{info}</p>}
+      {mode === 'forgot' && error && <p className={styles.error}>{error}</p>}
+      {info && <p className={styles.info}>{info}</p>}
+
+      <Button variant="primary" onClick={() => void submit()} disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
+        {SUBMIT_LABELS[mode]}
+      </Button>
 
       {mode === 'signIn' && (
-        <button type="button" onClick={() => changeMode('forgot')} style={linkStyle}>
+        <button type="button" className={styles.link} onClick={() => changeMode('forgot')}>
           Ξέχασες τον κωδικό;
         </button>
       )}
 
-      <button type="button" onClick={() => changeMode(mode === 'signIn' ? 'signUp' : 'signIn')} style={linkStyle}>
+      <button type="button" className={styles.link} onClick={() => changeMode(mode === 'signIn' ? 'signUp' : 'signIn')}>
         {mode === 'signUp' ? 'Έχεις ήδη λογαριασμό; Σύνδεση' : mode === 'forgot' ? 'Επιστροφή στη σύνδεση' : 'Δεν έχεις λογαριασμό; Εγγραφή'}
       </button>
-    </Modal>
+    </div>
   );
 }
-
-const linkStyle = {
-  display: 'block',
-  background: 'none',
-  border: 'none',
-  color: 'var(--color-rust)',
-  fontSize: 'var(--fs-meta)',
-  padding: '8px 0',
-  cursor: 'pointer',
-} as const;

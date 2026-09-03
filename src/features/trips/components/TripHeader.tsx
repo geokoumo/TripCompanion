@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { CompassIcon } from '../../../shared/components/icons';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { downloadTripAsJson } from '../lib/tripFile';
-import { TRIP_TABS, type Trip, type TripTab } from '../types';
+import { getTripStatus, TRIP_TABS, type Trip, type TripTab } from '../types';
+import { EditDescriptionSheet } from './EditDescriptionSheet';
 import { ShareSheet } from './ShareSheet';
 import { TripMenuSheet } from './TripMenuSheet';
 import styles from './TripHeader.module.css';
@@ -30,7 +32,10 @@ interface TripHeaderProps {
 export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip }: TripHeaderProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
   const range = getTripDateRange(trip.legs, trip.flights);
+  const status = trip.archived ? 'completed' : getTripStatus(range);
+  const heroTone = status === 'completed' ? 'gray' : status === 'ongoing' || status === 'today' ? 'teal' : 'rust';
 
   return (
     <div className={styles.header}>
@@ -46,6 +51,9 @@ export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveTogg
             ···
           </button>
         </div>
+      </div>
+      <div className={styles.heroCircle} data-tone={heroTone}>
+        <CompassIcon size={24} />
       </div>
       <div className={styles.title}>{trip.title}</div>
       {range && (
@@ -76,9 +84,13 @@ export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveTogg
           onShare={() => setShareOpen(true)}
           onDuplicate={onDuplicate}
           onExport={() => downloadTripAsJson(trip)}
+          onEditDescription={() => setEditDescriptionOpen(true)}
           onArchiveToggle={onArchiveToggle}
           onDelete={onDeleteRequest}
         />
+      )}
+      {editDescriptionOpen && (
+        <EditDescriptionSheet trip={trip} onClose={() => setEditDescriptionOpen(false)} onSave={onSaveTrip} />
       )}
     </div>
   );

@@ -35,6 +35,9 @@ export const TripSchema = z.object({
   title: z.string().min(1, 'Ο τίτλος είναι υποχρεωτικός'),
   homeCurrency: z.string().min(1).default('EUR'),
   archived: z.boolean().default(false),
+  // Optional free-text blurb, shown on Overview when present. Backed by the
+  // `description` column added in the Round 9 migration.
+  description: z.string().optional(),
   travelers: z.array(TravelerSchema).default([]),
   // The trip's overall date span is DERIVED from legs[]/flights[] — see lib/dateRange.ts.
   // Never stored directly.

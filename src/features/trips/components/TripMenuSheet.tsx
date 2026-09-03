@@ -8,11 +8,12 @@ interface TripMenuSheetProps {
   onShare: () => void;
   onDuplicate: () => void;
   onExport: () => void;
+  onEditDescription: () => void;
   onArchiveToggle: () => void;
   onDelete: () => void;
 }
 
-export function TripMenuSheet({ trip, onClose, onShare, onDuplicate, onExport, onArchiveToggle, onDelete }: TripMenuSheetProps) {
+export function TripMenuSheet({ trip, onClose, onShare, onDuplicate, onExport, onEditDescription, onArchiveToggle, onDelete }: TripMenuSheetProps) {
   const run = (fn: () => void) => {
     onClose();
     fn();
@@ -28,6 +29,9 @@ export function TripMenuSheet({ trip, onClose, onShare, onDuplicate, onExport, o
       </button>
       <button type="button" className={styles.row} onClick={() => run(onExport)}>
         Εξαγωγή σε αρχείο
+      </button>
+      <button type="button" className={styles.row} onClick={() => run(onEditDescription)}>
+        {trip.description ? 'Επεξεργασία περιγραφής' : 'Προσθήκη περιγραφής'}
       </button>
       <button type="button" className={styles.row} onClick={() => run(onArchiveToggle)}>
         {trip.archived ? 'Επαναφορά από αρχείο' : 'Αρχειοθέτηση'}

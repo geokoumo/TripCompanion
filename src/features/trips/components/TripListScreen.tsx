@@ -1,41 +1,38 @@
 import { useRef, useState } from 'react';
-import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { AuthSheet } from '../../auth/components/AuthSheet';
-import { LocalTripsImportPrompt } from '../../auth/components/LocalTripsImportPrompt';
-import { useLocalTripsImportPrompt } from '../../auth/lib/localImportPrompt';
-import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { useTrips } from '../hooks/useTrips';
 import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
-import type { Trip } from '../types';
+import type { Trip, TripTab } from '../types';
 import { CreateTripWizard } from './CreateTripWizard';
+import { EditDescriptionSheet } from './EditDescriptionSheet';
+import { QuickActionsGrid } from './QuickActionsGrid';
 import { ShareSheet } from './ShareSheet';
 import { TripCard } from './TripCard';
 import { TripMenuSheet } from './TripMenuSheet';
+import { TripPickerSheet } from './TripPickerSheet';
 import styles from './TripListScreen.module.css';
 
 interface TripListScreenProps {
-  onOpenTrip: (tripId: string) => void;
+  onOpenTrip: (tripId: string, tab?: TripTab) => void;
 }
 
 export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const { trips, loading, saveTrip, deleteTrip, getFullTrip } = useTrips();
   const { showToast } = useToast();
-  const { user, enabled, signOut } = useAuth();
-  const { localTrips, dismiss: dismissLocalTripsPrompt } = useLocalTripsImportPrompt(!!user);
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
   const [menuTrip, setMenuTrip] = useState<Trip | null>(null);
   const [shareTrip, setShareTrip] = useState<Trip | null>(null);
   const [duplicateSource, setDuplicateSource] = useState<Trip | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Trip | null>(null);
+  const [editDescriptionTrip, setEditDescriptionTrip] = useState<Trip | null>(null);
+  const [quickActionPicker, setQuickActionPicker] = useState<TripTab | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const visible = trips.filter((t) => (filter === 'active' ? !t.archived : t.archived));
+  const activeTrips = trips.filter((t) => !t.archived);
   const todayLabel = formatDateShort(new Date().toISOString().slice(0, 10));
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,6 +65,22 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
     if (full) setMenuTrip(full);
   };
 
+  // A quick-action tile has no trip context of its own — resolve one: the
+  // single active trip if there's exactly one, a lightweight picker if
+  // there's more than one, or a nudge to create a trip first. Never a
+  // silent no-op.
+  const handleQuickAction = (tab: TripTab) => {
+    if (activeTrips.length === 0) {
+      showToast('Δημιούργησε πρώτα ένα ενεργό ταξίδι.', { variant: 'neutral' });
+      return;
+    }
+    if (activeTrips.length === 1) {
+      onOpenTrip(activeTrips[0]!.id, tab);
+      return;
+    }
+    setQuickActionPicker(tab);
+  };
+
   const confirmDeleteTrip = () => {
     if (!pendingDelete) return;
     const snapshot = pendingDelete;
@@ -81,22 +94,6 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
 
   return (
     <div className={styles.screen}>
-      {enabled && (
-        <div className={styles.accountRow}>
-          {user ? (
-            <>
-              <span className={styles.accountEmail}>{user.email}</span>
-              <button type="button" className={styles.accountButton} onClick={() => void signOut()}>
-                Αποσύνδεση
-              </button>
-            </>
-          ) : (
-            <button type="button" className={styles.accountButton} onClick={() => setAuthOpen(true)}>
-              Σύνδεση
-            </button>
-          )}
-        </div>
-      )}
       <h1 className={styles.title}>Τα ταξίδια μου</h1>
       <div className={styles.subtitle}>Σήμερα {todayLabel}</div>
 
@@ -113,6 +110,8 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
         <input ref={importInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={(e) => void handleImportFile(e)} />
       </div>
 
+      <QuickActionsGrid onSelect={handleQuickAction} />
+
       {!loading && visible.length === 0 && (
         <EmptyState
           headline={filter === 'active' ? 'Κανένα ταξίδι ακόμα' : 'Κανένα αρχειοθετημένο ταξίδι'}
@@ -128,18 +127,6 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
         <TripCard key={trip.id} trip={trip} onOpen={() => onOpenTrip(trip.id)} onOpenMenu={() => void openMenuFor(trip.id)} />
       ))}
 
-      <Fab onClick={() => setWizardOpen(true)} />
-
-      {wizardOpen && (
-        <CreateTripWizard
-          onClose={() => setWizardOpen(false)}
-          onCreated={(tripId) => {
-            setWizardOpen(false);
-            onOpenTrip(tripId);
-          }}
-        />
-      )}
-
       {menuTrip && (
         <TripMenuSheet
           trip={menuTrip}
@@ -147,12 +134,17 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
           onShare={() => setShareTrip(menuTrip)}
           onDuplicate={() => setDuplicateSource(menuTrip)}
           onExport={() => downloadTripAsJson(menuTrip)}
+          onEditDescription={() => setEditDescriptionTrip(menuTrip)}
           onArchiveToggle={() => void saveTrip({ ...menuTrip, archived: !menuTrip.archived })}
           onDelete={() => setPendingDelete(menuTrip)}
         />
       )}
 
       {shareTrip && <ShareSheet trip={shareTrip} onClose={() => setShareTrip(null)} onSave={(updated) => void saveTrip(updated)} />}
+
+      {editDescriptionTrip && (
+        <EditDescriptionSheet trip={editDescriptionTrip} onClose={() => setEditDescriptionTrip(null)} onSave={(updated) => void saveTrip(updated)} />
+      )}
 
       {duplicateSource && (
         <CreateTripWizard
@@ -171,9 +163,17 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
         <DeleteConfirmSheet itemName={pendingDelete.title} onCancel={() => setPendingDelete(null)} onConfirm={confirmDeleteTrip} />
       )}
 
-      {authOpen && <AuthSheet onClose={() => setAuthOpen(false)} />}
-
-      {localTrips && <LocalTripsImportPrompt localTrips={localTrips} onClose={dismissLocalTripsPrompt} />}
+      {quickActionPicker && (
+        <TripPickerSheet
+          title="Ποιο ταξίδι;"
+          trips={activeTrips}
+          onClose={() => setQuickActionPicker(null)}
+          onSelect={(tripId) => {
+            onOpenTrip(tripId, quickActionPicker);
+            setQuickActionPicker(null);
+          }}
+        />
+      )}
     </div>
   );
 }

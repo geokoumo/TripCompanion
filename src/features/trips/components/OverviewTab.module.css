@@ -2,6 +2,13 @@
   padding: var(--space-4) 0;
 }
 
+.description {
+  color: var(--color-text);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  margin: 0 0 var(--space-4);
+}
+
 .countdownCard {
   background: var(--color-rust-soft);
   border-radius: var(--radius-lg);
@@ -16,14 +23,14 @@
   font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-rust);
+  color: var(--color-rust-on-soft);
 }
 
 .countdownValue {
   font-family: var(--font-display);
   font-size: var(--fs-countdown);
   font-weight: 600;
-  color: var(--color-rust);
+  color: var(--color-rust-on-soft);
   margin: 4px 0;
   line-height: 1.05;
 }

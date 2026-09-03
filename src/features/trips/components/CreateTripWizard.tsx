@@ -3,7 +3,7 @@ import { BUDGET_CATEGORY_PRESETS, CATEGORY_COLORS } from '../../../config/consta
 import { Button } from '../../../shared/components/Button';
 import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
-import { TextField } from '../../../shared/components/Field';
+import { MoreToggle, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
 import { generateId } from '../../../shared/lib/id';
@@ -52,6 +52,8 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
   const [legCity, setLegCity] = useState('');
   const [legCountry, setLegCountry] = useState('');
   const [showCityFields, setShowCityFields] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [description, setDescription] = useState('');
 
   const [travelers, setTravelers] = useState<Traveler[]>([]);
   const [travelerName, setTravelerName] = useState('');
@@ -125,6 +127,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
       rememberedLocations: [],
       expenses: [],
       checklistItems,
+      description: description.trim() || undefined,
       shareSettings: { enabled: false, includedTabs: [] },
       schemaVersion: 2,
       createdAt: new Date().toISOString(),
@@ -226,6 +229,17 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
             <button type="button" className={styles.addCityToggle} onClick={() => setShowCityFields(true)}>
               + Πρόσθεσε πόλη
             </button>
+          )}
+
+          <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
+          {showMore && (
+            <TextAreaField
+              label="Περιγραφή (προαιρετικό)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Λίγα λόγια για το ταξίδι…"
+              rows={3}
+            />
           )}
         </>
       )}

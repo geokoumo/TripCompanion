@@ -106,7 +106,7 @@ export function StayForm({ initial, existingStays, recentLocations, onClose, onS
         <div
           style={{
             background: 'var(--color-rust-soft)',
-            color: 'var(--color-rust)',
+            color: 'var(--color-rust-on-soft)',
             borderRadius: 'var(--radius-md)',
             padding: '12px 14px',
             fontSize: 'var(--fs-meta)',

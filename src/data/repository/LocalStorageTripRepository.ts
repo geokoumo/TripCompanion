@@ -1,3 +1,5 @@
+import { searchWithinTrip } from '../../features/search/lib/searchLocalTrip';
+import type { SearchResultGroup } from '../../features/search/types';
 import { TripSchema, type Trip, type TripListItem } from '../../features/trips/types';
 import { tripToListItem } from '../../features/trips/lib/tripListItem';
 import { migrateTrip } from '../migrations';
@@ -119,5 +121,23 @@ export class LocalStorageTripRepository implements TripRepository {
 
   async deleteTrip(id: string): Promise<void> {
     writeRawList(readRawList().filter((r) => r.id !== id));
+  }
+
+  async searchTrips(query: string): Promise<SearchResultGroup[]> {
+    if (!query.trim()) return [];
+    migrateLegacyStorage();
+    const groups: SearchResultGroup[] = [];
+    for (const record of readRawList()) {
+      let trip: Trip;
+      try {
+        trip = TripSchema.parse(migrateTrip(record));
+      } catch {
+        this.onRecordError('Αποτυχία φόρτωσης ενός ταξιδιού.');
+        continue;
+      }
+      const matches = searchWithinTrip(trip, query);
+      if (matches.length > 0) groups.push({ tripId: trip.id, tripTitle: trip.title, matches });
+    }
+    return groups;
   }
 }

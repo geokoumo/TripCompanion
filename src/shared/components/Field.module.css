@@ -25,7 +25,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: none;
-  color: var(--color-rust);
+  color: var(--color-rust-on-soft);
   background: var(--color-rust-soft);
   border-radius: var(--radius-pill);
   padding: 1px 8px;
@@ -79,6 +79,7 @@
 }
 
 .more {
+  display: block;
   border: none;
   background: none;
   color: var(--color-rust);

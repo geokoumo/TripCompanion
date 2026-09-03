@@ -1,11 +1,5 @@
 import { COMMON_CITIES } from '../../../config/constants';
-
-function normalize(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
-}
+import { normalizeForMatch as normalize } from '../../../shared/lib/textNormalize';
 
 /** Case/accent-insensitive substring match against a city's Greek or Latin name. Free text always remains available — this only ever suggests. */
 export function suggestCities(query: string, limit = 6): string[] {
