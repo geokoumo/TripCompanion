@@ -85,7 +85,7 @@ export function lookupAirportTimezone(airportCode: string): string | undefined {
  * Resolves the timezone to use for an airport: the known table lookup,
  * or a manual override remembered for that code, or undefined if neither exists.
  */
-export function resolveTimezone(airportCode: string, override?: string): string | undefined {
+export function resolveTimezone(airportCode: string, override?: string | null): string | undefined {
   return lookupAirportTimezone(airportCode) ?? override ?? getRememberedTimezone(airportCode) ?? undefined;
 }
 

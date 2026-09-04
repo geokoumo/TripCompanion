@@ -11,8 +11,8 @@ export function suggestCurrencyForCountry(country: string): string {
  * never silently treated as 1:1 — that would misstate real money without
  * any indication to the user.
  */
-export function convertToHome(amount: number, exchangeRateToHome: number | undefined): number | null {
-  if (exchangeRateToHome === undefined) return null;
+export function convertToHome(amount: number, exchangeRateToHome: number | null | undefined): number | null {
+  if (exchangeRateToHome == null) return null;
   return amount * exchangeRateToHome;
 }
 
@@ -23,7 +23,7 @@ export function convertToHome(amount: number, exchangeRateToHome: number | undef
  * it were zero or 1:1.
  */
 export function expenseAmountInHome(
-  expense: { amount: number; currency: string; exchangeRateToHome?: number },
+  expense: { amount: number; currency: string; exchangeRateToHome?: number | null },
   homeCurrency: string,
 ): number | null {
   if (expense.currency === homeCurrency) return expense.amount;
@@ -31,6 +31,6 @@ export function expenseAmountInHome(
 }
 
 /** True when an expense is in a foreign currency but has no exchange rate set — the state Fix 3 blocks at save time. */
-export function isMissingExchangeRate(expense: { currency: string; exchangeRateToHome?: number }, homeCurrency: string): boolean {
-  return expense.currency !== homeCurrency && expense.exchangeRateToHome === undefined;
+export function isMissingExchangeRate(expense: { currency: string; exchangeRateToHome?: number | null }, homeCurrency: string): boolean {
+  return expense.currency !== homeCurrency && expense.exchangeRateToHome == null;
 }

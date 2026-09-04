@@ -7,8 +7,8 @@ export interface FlightTimeInput {
   arrDate: string;
   arrTime: string;
   arrAirport: string;
-  depTimezoneOverride?: string;
-  arrTimezoneOverride?: string;
+  depTimezoneOverride?: string | null;
+  arrTimezoneOverride?: string | null;
 }
 
 export interface FlightTimeResult {

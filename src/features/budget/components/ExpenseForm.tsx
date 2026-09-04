@@ -63,7 +63,7 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
   };
 
   const needsRate = expense.currency !== trip.homeCurrency;
-  const hasRate = !needsRate || (expense.exchangeRateToHome !== undefined && expense.exchangeRateToHome > 0);
+  const hasRate = !needsRate || (expense.exchangeRateToHome != null && expense.exchangeRateToHome > 0);
   const canSave = expense.amount > 0 && expense.categoryId && expense.date && expense.paidBy && expense.splitAmong.length > 0 && hasRate;
 
   return (

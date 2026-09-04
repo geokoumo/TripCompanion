@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SCHEMA_VERSION, TRAVELER_AVATAR_COLORS } from '../../config/constants';
+import { nullableOptional } from '../../shared/lib/zodHelpers';
 import { TravelerSchema } from '../travelers/types';
 import { FlightSchema } from '../flights/types';
 import { StaySchema } from '../stays/types';
@@ -17,7 +18,7 @@ export const LegSchema = z.object({
   startDate: z.string().min(1),
   endDate: z.string().min(1),
   currency: z.string().min(1),
-  exchangeRateToHome: z.number().positive().optional(),
+  exchangeRateToHome: nullableOptional(z.number().positive()),
 });
 
 export type Leg = z.infer<typeof LegSchema>;
@@ -25,7 +26,7 @@ export type Leg = z.infer<typeof LegSchema>;
 export const ShareSettingsSchema = z.object({
   enabled: z.boolean().default(false),
   includedTabs: z.array(z.enum(TRIP_TABS)).default([]),
-  shareToken: z.string().optional(),
+  shareToken: nullableOptional(z.string()),
 });
 
 export type ShareSettings = z.infer<typeof ShareSettingsSchema>;
@@ -37,7 +38,7 @@ export const TripSchema = z.object({
   archived: z.boolean().default(false),
   // Optional free-text blurb, shown on Overview when present. Backed by the
   // `description` column added in the Round 9 migration.
-  description: z.string().optional(),
+  description: nullableOptional(z.string()),
   travelers: z.array(TravelerSchema).default([]),
   // The trip's overall date span is DERIVED from legs[]/flights[] — see lib/dateRange.ts.
   // Never stored directly.
@@ -49,7 +50,7 @@ export const TripSchema = z.object({
   budgetCategories: z.array(BudgetCategorySchema).default([]),
   // Overall trip budget target, set by the user from the budget overview —
   // undefined means "not set yet", never a fabricated default.
-  budget: z.number().nonnegative().optional(),
+  budget: nullableOptional(z.number().nonnegative()),
   // Per-trip remembered location strings (itinerary stop location, stay
   // address), most-recent-first, offered back as suggestion chips. Scoped to
   // this trip only — never shared across trips.

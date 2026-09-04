@@ -1,23 +1,26 @@
 import { z } from 'zod';
 import { ITINERARY_STOP_TYPES } from '../../config/constants';
+import { nullableOptional } from '../../shared/lib/zodHelpers';
 
 const stopTypeIds = ITINERARY_STOP_TYPES.map((t) => t.id) as [string, ...string[]];
 
 export const ItineraryStopSchema = z
   .object({
     id: z.string(),
-    legId: z.string().optional(),
+    legId: nullableOptional(z.string()),
     date: z.string().min(1),
     // Required unless allDay — see superRefine below. An all-day stop has no
-    // specific time slot, so it renders under the "ΌΛΗ ΜΕΡΑ" heading instead.
-    time: z.string().optional(),
+    // specific time slot, so it renders under the "ΌΛΗ ΜΕΡΑ" heading instead
+    // (and the DB column is null for it — nullableOptional normalizes that
+    // to undefined before this runs, same as every other field here).
+    time: nullableOptional(z.string()),
     allDay: z.boolean().default(false),
-    durationMinutes: z.number().int().positive().optional(),
+    durationMinutes: nullableOptional(z.number().int().positive()),
     title: z.string().min(1, 'Ο τίτλος είναι υποχρεωτικός'),
     type: z.enum(stopTypeIds),
-    location: z.string().optional(),
-    link: z.string().optional(),
-    note: z.string().optional(),
+    location: nullableOptional(z.string()),
+    link: nullableOptional(z.string()),
+    note: nullableOptional(z.string()),
     travelerIds: z.array(z.string()).default([]), // empty = all travelers
     done: z.boolean().default(false),
   })
@@ -33,10 +36,10 @@ export const IdeaSchema = z.object({
   id: z.string(),
   title: z.string().min(1, 'Ο τίτλος είναι υποχρεωτικός'),
   type: z.enum(stopTypeIds),
-  location: z.string().optional(),
-  link: z.string().optional(),
-  note: z.string().optional(),
-  suggestedDate: z.string().optional(),
+  location: nullableOptional(z.string()),
+  link: nullableOptional(z.string()),
+  note: nullableOptional(z.string()),
+  suggestedDate: nullableOptional(z.string()),
 });
 
 export type Idea = z.infer<typeof IdeaSchema>;

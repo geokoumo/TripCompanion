@@ -1,11 +1,12 @@
 import { z } from 'zod';
 import { FLIGHT_STATUSES } from '../../config/constants';
+import { nullableOptional } from '../../shared/lib/zodHelpers';
 
 const statusIds = FLIGHT_STATUSES.map((s) => s.id) as [string, ...string[]];
 
 export const FlightSchema = z.object({
   id: z.string(),
-  legId: z.string().optional(),
+  legId: nullableOptional(z.string()),
   airline: z.string().min(1, 'Η αεροπορική εταιρεία είναι υποχρεωτική'),
   flightNumber: z.string().min(1, 'Ο αριθμός πτήσης είναι υποχρεωτικός'),
   depAirport: z.string().min(1, 'Το αεροδρόμιο αναχώρησης είναι υποχρεωτικό').toUpperCase(),
@@ -15,13 +16,13 @@ export const FlightSchema = z.object({
   arrDate: z.string().min(1, 'Η ημερομηνία άφιξης είναι υποχρεωτική'),
   arrTime: z.string().min(1, 'Η ώρα άφιξης είναι υποχρεωτική'),
   status: z.enum(statusIds).default('scheduled'),
-  terminal: z.string().optional(),
-  gate: z.string().optional(),
-  bookingRef: z.string().optional(),
-  link: z.string().optional(),
+  terminal: nullableOptional(z.string()),
+  gate: nullableOptional(z.string()),
+  bookingRef: nullableOptional(z.string()),
+  link: nullableOptional(z.string()),
   /** Manual timezone override for unlisted airports, remembered per code. */
-  depTimezoneOverride: z.string().optional(),
-  arrTimezoneOverride: z.string().optional(),
+  depTimezoneOverride: nullableOptional(z.string()),
+  arrTimezoneOverride: nullableOptional(z.string()),
 });
 
 export type Flight = z.infer<typeof FlightSchema>;

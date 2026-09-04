@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CATEGORY_COLORS } from '../../config/constants';
+import { nullableOptional } from '../../shared/lib/zodHelpers';
 
 export const BudgetCategorySchema = z.object({
   id: z.string(),
@@ -14,11 +15,11 @@ export const ExpenseSchema = z
     id: z.string(),
     amount: z.number().positive('Το ποσό πρέπει να είναι θετικό'),
     currency: z.string().min(1),
-    exchangeRateToHome: z.number().positive().optional(),
+    exchangeRateToHome: nullableOptional(z.number().positive()),
     categoryId: z.string().min(1, 'Η κατηγορία είναι υποχρεωτική'),
     date: z.string().min(1, 'Η ημερομηνία είναι υποχρεωτική'),
-    note: z.string().optional(),
-    link: z.string().optional(),
+    note: nullableOptional(z.string()),
+    link: nullableOptional(z.string()),
     paidBy: z.string().min(1, 'Ο πληρωτής είναι υποχρεωτικός'),
     splitAmong: z.array(z.string()).min(1, 'Επίλεξε τουλάχιστον έναν ταξιδιώτη'),
   });
