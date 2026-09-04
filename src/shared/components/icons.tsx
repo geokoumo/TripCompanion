@@ -92,3 +92,44 @@ export function HomeIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** Welcome screen's brand mark. */
+export function TriangleIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 5l8 14H4z" />
+    </svg>
+  );
+}
+
+/** Welcome screen's "Plan" feature icon. */
+export function ListIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M8 6h12M8 12h12M8 18h12" />
+      <circle cx="4" cy="6" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="12" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="18" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Welcome screen's "Log" feature icon. */
+export function TargetIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Welcome screen's "Enjoy" feature icon. */
+export function SparkleIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 3l1.8 5.6L19.5 10l-5.7 1.4L12 17l-1.8-5.6L4.5 10l5.7-1.4z" />
+    </svg>
+  );
+}

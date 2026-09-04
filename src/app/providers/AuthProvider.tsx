@@ -10,7 +10,7 @@ interface AuthContextValue {
   enabled: boolean;
   /** True after landing on a password-recovery link, until the new password is set. */
   recoveryMode: boolean;
-  signUp: (email: string, password: string) => Promise<string | null>;
+  signUp: (email: string, password: string, name?: string) => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<string | null>;
@@ -59,9 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, name?: string) => {
     if (!supabase) return 'Η σύνδεση λογαριασμού δεν έχει ρυθμιστεί.';
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: name?.trim() ? { data: { name: name.trim() } } : undefined,
+    });
     return error ? authErrorMessage(error.message) : null;
   };
 

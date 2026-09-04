@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AccountScreen } from '../features/auth/components/AccountScreen';
+import { isOnboarded, markOnboarded } from '../features/auth/lib/onboarding';
+import { OnboardingFlow } from '../features/auth/components/OnboardingFlow';
 import { ResetPasswordScreen } from '../features/auth/components/ResetPasswordScreen';
-import { SignInGateScreen } from '../features/auth/components/SignInGateScreen';
 import { SearchScreen } from '../features/search/components/SearchScreen';
 import { TripListScreen } from '../features/trips/components/TripListScreen';
 import { TripDetailScreen } from '../features/trips/components/TripDetailScreen';
@@ -53,14 +54,34 @@ function AuthGatedApp() {
   const { loading, recoveryMode, enabled, user } = useAuth();
   const [route, navigate] = useHashRoute();
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [onboarded, setOnboarded] = useState(() => isOnboarded());
+
+  // A signed-in session on its own means this device is past onboarding —
+  // covers signing up/in for the first time, and any later device that
+  // already has a session, without waiting for a click that never happens.
+  useEffect(() => {
+    if (user && !onboarded) {
+      markOnboarded();
+      setOnboarded(true);
+    }
+  }, [user, onboarded]);
 
   if (loading) return <LoadingScreen />;
   if (recoveryMode) return <ResetPasswordScreen />;
-  // Accounts are configured but nobody's signed in — the app itself is
-  // behind sign-in now, not just an optional data-source switch. (When
-  // accounts aren't configured at all, `enabled` is false and the app keeps
-  // working local-only, same as before.)
-  if (enabled && !user) return <SignInGateScreen />;
+  // Accounts are configured, nobody's signed in, and this device hasn't been
+  // through Welcome yet — show it once. Continuing without an account (or
+  // signing in/up) marks the device onboarded either way, so a later
+  // sign-out lands in local-only mode rather than back at Welcome.
+  if (enabled && !user && !onboarded) {
+    return (
+      <OnboardingFlow
+        onContinueLocally={() => {
+          markOnboarded();
+          setOnboarded(true);
+        }}
+      />
+    );
+  }
 
   // The bottom nav is the app-shell's primary navigation across the three
   // top-level sections; a trip's own detail screen already has its back

@@ -1,0 +1,140 @@
+/* Fixed dark branding, independent of the user's light/dark theme preference —
+   a splash screen, not a themed app surface. Colors are intentionally
+   hardcoded rather than drawn from tokens.css. */
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--space-7) var(--space-6) calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  background: #173a30;
+  color: #f4efe4;
+  text-align: center;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--space-6);
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: 1.5px solid #e2591c;
+  color: #e2591c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+}
+
+.wordmark {
+  font-family: 'Fraunces', var(--font-display), serif;
+  font-weight: 600;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: #f4efe4;
+}
+
+.divider {
+  width: 40px;
+  height: 1px;
+  background: rgba(244, 239, 228, 0.25);
+  margin: var(--space-4) 0;
+}
+
+.tagline {
+  font-size: var(--fs-body);
+  color: rgba(244, 239, 228, 0.65);
+  line-height: 1.4;
+}
+
+.badge {
+  width: 92px;
+  height: 92px;
+  border-radius: 999px;
+  border: 1px solid #e2591c;
+  color: #e2591c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: var(--space-6);
+}
+
+.badgeLabel {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.features {
+  display: flex;
+  gap: var(--space-6);
+  justify-content: center;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.featureIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: rgba(244, 239, 228, 0.08);
+  color: rgba(244, 239, 228, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.featureLabel {
+  font-size: var(--fs-meta);
+  color: rgba(244, 239, 228, 0.6);
+}
+
+.actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.primaryButton {
+  width: 100%;
+  padding: 15px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: #e2591c;
+  color: #fff;
+  font-weight: 600;
+  font-size: var(--fs-button);
+  cursor: pointer;
+}
+
+.secondaryButton {
+  width: 100%;
+  padding: 15px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(244, 239, 228, 0.3);
+  background: transparent;
+  color: #f4efe4;
+  font-weight: 600;
+  font-size: var(--fs-button);
+  cursor: pointer;
+}
