@@ -3,8 +3,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 64px;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  /* The safe-area inset (iPhone home indicator etc.) adds EXTRA height on
+     top of the 64px content row — with box-sizing: border-box (set
+     globally), padding-bottom inside a fixed height would instead eat into
+     that 64px and squeeze/clip the row's contents, the "+" button worst of
+     all since it's already pulled up with a negative margin. */
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--color-surface-raised);
   border-top: 1px solid var(--color-border);
   display: flex;

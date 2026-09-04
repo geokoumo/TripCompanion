@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AccountScreen } from '../features/auth/components/AccountScreen';
 import { ResetPasswordScreen } from '../features/auth/components/ResetPasswordScreen';
+import { SignInGateScreen } from '../features/auth/components/SignInGateScreen';
 import { SearchScreen } from '../features/search/components/SearchScreen';
 import { TripListScreen } from '../features/trips/components/TripListScreen';
 import { TripDetailScreen } from '../features/trips/components/TripDetailScreen';
@@ -49,12 +50,17 @@ function Router({ route, navigate }: { route: Route; navigate: (route: Route) =>
 // switch lands, could even glimpse the other data source) before the real
 // session is known.
 function AuthGatedApp() {
-  const { loading, recoveryMode } = useAuth();
+  const { loading, recoveryMode, enabled, user } = useAuth();
   const [route, navigate] = useHashRoute();
   const [wizardOpen, setWizardOpen] = useState(false);
 
   if (loading) return <LoadingScreen />;
   if (recoveryMode) return <ResetPasswordScreen />;
+  // Accounts are configured but nobody's signed in — the app itself is
+  // behind sign-in now, not just an optional data-source switch. (When
+  // accounts aren't configured at all, `enabled` is false and the app keeps
+  // working local-only, same as before.)
+  if (enabled && !user) return <SignInGateScreen />;
 
   // The bottom nav is the app-shell's primary navigation across the three
   // top-level sections; a trip's own detail screen already has its back
@@ -64,7 +70,7 @@ function AuthGatedApp() {
   return (
     <TripsProvider>
       <ErrorBoundary>
-        <div style={{ paddingBottom: showBottomNav ? 64 : 0 }}>
+        <div style={{ paddingBottom: showBottomNav ? 'calc(64px + env(safe-area-inset-bottom, 0px))' : 0 }}>
           <Router route={route} navigate={navigate} />
         </div>
 
