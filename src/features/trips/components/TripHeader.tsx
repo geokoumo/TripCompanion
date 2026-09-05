@@ -3,25 +3,14 @@ import { CompassIcon } from '../../../shared/components/icons';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { downloadTripAsJson } from '../lib/tripFile';
-import { getTripStatus, TRIP_TABS, type Trip, type TripTab } from '../types';
+import { getTripStatus, type Trip } from '../types';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
 import { ShareSheet } from './ShareSheet';
 import { TripMenuSheet } from './TripMenuSheet';
 import styles from './TripHeader.module.css';
 
-const TAB_LABELS: Record<TripTab, string> = {
-  overview: 'Επισκόπηση',
-  flights: 'Πτήσεις',
-  stays: 'Διαμονή',
-  itinerary: 'Πρόγραμμα',
-  budget: 'Budget',
-  checklist: 'Βαλίτσα',
-};
-
 interface TripHeaderProps {
   trip: Trip;
-  activeTab: TripTab;
-  onTabChange: (tab: TripTab) => void;
   onBack: () => void;
   onArchiveToggle: () => void;
   onDuplicate: () => void;
@@ -29,7 +18,10 @@ interface TripHeaderProps {
   onSaveTrip: (trip: Trip) => void;
 }
 
-export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip }: TripHeaderProps) {
+// The in-trip tab bar moved to a bottom nav (see InTripBottomNav) — this
+// header is now just identity + trip-level actions (share/menu), no
+// navigation state.
+export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip }: TripHeaderProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
@@ -61,21 +53,6 @@ export function TripHeader({ trip, activeTab, onTabChange, onBack, onArchiveTogg
           {formatDateShort(range.startDate)} – {formatDateShort(range.endDate)}
         </div>
       )}
-      <div className={styles.tabsWrapper}>
-        <div className={styles.tabs}>
-          {TRIP_TABS.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              className={styles.tab}
-              data-active={tab === activeTab}
-              onClick={() => onTabChange(tab)}
-            >
-              {TAB_LABELS[tab]}
-            </button>
-          ))}
-        </div>
-      </div>
       {shareOpen && <ShareSheet trip={trip} onClose={() => setShareOpen(false)} onSave={onSaveTrip} />}
       {menuOpen && (
         <TripMenuSheet

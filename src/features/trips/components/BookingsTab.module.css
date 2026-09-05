@@ -1,0 +1,26 @@
+.segmented {
+  display: flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  margin-bottom: var(--space-4);
+}
+
+.segment {
+  flex: 1;
+  border: none;
+  background: none;
+  border-radius: var(--radius-pill);
+  padding: 9px 12px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.segment[data-active='true'] {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}

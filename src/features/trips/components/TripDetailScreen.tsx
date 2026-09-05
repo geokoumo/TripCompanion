@@ -4,14 +4,14 @@ import { useToast } from '../../../app/providers/ToastProvider';
 import { LoadingScreen } from '../../../app/LoadingScreen';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { OverviewTab } from './OverviewTab';
-import { FlightsTab } from '../../flights/components/FlightsTab';
-import { StaysTab } from '../../stays/components/StaysTab';
+import { BookingsTab } from './BookingsTab';
 import { ItineraryTab } from '../../itinerary/components/ItineraryTab';
 import { BudgetTab } from '../../budget/components/BudgetTab';
 import { ChecklistTab } from '../../checklist/components/ChecklistTab';
 import { useTrip } from '../hooks/useTrip';
 import type { Trip, TripTab } from '../types';
 import { CreateTripWizard } from './CreateTripWizard';
+import { InTripBottomNav } from './InTripBottomNav';
 import { TripHeader } from './TripHeader';
 
 interface TripDetailScreenProps {
@@ -48,11 +48,9 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
   };
 
   return (
-    <div style={{ paddingBottom: 64 }}>
+    <div style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
       <TripHeader
         trip={trip}
-        activeTab={activeTab}
-        onTabChange={onTabChange}
         onBack={onBack}
         onArchiveToggle={() => void saveTrip({ ...trip, archived: !trip.archived })}
         onDuplicate={() => setDuplicating(true)}
@@ -61,12 +59,15 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
       />
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
         {activeTab === 'overview' && <OverviewTab trip={trip} />}
-        {activeTab === 'flights' && <FlightsTab trip={trip} updateTrip={updateTrip} />}
-        {activeTab === 'stays' && <StaysTab trip={trip} updateTrip={updateTrip} />}
+        {(activeTab === 'flights' || activeTab === 'stays') && (
+          <BookingsTab trip={trip} activeTab={activeTab} onTabChange={onTabChange} updateTrip={updateTrip} />
+        )}
         {activeTab === 'itinerary' && <ItineraryTab trip={trip} updateTrip={updateTrip} />}
         {activeTab === 'budget' && <BudgetTab trip={trip} updateTrip={updateTrip} />}
         {activeTab === 'checklist' && <ChecklistTab trip={trip} updateTrip={updateTrip} />}
       </div>
+
+      <InTripBottomNav activeTab={activeTab} onTabChange={onTabChange} />
 
       {confirmDelete && (
         <DeleteConfirmSheet itemName={trip.title} onCancel={() => setConfirmDelete(false)} onConfirm={confirmDeleteTrip} />

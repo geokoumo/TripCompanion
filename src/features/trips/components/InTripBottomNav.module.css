@@ -1,0 +1,36 @@
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* See app/BottomNav.module.css for why the safe-area inset is additive
+     rather than eating into the 64px row (box-sizing: border-box globally). */
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--color-surface-raised);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 40;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-stamp);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.item[data-active='true'] {
+  color: var(--color-rust);
+}

@@ -133,3 +133,24 @@ export function SparkleIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** In-trip bottom nav's "Bookings" tab (merged flights + stays). */
+export function TicketIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3 9.5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1.2a1.7 1.7 0 0 0 0 2.6v1.2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1.2a1.7 1.7 0 0 0 0-2.6z" />
+      <path d="M9.5 7.5v9" strokeDasharray="1.8 2.2" />
+    </svg>
+  );
+}
+
+/** In-trip bottom nav's "Packing" tab. */
+export function BackpackIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M8 8V6a4 4 0 0 1 8 0v2" />
+      <path d="M6 8h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z" />
+      <path d="M9 12h6M10 8v3M14 8v3" />
+    </svg>
+  );
+}

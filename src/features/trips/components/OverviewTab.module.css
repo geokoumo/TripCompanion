@@ -10,11 +10,17 @@
 }
 
 .countdownCard {
+  position: relative;
   background: var(--color-rust-soft);
   border-radius: var(--radius-lg);
   padding: var(--space-6) var(--space-5);
   text-align: center;
   margin-bottom: var(--space-4);
+  overflow: visible;
+}
+
+.countdownCard[data-tone='teal'] {
+  background: var(--color-teal-soft);
 }
 
 .countdownLabel {
@@ -26,6 +32,10 @@
   color: var(--color-rust-on-soft);
 }
 
+.countdownCard[data-tone='teal'] .countdownLabel {
+  color: var(--color-teal-on-soft);
+}
+
 .countdownValue {
   font-family: var(--font-display);
   font-size: var(--fs-countdown);
@@ -33,6 +43,36 @@
   color: var(--color-rust-on-soft);
   margin: 4px 0;
   line-height: 1.05;
+}
+
+.countdownCard[data-tone='teal'] .countdownValue {
+  color: var(--color-teal-on-soft);
+}
+
+/* Decorative passport-stamp flourish, English by design (see WelcomeScreen's
+   "ADVENTURE AWAITS" badge for the same convention). */
+.loggedStamp {
+  position: absolute;
+  top: -14px;
+  right: 10px;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  border: 2px dashed var(--color-teal-on-soft);
+  color: var(--color-teal-on-soft);
+  background: var(--color-surface-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transform: rotate(-11deg);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  padding: 4px;
 }
 
 .countdownDates {

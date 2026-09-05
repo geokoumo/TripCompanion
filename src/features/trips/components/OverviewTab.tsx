@@ -29,18 +29,21 @@ export function OverviewTab({ trip }: { trip: Trip }) {
 
   let countdownKicker: string | null = null;
   let countdownValue: string | null = null;
+  let countdownTone: 'rust' | 'teal' = 'rust';
+  let showLoggedStamp = false;
   if (range && status !== 'completed') {
     if (status === 'upcoming') {
       const days = daysBetween(today, range.startDate);
       countdownKicker = 'Αναχώρηση σε';
       countdownValue = days === 1 ? '1 μέρα' : `${days} μέρες`;
-    } else if (status === 'today') {
-      countdownKicker = 'Ξεκινά';
-      countdownValue = 'σήμερα';
     } else {
-      const daysSince = daysBetween(range.startDate, today);
-      countdownKicker = 'Ξεκίνησε';
-      countdownValue = daysSince === 1 ? '1 μέρα πριν' : `${daysSince} μέρες πριν`;
+      // 'today' and 'ongoing' share the same "Day X of N" framing.
+      const totalDays = daysBetween(range.startDate, range.endDate) + 1;
+      const currentDay = Math.min(Math.max(daysBetween(range.startDate, today) + 1, 1), totalDays);
+      countdownKicker = 'Σε εξέλιξη';
+      countdownValue = `Ημέρα ${currentDay} από ${totalDays}`;
+      countdownTone = 'teal';
+      showLoggedStamp = true;
     }
   }
 
@@ -60,7 +63,8 @@ export function OverviewTab({ trip }: { trip: Trip }) {
       <StatGrid trip={trip} />
 
       {countdownKicker && range && (
-        <div className={styles.countdownCard}>
+        <div className={styles.countdownCard} data-tone={countdownTone}>
+          {showLoggedStamp && <div className={styles.loggedStamp}>Trip logged</div>}
           <div className={styles.countdownLabel}>{countdownKicker}</div>
           <div className={styles.countdownValue}>{countdownValue}</div>
           <div className={styles.countdownDates}>
