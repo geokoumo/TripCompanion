@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { AccountScreen } from '../features/auth/components/AccountScreen';
+import { AccountSheet } from '../features/auth/components/AccountSheet';
 import { isOnboarded, markOnboarded } from '../features/auth/lib/onboarding';
+import { useLocalTripsImportPrompt } from '../features/auth/lib/localImportPrompt';
+import { LocalTripsImportPrompt } from '../features/auth/components/LocalTripsImportPrompt';
 import { OnboardingFlow } from '../features/auth/components/OnboardingFlow';
 import { ResetPasswordScreen } from '../features/auth/components/ResetPasswordScreen';
 import { SearchScreen } from '../features/search/components/SearchScreen';
@@ -17,7 +19,7 @@ import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './providers/ToastProvider';
 import { TripsProvider } from './providers/TripsProvider';
 
-const TOP_LEVEL_ROUTES = new Set(['home', 'search', 'account']);
+const TOP_LEVEL_ROUTES = new Set(['home', 'search']);
 
 function Router({ route, navigate }: { route: Route; navigate: (route: Route) => void }) {
   if (route.name === 'shared') {
@@ -39,10 +41,6 @@ function Router({ route, navigate }: { route: Route; navigate: (route: Route) =>
     return <SearchScreen onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab })} />;
   }
 
-  if (route.name === 'account') {
-    return <AccountScreen />;
-  }
-
   return <TripListScreen onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab: tab ?? 'overview' })} />;
 }
 
@@ -54,7 +52,9 @@ function AuthGatedApp() {
   const { loading, recoveryMode, enabled, user } = useAuth();
   const [route, navigate] = useHashRoute();
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [accountSheetOpen, setAccountSheetOpen] = useState(false);
   const [onboarded, setOnboarded] = useState(() => isOnboarded());
+  const { localTrips, dismiss: dismissLocalTripsPrompt } = useLocalTripsImportPrompt(!!user);
 
   // A signed-in session on its own means this device is past onboarding —
   // covers signing up/in for the first time, and any later device that
@@ -97,9 +97,11 @@ function AuthGatedApp() {
 
         {showBottomNav && (
           <BottomNav
-            active={route.name === 'search' || route.name === 'account' ? route.name : 'home'}
+            active={route.name === 'search' ? 'search' : 'home'}
             onNavigate={(name) => navigate({ name })}
             onCreateTrip={() => setWizardOpen(true)}
+            accountActive={accountSheetOpen}
+            onAccountTap={() => setAccountSheetOpen(true)}
           />
         )}
 
@@ -112,6 +114,10 @@ function AuthGatedApp() {
             }}
           />
         )}
+
+        {accountSheetOpen && <AccountSheet onClose={() => setAccountSheetOpen(false)} />}
+
+        {localTrips && <LocalTripsImportPrompt localTrips={localTrips} onClose={dismissLocalTripsPrompt} />}
       </ErrorBoundary>
     </TripsProvider>
   );

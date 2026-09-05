@@ -14,10 +14,23 @@
   cursor: pointer;
 }
 
+.iconBadge {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-rust);
+  color: var(--color-rust);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+
 .title {
-  font-family: var(--font-display);
-  font-size: var(--fs-header-title);
+  font-family: 'Fraunces', var(--font-display), serif;
+  font-size: var(--fs-screen-title);
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
@@ -34,6 +47,23 @@
   font-size: var(--fs-meta);
   padding: 8px 0;
   cursor: pointer;
+}
+
+.footerLink {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  text-align: center;
+  padding: var(--space-4) 0 0;
+  cursor: pointer;
+}
+
+.footerLinkAccent {
+  color: var(--color-rust);
+  font-weight: 600;
 }
 
 .info {
