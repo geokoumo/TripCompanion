@@ -90,18 +90,20 @@
   margin-top: var(--space-2);
 }
 
-.stepDivider {
-  border-top: 1px solid var(--color-border);
-  margin: var(--space-5) 0;
-}
-
 .summaryRow {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--color-border);
 }
 
 .summaryLabel {
-  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  flex-shrink: 0;
 }

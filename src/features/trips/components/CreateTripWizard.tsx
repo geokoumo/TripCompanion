@@ -3,7 +3,7 @@ import { BUDGET_CATEGORY_PRESETS, CATEGORY_COLORS } from '../../../config/consta
 import { Button } from '../../../shared/components/Button';
 import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
-import { MoreToggle, TextAreaField, TextField } from '../../../shared/components/Field';
+import { FieldRow, MoreToggle, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
 import { generateId } from '../../../shared/lib/id';
@@ -20,10 +20,14 @@ import type { Leg, Trip } from '../types';
 import { isEndOnOrAfterStart } from '../validation';
 import styles from './CreateTripWizard.module.css';
 
-const STEPS = ['Βασικά', 'Ταξιδιώτες & Βαλίτσα', 'Επιβεβαίωση'] as const;
+const STEPS = ['Basics', 'Cities', 'Travellers', 'Packing', 'Review'] as const;
 
 const STEP_SUBTITLES: Record<number, string> = {
-  0: 'Μόνο αυτά χρειάζονται. Τα υπόλοιπα βήματα μπορείς να τα προσπεράσεις.',
+  0: 'Only these are required. Every other step can be skipped.',
+  1: 'Add stops if this is a multi-city trip.',
+  2: 'Who is coming along? Used for expenses and packing lists.',
+  3: 'Pick a starter template so you are not staring at an empty list.',
+  4: 'Check it over and create.',
 };
 
 const STARTER_CATEGORY_NAMES = BUDGET_CATEGORY_PRESETS.slice(0, 3);
@@ -47,13 +51,13 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
   const [title, setTitle] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [description, setDescription] = useState('');
+  const [showMore, setShowMore] = useState(false);
 
   const [legs, setLegs] = useState<Leg[]>([]);
   const [legCity, setLegCity] = useState('');
   const [legCountry, setLegCountry] = useState('');
   const [showCityFields, setShowCityFields] = useState(false);
-  const [showMore, setShowMore] = useState(false);
-  const [description, setDescription] = useState('');
 
   const [travelers, setTravelers] = useState<Traveler[]>([]);
   const [travelerName, setTravelerName] = useState('');
@@ -92,9 +96,9 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
   };
 
   const handleCreate = async () => {
-    const effectiveTravelers = travelers.length > 0 ? travelers : [{ id: generateId(), name: 'Εγώ', avatarColor: nextAvatarColor(0) }];
+    const effectiveTravelers = travelers.length > 0 ? travelers : [{ id: generateId(), name: 'Me', avatarColor: nextAvatarColor(0) }];
 
-    // Skipping "Πόλεις" leaves a single unnamed destination spanning the trip's step-1 dates.
+    // Skipping "Cities" leaves a single unnamed destination spanning the trip's step-1 dates.
     const finalLegs: Leg[] =
       legs.length > 0
         ? legs
@@ -135,7 +139,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
 
     try {
       await saveTrip(trip);
-      showToast(duplicateSeed ? 'Αντιγράφηκαν μόνο κατηγορίες budget και πρότυπο βαλίτσας.' : 'Το ταξίδι δημιουργήθηκε.');
+      showToast(duplicateSeed ? 'Copied the budget categories and packing template only.' : 'Trip created.');
       onCreated(trip.id);
     } catch {
       // saveTrip already surfaces a toast on failure
@@ -153,21 +157,21 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
         <>
           {step > 0 && (
             <Button variant="secondary" onClick={goBack}>
-              Πίσω
+              Back
             </Button>
           )}
           {step < STEPS.length - 1 && step > 0 && (
             <Button variant="secondary" onClick={goNext}>
-              Παράλειψη
+              Skip
             </Button>
           )}
           {step < STEPS.length - 1 ? (
             <Button variant="primary" disabled={step === 0 && !basicsValid} onClick={goNext}>
-              Συνέχεια
+              Continue
             </Button>
           ) : (
             <Button variant="primary" onClick={() => void handleCreate()}>
-              Δημιουργία ταξιδιού
+              Create trip
             </Button>
           )}
         </>
@@ -179,29 +183,46 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
         ))}
       </div>
       <div className={styles.stepMeta}>
-        Βήμα {step + 1} από {STEPS.length}
+        Step {step + 1} of {STEPS.length}
       </div>
       {STEP_SUBTITLES[step] && <p className={styles.subtitle}>{STEP_SUBTITLES[step]}</p>}
 
       {step === 0 && (
         <>
           <TextField
-            label="Τίτλος ταξιδιού"
+            label="Trip title"
             autoFocus
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && basicsValid) goNext();
             }}
-            placeholder="π.χ. Ιαπωνία τον Σεπτέμβρη"
+            placeholder="e.g. Japan in September"
           />
-          <DateField label="Από" date={startDate} onChange={setStartDate} />
-          <DateField label="Έως" date={endDate} onChange={setEndDate} minDate={startDate || undefined} />
+          <FieldRow>
+            <DateField label="Start date" date={startDate} onChange={setStartDate} />
+            <DateField label="End date" date={endDate} onChange={setEndDate} minDate={startDate || undefined} />
+          </FieldRow>
           {startDate && endDate && !isEndOnOrAfterStart(startDate, endDate) && (
-            <p style={{ color: 'var(--color-rust)', fontSize: 13 }}>Η λήξη πρέπει να είναι μετά ή ίδια με την έναρξη.</p>
+            <p style={{ color: 'var(--color-rust)', fontSize: 13 }}>The end date must be on or after the start date.</p>
           )}
-          <p className={styles.note}>Οι παρελθοντικές ημερομηνίες επιτρέπονται — μπορείς να καταγράψεις παλιό ταξίδι.</p>
+          <p className={styles.note}>Past dates are allowed — you can log a trip you already took.</p>
 
+          <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
+          {showMore && (
+            <TextAreaField
+              label="Description (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="A few words about the trip…"
+              rows={3}
+            />
+          )}
+        </>
+      )}
+
+      {step === 1 && (
+        <>
           {legs.map((leg) => (
             <div key={leg.id} className={styles.legItem}>
               <span>
@@ -218,33 +239,22 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
                 <PresetChips presets={suggestCities(legCity)} onSelect={applyCitySuggestion} hideInput />
               )}
               <div className={styles.addRow}>
-                <TextField label="Πόλη" value={legCity} onChange={(e) => setLegCity(e.target.value)} placeholder="Τόκιο" />
-                <TextField label="Χώρα" value={legCountry} onChange={(e) => setLegCountry(e.target.value)} placeholder="Ιαπωνία" />
+                <TextField label="City" value={legCity} onChange={(e) => setLegCity(e.target.value)} placeholder="Tokyo" />
+                <TextField label="Country" value={legCountry} onChange={(e) => setLegCountry(e.target.value)} placeholder="Japan" />
               </div>
               <Button variant="secondary" onClick={addLeg}>
-                + Προσθήκη πόλης
+                + Add city
               </Button>
             </>
           ) : (
             <button type="button" className={styles.addCityToggle} onClick={() => setShowCityFields(true)}>
-              + Πρόσθεσε πόλη
+              + Add city
             </button>
-          )}
-
-          <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
-          {showMore && (
-            <TextAreaField
-              label="Περιγραφή (προαιρετικό)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Λίγα λόγια για το ταξίδι…"
-              rows={3}
-            />
           )}
         </>
       )}
 
-      {step === 1 && (
+      {step === 2 && (
         <>
           {travelers.map((t) => (
             <div key={t.id} className={styles.travelerItem}>
@@ -256,7 +266,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
           ))}
           <div className={styles.travelerAddRow}>
             <TextField
-              label="Όνομα ταξιδιώτη"
+              label="Companion's name"
               value={travelerName}
               onChange={(e) => setTravelerName(e.target.value)}
               onKeyDown={(e) => {
@@ -265,65 +275,67 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
                   addTraveler();
                 }
               }}
-              placeholder="π.χ. Μαρία"
+              placeholder="e.g. Maria"
             />
             <Button
               variant="primary"
               style={{ flex: '0 0 auto', width: 48, height: 48, padding: 0, marginBottom: 'var(--space-4)' }}
               onClick={addTraveler}
-              aria-label="Προσθήκη ταξιδιώτη"
+              aria-label="Add traveller"
             >
               +
             </Button>
           </div>
-          <p className={styles.note}>Το χρώμα ανατίθεται αυτόματα με τη σειρά προσθήκης.</p>
+          <p className={styles.note}>Colors are assigned automatically in the order you add people.</p>
+        </>
+      )}
 
-          <div className={styles.stepDivider} />
-
+      {step === 3 && (
+        <>
           {duplicateSeed ? (
-            <p className={styles.note}>Η βαλίτσα θα αντιγραφεί από το αρχικό ταξίδι.</p>
+            <p className={styles.note}>The packing list will be copied from the original trip.</p>
           ) : (
             <>
               <ChipSelect
                 options={[
                   ...TEMPLATE_NAMES.map((name) => ({ id: name, label: name })),
-                  ...(hasMasterTemplate() ? [{ id: '__master__', label: 'Αποθηκευμένο πρότυπο' }] : []),
+                  ...(hasMasterTemplate() ? [{ id: '__master__', label: 'Saved template' }] : []),
                 ]}
                 value={template ?? ''}
                 onChange={(id) => setTemplate(id)}
               />
-              <p className={styles.note}>Το πρότυπο απλώς προσυμπληρώνει τη λίστα. Μπορείς να αλλάξεις τα πάντα μετά.</p>
+              <p className={styles.note}>The template just pre-fills the list. You can change all of it later.</p>
             </>
           )}
         </>
       )}
 
-      {step === 2 && (
+      {step === 4 && (
         <>
           <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>Τίτλος</span>
+            <span className={styles.summaryLabel}>Title</span>
             <span>{title}</span>
           </div>
           <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>Ημερομηνίες</span>
+            <span className={styles.summaryLabel}>Dates</span>
             <span>
               {formatDateShort(startDate)} – {formatDateShort(endDate)}
             </span>
           </div>
           <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>Πόλεις</span>
-            <span>{legs.length > 0 ? legs.map((l) => l.city).join(', ') : 'Χωρίς πόλεις'}</span>
+            <span className={styles.summaryLabel}>Cities</span>
+            <span>{legs.length > 0 ? legs.map((l) => l.city).join(', ') : 'No cities'}</span>
           </div>
           <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>Ταξιδιώτες</span>
-            <span>{travelers.length > 0 ? travelers.map((t) => t.name).join(', ') : 'Μόνο εγώ'}</span>
+            <span className={styles.summaryLabel}>Travellers</span>
+            <span>{travelers.length > 0 ? travelers.map((t) => t.name).join(', ') : 'Just me'}</span>
           </div>
           <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>Βαλίτσα</span>
-            <span>{template === '__master__' ? 'Αποθηκευμένο πρότυπο' : (template ?? 'Χωρίς πρότυπο')}</span>
+            <span className={styles.summaryLabel}>Packing</span>
+            <span>{template === '__master__' ? 'Saved template' : (template ?? 'No template')}</span>
           </div>
           <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>Κατηγορίες</span>
+            <span className={styles.summaryLabel}>Categories</span>
             <span>{STARTER_CATEGORY_NAMES.join(', ')}</span>
           </div>
         </>
