@@ -6,20 +6,20 @@ export function isEndOnOrAfterStart(startDate: string, endDate: string): boolean
   return endDate >= startDate;
 }
 
-// Wizard step 1 ("Βασικά") draft shape — these dates seed the trip's first leg;
+// Wizard step 1 ("Basics") draft shape — these dates seed the trip's first leg;
 // Trip itself never stores a top-level date range (it's derived from legs/flights).
 export const TripFormSchema = z
   .object({
-    title: z.string().min(1, 'Ο τίτλος είναι υποχρεωτικός'),
-    startDate: z.string().min(1, 'Η ημερομηνία έναρξης είναι υποχρεωτική'),
-    endDate: z.string().min(1, 'Η ημερομηνία λήξης είναι υποχρεωτική'),
+    title: z.string().min(1, 'A title is required'),
+    startDate: z.string().min(1, 'A start date is required'),
+    endDate: z.string().min(1, 'An end date is required'),
   })
   .superRefine((data, ctx) => {
     if (!isEndOnOrAfterStart(data.startDate, data.endDate)) {
       ctx.addIssue({
         code: 'custom',
         path: ['endDate'],
-        message: 'Η ημερομηνία λήξης πρέπει να είναι μετά την έναρξη',
+        message: 'The end date must be after the start date',
       });
     }
   });
@@ -29,7 +29,7 @@ export const LegFormSchema = LegSchema.superRefine((data, ctx) => {
     ctx.addIssue({
       code: 'custom',
       path: ['endDate'],
-      message: 'Η ημερομηνία λήξης πρέπει να είναι μετά την έναρξη',
+      message: 'The end date must be after the start date',
     });
   }
 });

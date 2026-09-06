@@ -22,7 +22,7 @@ export function ChecklistTab({ trip, updateTrip }: ChecklistTabProps) {
   const [adding, setAdding] = useState(false);
 
   if (trip.travelers.length === 0) {
-    return <p style={{ color: 'var(--color-text-faint)', padding: '16px 0' }}>Δεν υπάρχουν ταξιδιώτες.</p>;
+    return <p style={{ color: 'var(--color-text-faint)', padding: '16px 0' }}>No travellers yet.</p>;
   }
 
   const activeTravelerId = trip.travelers.some((t) => t.id === activeId) ? activeId : trip.travelers[0]!.id;
@@ -53,30 +53,35 @@ export function ChecklistTab({ trip, updateTrip }: ChecklistTabProps) {
 
   const saveAsTemplate = () => {
     saveMasterTemplate(items);
-    showToast('Αποθηκεύτηκε ως πρότυπο.');
+    showToast('Saved as a template.');
   };
 
   return (
     <div style={{ paddingTop: 8 }}>
       <TravelerTabs travelers={trip.travelers} activeId={activeTravelerId} onChange={setActiveId} />
 
-      <div className={styles.progressBar}>
-        <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+      <div className={styles.progressRow}>
+        <div className={styles.progressBar}>
+          <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+        </div>
+        <span className={styles.progressCount}>
+          {doneCount}/{items.length}
+        </span>
       </div>
 
-      {items.length === 0 && <EmptyState headline="Άδεια βαλίτσα" body="Πρόσθεσε αντικείμενα ή ξεκίνα από ένα πρότυπο." />}
+      {items.length === 0 && <EmptyState headline="Nothing packed yet" body="Add items, or start from a template." />}
 
       {[...byCategory.entries()].map(([category, categoryItems]) => (
         <CategorySection key={category} category={category} items={categoryItems} onToggle={toggle} onRemove={remove} />
       ))}
 
       <button type="button" className={styles.addButton} onClick={() => setAdding(true)}>
-        + Νέο αντικείμενο
+        + New item
       </button>
 
       <div className={styles.footerActions}>
         <button type="button" className={styles.linkButton} onClick={saveAsTemplate}>
-          Αποθήκευση ως πρότυπο
+          Save as template
         </button>
       </div>
 

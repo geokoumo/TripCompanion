@@ -11,16 +11,16 @@ interface DeleteConfirmSheetProps {
 export function DeleteConfirmSheet({ itemName, onConfirm, onCancel }: DeleteConfirmSheetProps) {
   return (
     <Modal
-      title="Διαγραφή;"
+      title="Delete?"
       onClose={onCancel}
       footer={
         <Button variant="primary" onClick={onConfirm}>
-          Ναι, διαγραφή
+          Yes, delete
         </Button>
       }
     >
       <p style={{ color: 'var(--color-text)', paddingTop: 4 }}>
-        Θα διαγραφεί «{itemName}». Δεν επηρεάζονται άλλες καρτέλες.
+        This deletes "{itemName}". Nothing in the other tabs changes.
       </p>
       <div
         style={{
@@ -33,7 +33,7 @@ export function DeleteConfirmSheet({ itemName, onConfirm, onCancel }: DeleteConf
           marginBottom: 16,
         }}
       >
-        Η ενέργεια δεν αναιρείται από εδώ — θα έχεις όμως 5 δευτερόλεπτα «Αναίρεση» στο μήνυμα που ακολουθεί.
+        This cannot be undone from here — but you get a 5-second Undo in the message that follows.
       </div>
     </Modal>
   );

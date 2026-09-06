@@ -1,22 +1,19 @@
 import { LoadingScreen } from '../../../app/LoadingScreen';
 import { useTrip } from '../hooks/useTrip';
-import { FlightCard } from '../../flights/components/FlightCard';
-import { StayCard } from '../../stays/components/StayCard';
 import { expenseAmountInHome } from '../../budget/lib/currency';
-import { AutoPulledEntryCard } from '../../itinerary/components/AutoPulledEntryCard';
-import { buildAutoPulledEntries } from '../../itinerary/lib/autoPulledEntries';
+import { computeFlightDuration } from '../../flights/lib/duration';
 import { formatDateNoYear, formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { TRIP_TABS, type Trip, type TripTab } from '../types';
 import styles from './SharedTripView.module.css';
 
 const TAB_LABELS: Record<TripTab, string> = {
-  overview: 'Επισκόπηση',
-  flights: 'Πτήσεις',
-  stays: 'Διαμονή',
-  itinerary: 'Πρόγραμμα',
+  overview: 'Overview',
+  flights: 'Flights',
+  stays: 'Stays',
+  itinerary: 'Itinerary',
   budget: 'Budget',
-  checklist: 'Βαλίτσα',
+  checklist: 'Packing',
 };
 
 function BudgetReadOnly({ trip }: { trip: Trip }) {
@@ -76,40 +73,62 @@ function ChecklistReadOnly({ trip }: { trip: Trip }) {
   );
 }
 
-// The owner's own itinerary tab merges in flight/stay departures, arrivals,
-// check-ins and check-outs as read-only "auto-pulled" entries (see
-// ItineraryTab.tsx). The shared view must do the same — otherwise a
-// recipient's itinerary silently omits every flight/stay, even though those
-// tabs were explicitly shared. Auto-pulled entries only appear here when
-// their source tab (flights/stays) was itself included in the share, so a
-// sender who excluded flights doesn't leak flight details via the itinerary.
-function ItineraryReadOnly({ trip, includedTabs }: { trip: Trip; includedTabs: Set<TripTab> }) {
-  const autoPulled = buildAutoPulledEntries(includedTabs.has('flights') ? trip.flights : [], includedTabs.has('stays') ? trip.stays : []);
+interface TimelineRow {
+  key: string;
+  sortKey: string;
+  tone: 'rust' | 'teal' | 'brass';
+  label: string;
+  title: string;
+  subtitle: string;
+}
 
-  const rows = [
-    ...autoPulled.map((entry) => ({ key: entry.id, date: entry.date, time: entry.time, node: <AutoPulledEntryCard entry={entry} /> })),
-    ...trip.itineraryStops.map((stop) => ({
-      key: stop.id,
-      date: stop.date,
-      time: stop.time,
-      node: (
-        <div style={{ borderLeft: '3px solid var(--color-border-strong)', padding: '8px 12px', marginBottom: 8, background: 'var(--color-surface-raised)', borderRadius: 8 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-text-muted)' }}>
-            {formatDateNoYear(stop.date)} · {stop.time}
-          </div>
-          <div style={{ fontWeight: 600 }}>{stop.title}</div>
-        </div>
-      ),
-    })),
-  ].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+// A single chronological rollup — flights, stays and itinerary stops
+// interleaved by date/time — rather than the owner's own tabbed views. A
+// recipient reads one continuous feed, not three separate lists.
+function buildTimeline(trip: Trip, includedTabs: Set<TripTab>): TimelineRow[] {
+  const rows: TimelineRow[] = [];
 
-  return (
-    <>
-      {rows.map((row) => (
-        <div key={row.key}>{row.node}</div>
-      ))}
-    </>
-  );
+  if (includedTabs.has('flights')) {
+    for (const f of trip.flights) {
+      const duration = computeFlightDuration(f);
+      rows.push({
+        key: `flight-${f.id}`,
+        sortKey: f.depDate + f.depTime,
+        tone: 'rust',
+        label: 'Flight',
+        title: `${f.flightNumber} · ${f.depAirport} → ${f.arrAirport}`,
+        subtitle: `${formatDateNoYear(f.depDate)} · ${f.depTime} → ${f.arrTime}${duration ? ` (${duration.label})` : ''}`,
+      });
+    }
+  }
+
+  if (includedTabs.has('stays')) {
+    for (const s of trip.stays) {
+      rows.push({
+        key: `stay-${s.id}`,
+        sortKey: s.checkinDate + s.checkinTime,
+        tone: 'teal',
+        label: 'Stay',
+        title: s.name,
+        subtitle: `${formatDateNoYear(s.checkinDate)} → ${formatDateNoYear(s.checkoutDate)}`,
+      });
+    }
+  }
+
+  if (includedTabs.has('itinerary')) {
+    for (const stop of trip.itineraryStops) {
+      rows.push({
+        key: `stop-${stop.id}`,
+        sortKey: stop.date + (stop.time ?? ''),
+        tone: 'brass',
+        label: 'Stop',
+        title: stop.title,
+        subtitle: stop.allDay ? `${formatDateNoYear(stop.date)} · All day` : `${formatDateNoYear(stop.date)} · ${stop.time}`,
+      });
+    }
+  }
+
+  return rows.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 }
 
 export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () => void }) {
@@ -124,9 +143,9 @@ export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () 
       <div className={styles.screen}>
         <div className={styles.header}>
           <button type="button" className={styles.exitLink} onClick={onExit}>
-            Έξοδος
+            Exit
           </button>
-          <p>Αυτός ο σύνδεσμος δεν είναι πλέον διαθέσιμος.</p>
+          <p>This link is no longer available.</p>
         </div>
       </div>
     );
@@ -134,15 +153,14 @@ export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () 
 
   const range = getTripDateRange(trip.legs, trip.flights);
   const included = new Set(trip.shareSettings.includedTabs);
-  const hasItineraryContent =
-    trip.itineraryStops.length > 0 || (included.has('flights') && trip.flights.length > 0) || (included.has('stays') && trip.stays.length > 0);
+  const timeline = buildTimeline(trip, included);
 
   return (
     <div className={styles.screen}>
-      <div className={styles.banner}>Κοινόχρηστη προβολή · μόνο ανάγνωση</div>
+      <div className={styles.banner}>Shared view · read-only</div>
       <div className={styles.header}>
         <button type="button" className={styles.exitLink} onClick={onExit}>
-          Έξοδος
+          Exit
         </button>
         <div className={styles.title}>{trip.title}</div>
         {range && (
@@ -159,30 +177,15 @@ export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () 
         </div>
       </div>
 
-      {included.has('flights') && trip.flights.length > 0 && (
+      {timeline.length > 0 && (
         <div className={styles.section}>
-          <div className={styles.sectionTitle}>Πτήσεις</div>
-          {[...trip.flights]
-            .sort((a, b) => (a.depDate + a.depTime).localeCompare(b.depDate + b.depTime))
-            .map((f) => (
-              <FlightCard key={f.id} flight={f} onOpen={() => {}} />
-            ))}
-        </div>
-      )}
-
-      {included.has('stays') && trip.stays.length > 0 && (
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>Διαμονή</div>
-          {trip.stays.map((s) => (
-            <StayCard key={s.id} stay={s} overlapping={false} onOpen={() => {}} />
+          {timeline.map((row) => (
+            <div key={row.key} className={styles.timelineRow} data-tone={row.tone}>
+              <div className={styles.timelineLabel}>{row.label}</div>
+              <div className={styles.timelineTitle}>{row.title}</div>
+              <div className={styles.timelineSubtitle}>{row.subtitle}</div>
+            </div>
           ))}
-        </div>
-      )}
-
-      {included.has('itinerary') && hasItineraryContent && (
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>Πρόγραμμα</div>
-          <ItineraryReadOnly trip={trip} includedTabs={included} />
         </div>
       )}
 
@@ -195,7 +198,7 @@ export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () 
 
       {included.has('checklist') && trip.checklistItems.length > 0 && (
         <div className={styles.section}>
-          <div className={styles.sectionTitle}>Βαλίτσα</div>
+          <div className={styles.sectionTitle}>Packing</div>
           <ChecklistReadOnly trip={trip} />
         </div>
       )}

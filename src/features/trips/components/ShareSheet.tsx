@@ -7,12 +7,12 @@ import { TRIP_TABS, type Trip, type TripTab } from '../types';
 import styles from './ShareSheet.module.css';
 
 const TAB_LABELS: Record<TripTab, string> = {
-  overview: 'Επισκόπηση',
-  flights: 'Πτήσεις',
-  stays: 'Διαμονή',
-  itinerary: 'Πρόγραμμα',
+  overview: 'Overview',
+  flights: 'Flights',
+  stays: 'Stays',
+  itinerary: 'Itinerary',
   budget: 'Budget',
-  checklist: 'Βαλίτσα',
+  checklist: 'Packing',
 };
 
 interface ShareSheetProps {
@@ -47,8 +47,8 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
   const shareUrl = shareToken ? `${window.location.origin}${window.location.pathname}#/shared/${trip.id}` : null;
 
   return (
-    <Modal title="Κοινή χρήση" onClose={onClose}>
-      <p className={styles.intro}>Διάλεξε τι θα βλέπει ο παραλήπτης. Ο σύνδεσμος είναι μόνο για ανάγνωση.</p>
+    <Modal title="Share" onClose={onClose}>
+      <p className={styles.intro}>Choose what the recipient can see. The link is read-only.</p>
       <div className={styles.chips}>
         {TRIP_TABS.map((tab) => (
           <button key={tab} type="button" className={styles.chip} data-active={selected.has(tab)} onClick={() => toggle(tab)}>
@@ -59,17 +59,17 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
 
       {shareUrl && (
         <div className={styles.linkPanel}>
-          <div className={styles.linkKicker}>Σύνδεσμος έτοιμος</div>
+          <div className={styles.linkKicker}>Link ready</div>
           <div className={styles.linkUrl}>{shareUrl}</div>
           <div className={styles.linkActions}>
             <Button
               variant="secondary"
               onClick={() => {
                 void navigator.clipboard?.writeText(shareUrl);
-                showToast('Ο σύνδεσμος αντιγράφηκε.');
+                showToast('Link copied.');
               }}
             >
-              Αντιγραφή
+              Copy
             </Button>
             <Button
               variant="primary"
@@ -77,14 +77,14 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
                 window.location.hash = `#/shared/${trip.id}`;
               }}
             >
-              Προβολή
+              Preview
             </Button>
           </div>
         </div>
       )}
 
       <Button variant="primary" onClick={generateLink} disabled={selected.size === 0}>
-        {shareUrl ? 'Νέος σύνδεσμος' : 'Δημιουργία συνδέσμου'}
+        {shareUrl ? 'New link' : 'Create link'}
       </Button>
     </Modal>
   );

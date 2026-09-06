@@ -27,12 +27,26 @@
   color: var(--color-text-on-accent);
 }
 
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
 .progressBar {
+  flex: 1;
   height: 6px;
   border-radius: 999px;
   background: var(--color-bg);
   overflow: hidden;
-  margin-bottom: var(--space-4);
+}
+
+.progressCount {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
 .progressFill {

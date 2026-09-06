@@ -15,12 +15,12 @@ describe('trip/leg date validation', () => {
   });
 
   it('allows past dates (diary mode) as long as order is valid', () => {
-    const result = TripFormSchema.safeParse({ title: 'Παλιό ταξίδι', startDate: '2019-01-01', endDate: '2019-01-10' });
+    const result = TripFormSchema.safeParse({ title: 'Old trip', startDate: '2019-01-01', endDate: '2019-01-10' });
     expect(result.success).toBe(true);
   });
 
   it('rejects a trip whose end date precedes its start date', () => {
-    const result = TripFormSchema.safeParse({ title: 'Ταξίδι', startDate: '2026-09-16', endDate: '2026-09-05' });
+    const result = TripFormSchema.safeParse({ title: 'Trip', startDate: '2026-09-16', endDate: '2026-09-05' });
     expect(result.success).toBe(false);
   });
 });

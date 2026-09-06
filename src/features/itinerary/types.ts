@@ -10,7 +10,7 @@ export const ItineraryStopSchema = z
     legId: nullableOptional(z.string()),
     date: z.string().min(1),
     // Required unless allDay — see superRefine below. An all-day stop has no
-    // specific time slot, so it renders under the "ΌΛΗ ΜΕΡΑ" heading instead
+    // specific time slot, so it renders under the "ALL DAY" heading instead
     // (and the DB column is null for it — nullableOptional normalizes that
     // to undefined before this runs, same as every other field here).
     time: nullableOptional(z.string()),

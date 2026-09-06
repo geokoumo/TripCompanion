@@ -47,16 +47,6 @@ export function OverviewTab({ trip }: { trip: Trip }) {
     }
   }
 
-  if (nothingYet) {
-    return (
-      <div className={styles.wrapper}>
-        {trip.description && <p className={styles.description}>{trip.description}</p>}
-        <StatGrid trip={trip} />
-        <EmptyState headline="Nothing yet" body="Add flights or a stay and they'll show up here." />
-      </div>
-    );
-  }
-
   return (
     <div className={styles.wrapper}>
       {trip.description && <p className={styles.description}>{trip.description}</p>}
@@ -72,6 +62,8 @@ export function OverviewTab({ trip }: { trip: Trip }) {
           </div>
         </div>
       )}
+
+      {nothingYet && <EmptyState headline="Nothing yet" body="Add flights or a stay and they'll show up here." />}
 
       {nextFlight && (
         <div className={styles.snapshotCard} data-tone="rust">
