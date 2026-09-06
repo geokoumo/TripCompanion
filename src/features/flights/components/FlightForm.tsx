@@ -59,7 +59,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
     });
   };
 
-  const badgeFor = (key: keyof Flight) => (autoFilledKeys.has(key) ? 'αυτόματο' : undefined);
+  const badgeFor = (key: keyof Flight) => (autoFilledKeys.has(key) ? 'auto' : undefined);
 
   const applyParsedText = () => {
     const parsed = parseFlightText(pasteText);
@@ -88,15 +88,15 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
 
   const handleSave = () => {
     if (!flight.flightNumber.trim() || !flight.depAirport.trim() || !flight.arrAirport.trim()) {
-      showToast('Λείπουν στοιχεία πτήσης — αριθμός, αναχώρηση, άφιξη.', { variant: 'error' });
+      showToast('Missing flight details — number, departure, arrival.', { variant: 'error' });
       return;
     }
     if (!flight.depDate || !flight.depTime || !flight.arrDate || !flight.arrTime) {
-      showToast('Λείπουν στοιχεία πτήσης — αριθμός, αναχώρηση, άφιξη.', { variant: 'error' });
+      showToast('Missing flight details — number, departure, arrival.', { variant: 'error' });
       return;
     }
     if (timeCheck && !timeCheck.unresolvedTimezone && !timeCheck.isValid) {
-      showToast('Η άφιξη πρέπει να είναι μετά την αναχώρηση (με βάση τις ζώνες ώρας).', { variant: 'error' });
+      showToast('Arrival must be after departure (based on time zones).', { variant: 'error' });
       return;
     }
     if (flight.depTimezoneOverride) rememberAirportTimezone(flight.depAirport, flight.depTimezoneOverride);
@@ -109,35 +109,35 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
 
   return (
     <Modal
-      title={initial ? 'Επεξεργασία πτήσης' : 'Νέα πτήση'}
+      title={initial ? 'Edit flight' : 'New flight'}
       onClose={onClose}
       footer={
         <>
           {onDelete && (
             <Button variant="danger" onClick={onDelete}>
-              Διαγραφή
+              Delete
             </Button>
           )}
           <Button variant="primary" onClick={handleSave}>
-            Αποθήκευση
+            Save
           </Button>
         </>
       }
     >
       {!pasteOpen ? (
         <button type="button" className={styles.pasteToggle} onClick={() => setPasteOpen(true)}>
-          Επικόλλησε από email
+          Paste from email
         </button>
       ) : (
         <div className={styles.pasteBox}>
           <TextAreaField
-            label="Κείμενο επιβεβαίωσης"
+            label="Confirmation text"
             autoFocus
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
-            placeholder="Επικόλλησε εδώ το κείμενο της επιβεβαίωσης…"
+            placeholder="Paste the confirmation email text here…"
           />
-          {parseFailed && <p className={styles.parseError}>Δεν αναγνωρίστηκαν στοιχεία πτήσης σε αυτό το κείμενο.</p>}
+          {parseFailed && <p className={styles.parseError}>Couldn't find flight details in that text.</p>}
           <div className={styles.pasteActions}>
             <Button
               variant="secondary"
@@ -147,36 +147,36 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
                 setParseFailed(false);
               }}
             >
-              Άκυρο
+              Cancel
             </Button>
             <Button variant="primary" onClick={applyParsedText}>
-              Ανάλυση κειμένου
+              Parse text
             </Button>
           </div>
         </div>
       )}
 
       {autoFilledKeys.size > 0 && (
-        <p className={styles.autoNote}>Κάποια πεδία συμπληρώθηκαν αυτόματα — έλεγξέ τα πριν αποθηκεύσεις.</p>
+        <p className={styles.autoNote}>Some fields were filled in automatically — check them before saving.</p>
       )}
 
       {hasUnknownAirport && (
         <div
           style={{
-            background: 'var(--color-rust-soft)',
-            color: 'var(--color-rust-on-soft)',
+            background: 'var(--color-brass-soft)',
+            color: 'var(--color-brass)',
             borderRadius: 'var(--radius-md)',
             padding: '12px 14px',
             fontSize: 'var(--fs-meta)',
             marginBottom: 16,
           }}
         >
-          Ένα αεροδρόμιο δεν είναι στον πίνακα. Διάλεξε ζώνη ώρας χειροκίνητα — θα αποθηκευτεί για την επόμενη φορά.
+          ⚠ One airport is not in the lookup table. Pick its time zone by hand — it gets saved for next time.
         </div>
       )}
 
       <TextField
-        label="Αριθμός πτήσης"
+        label="Flight number"
         autoFocus
         value={flight.flightNumber}
         onChange={(e) => update('flightNumber', e.target.value)}
@@ -185,18 +185,18 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
       />
       {recentAirlines.length > 0 && <PresetChips presets={recentAirlines} onSelect={(v) => update('airline', v)} hideInput />}
       {suggestedAirline && <PresetChips presets={[suggestedAirline]} onSelect={(v) => update('airline', v)} hideInput />}
-      <TextField label="Αεροπορική" value={flight.airline} onChange={(e) => update('airline', e.target.value)} placeholder="Emirates" />
+      <TextField label="Airline" value={flight.airline} onChange={(e) => update('airline', e.target.value)} placeholder="Emirates" />
 
       {recentAirports.length > 0 && <PresetChips presets={recentAirports} onSelect={(v) => update('depAirport', v)} hideInput />}
       <TextField
-        label="Αναχώρηση (κωδικός)"
+        label="Departure (code)"
         value={flight.depAirport}
         onChange={(e) => update('depAirport', e.target.value.toUpperCase())}
         placeholder="ATH"
         badge={badgeFor('depAirport')}
       />
       <DateTimeField
-        label="Ώρα αναχώρησης"
+        label="Departure time"
         date={flight.depDate}
         time={flight.depTime}
         onDateChange={(d) => update('depDate', d)}
@@ -207,13 +207,13 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
       {flight.depAirport && !depTzKnown && (
         <FieldRow>
           <div className={fieldStyles.field} style={{ flex: 1 }}>
-            <label className={fieldStyles.label}>Ζώνη ώρας αναχώρησης</label>
+            <label className={fieldStyles.label}>Departure time zone</label>
             <select
               className={fieldStyles.select}
               value={flight.depTimezoneOverride ?? ''}
               onChange={(e) => update('depTimezoneOverride', e.target.value)}
             >
-              <option value="">Επίλεξε ζώνη ώρας…</option>
+              <option value="">Select a time zone…</option>
               {MANUAL_TIMEZONE_OPTIONS.map((tz) => (
                 <option key={tz} value={tz}>
                   {tz}
@@ -226,14 +226,14 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
 
       {recentAirports.length > 0 && <PresetChips presets={recentAirports} onSelect={(v) => update('arrAirport', v)} hideInput />}
       <TextField
-        label="Άφιξη (κωδικός)"
+        label="Arrival (code)"
         value={flight.arrAirport}
         onChange={(e) => update('arrAirport', e.target.value.toUpperCase())}
         placeholder="DXB"
         badge={badgeFor('arrAirport')}
       />
       <DateTimeField
-        label="Ώρα άφιξης"
+        label="Arrival time"
         date={flight.arrDate}
         time={flight.arrTime}
         onDateChange={(d) => update('arrDate', d)}
@@ -243,19 +243,19 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
       />
       {timeCheck && !timeCheck.unresolvedTimezone && !timeCheck.isValid && (
         <p style={{ color: 'var(--color-rust)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
-          Η άφιξη πρέπει να είναι μετά την αναχώρηση (με βάση τις ζώνες ώρας).
+          Arrival must be after departure (based on time zones).
         </p>
       )}
       {flight.arrAirport && !arrTzKnown && (
         <FieldRow>
           <div className={fieldStyles.field} style={{ flex: 1 }}>
-            <label className={fieldStyles.label}>Ζώνη ώρας άφιξης</label>
+            <label className={fieldStyles.label}>Arrival time zone</label>
             <select
               className={fieldStyles.select}
               value={flight.arrTimezoneOverride ?? ''}
               onChange={(e) => update('arrTimezoneOverride', e.target.value)}
             >
-              <option value="">Επίλεξε ζώνη ώρας…</option>
+              <option value="">Select a time zone…</option>
               {MANUAL_TIMEZONE_OPTIONS.map((tz) => (
                 <option key={tz} value={tz}>
                   {tz}
@@ -267,21 +267,21 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
       )}
 
       <div className={fieldStyles.field}>
-        <label className={fieldStyles.label}>Κατάσταση</label>
+        <label className={fieldStyles.label}>Status</label>
         <StampToggle options={FLIGHT_STATUSES} value={flight.status as FlightStatusId} onChange={(v) => update('status', v)} />
       </div>
 
-      <TextField label="Σύνδεσμος" value={flight.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
+      <TextField label="Link" value={flight.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
 
       <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
       {showMore && (
         <>
           <FieldRow>
-            <TextField label="Τερματικός" value={flight.terminal ?? ''} onChange={(e) => update('terminal', e.target.value)} />
-            <TextField label="Πύλη" value={flight.gate ?? ''} onChange={(e) => update('gate', e.target.value)} />
+            <TextField label="Terminal" value={flight.terminal ?? ''} onChange={(e) => update('terminal', e.target.value)} />
+            <TextField label="Gate" value={flight.gate ?? ''} onChange={(e) => update('gate', e.target.value)} />
           </FieldRow>
           <TextField
-            label="Κωδικός κράτησης"
+            label="Booking reference"
             value={flight.bookingRef ?? ''}
             onChange={(e) => update('bookingRef', e.target.value)}
             badge={badgeFor('bookingRef')}

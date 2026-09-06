@@ -68,34 +68,35 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
 
   return (
     <Modal
-      title={initial ? 'Επεξεργασία εξόδου' : 'Νέο έξοδο'}
+      title={initial ? 'Edit expense' : 'New expense'}
       onClose={onClose}
       footer={
         <>
           {onDelete && (
             <Button variant="danger" onClick={onDelete}>
-              Διαγραφή
+              Delete
             </Button>
           )}
           <Button variant="primary" disabled={!canSave} onClick={() => onSave(expense)}>
-            Αποθήκευση
+            Save
           </Button>
         </>
       }
     >
       <TextField
-        label="Ποσό"
+        label="Amount"
         autoFocus
         type="number"
         min={0}
         step="0.01"
+        placeholder="0"
         value={expense.amount || ''}
         onChange={(e) => update('amount', Number(e.target.value))}
       />
 
-      <FieldWrapper label="Νόμισμα">
+      <FieldWrapper label="Currency">
         <ChipSelect
-          options={[...knownCurrencies.map((c) => ({ id: c, label: c })), { id: CURRENCY_OTHER, label: 'Άλλο' }]}
+          options={[...knownCurrencies.map((c) => ({ id: c, label: c })), { id: CURRENCY_OTHER, label: 'Other' }]}
           value={creatingCurrency ? CURRENCY_OTHER : expense.currency}
           onChange={(id) => {
             if (id === CURRENCY_OTHER) {
@@ -109,29 +110,29 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
       </FieldWrapper>
       {creatingCurrency && (
         <TextField
-          label="Άλλο νόμισμα"
+          label="Other currency"
           autoFocus
           value={expense.currency}
           onChange={(e) => update('currency', e.target.value.toUpperCase())}
-          placeholder="π.χ. THB"
+          placeholder="e.g. THB"
         />
       )}
 
       {needsRate && (
         <TextField
-          label={`Ισοτιμία προς ${trip.homeCurrency}`}
+          label={`Exchange rate to ${trip.homeCurrency}`}
           type="number"
           step="0.0001"
           value={expense.exchangeRateToHome ?? ''}
           onChange={(e) => update('exchangeRateToHome', e.target.value ? Number(e.target.value) : undefined)}
-          placeholder="π.χ. 1.08"
-          error={!hasRate ? 'Χρειάζεται ισοτιμία πριν αποθηκευτεί το έξοδο.' : undefined}
+          placeholder="e.g. 1.08"
+          error={!hasRate ? 'An exchange rate is needed before this expense can be saved.' : undefined}
         />
       )}
 
-      <FieldWrapper label="Κατηγορία">
+      <FieldWrapper label="Category">
         <ChipSelect
-          options={[...categories.map((c) => ({ id: c.id, label: c.name })), { id: OTHER, label: 'Άλλο' }]}
+          options={[...categories.map((c) => ({ id: c.id, label: c.name })), { id: OTHER, label: 'Other' }]}
           value={creatingCategory ? OTHER : expense.categoryId}
           onChange={(id) => {
             if (id === OTHER) {
@@ -145,7 +146,7 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
       </FieldWrapper>
       {creatingCategory && (
         <TextField
-          label="Νέα κατηγορία"
+          label="New category"
           autoFocus
           value={newCategoryName}
           onChange={(e) => setNewCategoryName(e.target.value)}
@@ -155,27 +156,27 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
               void confirmNewCategory();
             }
           }}
-          placeholder="π.χ. Σουβενίρ"
+          placeholder="e.g. Souvenirs"
         />
       )}
 
-      <TextField label="Περιγραφή" value={expense.note ?? ''} onChange={(e) => update('note', e.target.value)} placeholder="π.χ. Δείπνο" />
+      <TextField label="Description" value={expense.note ?? ''} onChange={(e) => update('note', e.target.value)} placeholder="e.g. Dinner" />
 
-      <DateField label="Ημερομηνία" date={expense.date} onChange={(d) => update('date', d)} minDate={range?.startDate} maxDate={range?.endDate} />
+      <DateField label="Date" date={expense.date} onChange={(d) => update('date', d)} minDate={range?.startDate} maxDate={range?.endDate} />
 
       {travelers.length > 0 && (
-        <FieldWrapper label="Πλήρωσε">
+        <FieldWrapper label="Paid by">
           <ChipSelect options={travelers.map((t) => ({ id: t.id, label: t.name }))} value={expense.paidBy} onChange={(id) => update('paidBy', id)} />
         </FieldWrapper>
       )}
       {travelers.length > 1 && (
-        <FieldWrapper label="Μοιράστηκε ανάμεσα σε">
+        <FieldWrapper label="Split among">
           <ChipSelect options={travelers.map((t) => ({ id: t.id, label: t.name }))} value={expense.splitAmong} onChange={toggleSplit} multi />
         </FieldWrapper>
       )}
 
       <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
-      {showMore && <TextField label="Σύνδεσμος απόδειξης" value={expense.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />}
+      {showMore && <TextField label="Receipt link" value={expense.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />}
     </Modal>
   );
 }

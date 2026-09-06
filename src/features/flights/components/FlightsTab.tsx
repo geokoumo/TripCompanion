@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import type { Trip } from '../../trips/types';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import type { Flight } from '../types';
@@ -28,7 +29,7 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
         const exists = t.flights.some((f) => f.id === flight.id);
         return { ...t, flights: exists ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight] };
       });
-      showToast('Η πτήση αποθηκεύτηκε.');
+      showToast('Flight saved.');
       setEditing(null);
       setCreating(false);
     } catch {
@@ -45,17 +46,13 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
   return (
     <div style={{ paddingTop: 8 }}>
       {sorted.length === 0 && (
-        <p style={{ color: 'var(--color-text-faint)', padding: '24px 0' }}>
-          Καμία πτήση
-          <br />
-          Πρόσθεσε την πρώτη σου πτήση με το κουμπί κάτω δεξιά.
-        </p>
+        <EmptyState headline="No flights" body="Add your first flight with the button at the bottom right." />
       )}
       {sorted.map((flight) => (
         <FlightCard key={flight.id} flight={flight} onOpen={openFlight} />
       ))}
 
-      <Fab onClick={() => setCreating(true)} />
+      <Fab onClick={() => setCreating(true)} aria-label="New flight" />
 
       {(creating || editing) && (
         <FlightForm

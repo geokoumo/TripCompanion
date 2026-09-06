@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { ITINERARY_STOP_TYPES } from '../../../config/constants';
 import { Button } from '../../../shared/components/Button';
 import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
@@ -8,9 +7,9 @@ import { FieldWrapper, TextAreaField, TextField } from '../../../shared/componen
 import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
 import { generateId } from '../../../shared/lib/id';
-import type { ItineraryStopTypeId } from '../../../config/constants';
 import type { Trip } from '../../trips/types';
 import { computeOccupiedRanges, findConflict, formatRangeLabel } from '../lib/occupiedRanges';
+import { StopTypeGrid } from './StopTypeGrid';
 import type { ItineraryStop } from '../types';
 import styles from './StopForm.module.css';
 
@@ -82,7 +81,7 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
       const startMin = (h ?? 0) * 60 + (m ?? 0);
       const conflict = findConflict(startMin, stop.durationMinutes, occupied);
       if (conflict) {
-        setConflictError(`Η ώρα αυτή επικαλύπτεται με «${conflict.label}» ${formatRangeLabel(conflict)}.`);
+        setConflictError(`This time overlaps with "${conflict.label}" ${formatRangeLabel(conflict)}.`);
         return;
       }
     }
@@ -91,43 +90,39 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
 
   return (
     <Modal
-      title={initial ? 'Επεξεργασία στάσης' : 'Νέα στάση'}
+      title={initial ? 'Edit stop' : 'New stop'}
       onClose={onClose}
       footer={
         <>
           {onDelete && (
             <Button variant="danger" onClick={onDelete}>
-              Διαγραφή
+              Delete
             </Button>
           )}
           <Button variant="primary" disabled={!canSave} onClick={handleSave}>
-            Αποθήκευση
+            Save
           </Button>
         </>
       }
     >
-      <TextField label="Τίτλος" autoFocus value={stop.title} onChange={(e) => update('title', e.target.value)} placeholder="π.χ. Πρωινό στην αγορά" />
+      <TextField label="What" autoFocus value={stop.title} onChange={(e) => update('title', e.target.value)} placeholder="e.g. Sensō-ji Temple" />
 
-      <FieldWrapper label="Τύπος">
-        <ChipSelect
-          options={ITINERARY_STOP_TYPES.map((t) => ({ id: t.id, label: t.label }))}
-          value={stop.type as ItineraryStopTypeId}
-          onChange={(id) => update('type', id)}
-        />
+      <FieldWrapper label="Type">
+        <StopTypeGrid value={stop.type} onChange={(id) => update('type', id)} />
       </FieldWrapper>
 
       <div className={styles.allDayRow}>
         <button type="button" className={styles.allDayToggle} data-active={stop.allDay} onClick={toggleAllDay}>
-          Όλη μέρα
+          All day
         </button>
       </div>
 
       {stop.allDay ? (
-        <DateField label="Ημερομηνία" date={stop.date} onChange={(d) => update('date', d)} />
+        <DateField label="Date" date={stop.date} onChange={(d) => update('date', d)} />
       ) : (
         <>
           <DateTimeField
-            label="Ώρα"
+            label="Time"
             date={stop.date}
             time={stop.time ?? ''}
             onDateChange={(d) => update('date', d)}
@@ -135,7 +130,7 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
             isTimeDisabled={isTimeDisabled}
             error={conflictError ?? undefined}
           />
-          <FieldWrapper label={stop.durationMinutes ? `Διάρκεια — ${stop.durationMinutes}′` : 'Διάρκεια (προαιρετικό)'}>
+          <FieldWrapper label={stop.durationMinutes ? `Duration — ${stop.durationMinutes}′` : 'Duration (optional)'}>
             <PresetChips presets={DURATION_PRESETS} onSelect={applyDurationPreset} hideInput />
           </FieldWrapper>
         </>
@@ -144,10 +139,10 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
       {trip.rememberedLocations.length > 0 && (
         <PresetChips presets={trip.rememberedLocations} onSelect={(v) => update('location', v)} hideInput />
       )}
-      <TextField label="Τοποθεσία" value={stop.location ?? ''} onChange={(e) => update('location', e.target.value)} />
+      <TextField label="Location" value={stop.location ?? ''} onChange={(e) => update('location', e.target.value)} />
 
       {trip.travelers.length > 0 && (
-        <FieldWrapper label="Ταξιδιώτες (κενό = όλοι)">
+        <FieldWrapper label="Travellers (blank = everyone)">
           <ChipSelect
             options={trip.travelers.map((t) => ({ id: t.id, label: t.name }))}
             value={stop.travelerIds}
@@ -157,8 +152,8 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
         </FieldWrapper>
       )}
 
-      <TextField label="Σύνδεσμος" value={stop.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
-      <TextAreaField label="Σημείωση" value={stop.note ?? ''} onChange={(e) => update('note', e.target.value)} />
+      <TextField label="Link" value={stop.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
+      <TextAreaField label="Note" value={stop.note ?? ''} onChange={(e) => update('note', e.target.value)} />
     </Modal>
   );
 }

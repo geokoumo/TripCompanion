@@ -50,11 +50,11 @@ export function StayForm({ initial, existingStays, recentLocations, onClose, onS
 
   const handleSave = () => {
     if (!stay.name.trim() || !stay.address.trim() || !hasFullDates) {
-      showToast('Λείπουν στοιχεία διαμονής.', { variant: 'error' });
+      showToast('Missing stay details.', { variant: 'error' });
       return;
     }
     if (!datesValid) {
-      showToast('Το check-out πρέπει να είναι μετά το check-in.', { variant: 'error' });
+      showToast('Check-out must be after check-in.', { variant: 'error' });
       return;
     }
     onSave(stay);
@@ -62,24 +62,24 @@ export function StayForm({ initial, existingStays, recentLocations, onClose, onS
 
   return (
     <Modal
-      title={initial ? 'Επεξεργασία διαμονής' : 'Νέα διαμονή'}
+      title={initial ? 'Edit stay' : 'New stay'}
       onClose={onClose}
       footer={
         <>
           {onDelete && (
             <Button variant="danger" onClick={onDelete}>
-              Διαγραφή
+              Delete
             </Button>
           )}
           <Button variant="primary" onClick={handleSave}>
-            Αποθήκευση
+            Save
           </Button>
         </>
       }
     >
-      <TextField label="Όνομα" autoFocus value={stay.name} onChange={(e) => update('name', e.target.value)} placeholder="π.χ. Shinjuku Granbell Hotel" />
+      <TextField label="Name" autoFocus value={stay.name} onChange={(e) => update('name', e.target.value)} placeholder="Hotel or rental" />
       {recentLocations.length > 0 && <PresetChips presets={recentLocations} onSelect={(v) => update('address', v)} hideInput />}
-      <TextField label="Διεύθυνση" value={stay.address} onChange={(e) => update('address', e.target.value)} placeholder="Απαραίτητο πεδίο" />
+      <TextField label="Address" value={stay.address} onChange={(e) => update('address', e.target.value)} placeholder="Street, area" />
 
       <DateTimeField
         label="Check-in"
@@ -98,35 +98,39 @@ export function StayForm({ initial, existingStays, recentLocations, onClose, onS
       />
       {hasFullDates && !datesValid && (
         <p style={{ color: 'var(--color-rust)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
-          Το check-out πρέπει να είναι μετά ή ίδιο με το check-in.
+          Check-out must be on or after check-in.
         </p>
       )}
 
       {overlapsLive && (
         <div
           style={{
-            background: 'var(--color-rust-soft)',
-            color: 'var(--color-rust-on-soft)',
+            background: 'var(--color-brass-soft)',
+            color: 'var(--color-brass)',
             borderRadius: 'var(--radius-md)',
             padding: '12px 14px',
             fontSize: 'var(--fs-meta)',
             marginBottom: 16,
           }}
         >
-          Αυτές οι νύχτες επικαλύπτονται με άλλη διαμονή. Μπορείς να το αποθηκεύσεις έτσι.
+          ⚠ These nights overlap with another stay. You can save it this way.
         </div>
       )}
-
-      <TextField label="Σύνδεσμος" value={stay.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
 
       <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
       {showMore && (
         <>
           <FieldRow>
-            <TextField label="Τηλέφωνο" value={stay.phone ?? ''} onChange={(e) => update('phone', e.target.value)} />
-            <TextField label="Κωδικός κράτησης" value={stay.bookingRef ?? ''} onChange={(e) => update('bookingRef', e.target.value)} />
+            <TextField label="Phone" value={stay.phone ?? ''} onChange={(e) => update('phone', e.target.value)} placeholder="+81 …" />
+            <TextField label="Booking reference" value={stay.bookingRef ?? ''} onChange={(e) => update('bookingRef', e.target.value)} placeholder="HB-88213" />
           </FieldRow>
-          <TextAreaField label="Σημειώσεις" value={stay.notes ?? ''} onChange={(e) => update('notes', e.target.value)} />
+          <TextAreaField
+            label="Notes"
+            value={stay.notes ?? ''}
+            onChange={(e) => update('notes', e.target.value)}
+            placeholder="Breakfast, door code…"
+          />
+          <TextField label="Link" value={stay.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
         </>
       )}
     </Modal>

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import type { Trip } from '../../trips/types';
 import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
@@ -50,7 +51,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
         const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
         return { ...t, stays, rememberedLocations };
       });
-      showToast('Η διαμονή αποθηκεύτηκε.');
+      showToast('Stay saved.');
       setEditing(null);
       setCreating(false);
     } catch {
@@ -67,17 +68,13 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
   return (
     <div style={{ paddingTop: 8 }}>
       {sorted.length === 0 && (
-        <p style={{ color: 'var(--color-text-faint)', padding: '24px 0' }}>
-          Καμία διαμονή
-          <br />
-          Καταχώρησε ξενοδοχείο ή κατάλυμα και θα δεις τα check-in στο πρόγραμμα.
-        </p>
+        <EmptyState headline="No stays" body="Add your first stay with the button at the bottom right." />
       )}
       {sorted.map((stay) => (
         <StayCard key={stay.id} stay={stay} overlapping={overlapIds.has(stay.id)} onOpen={openStay} />
       ))}
 
-      <Fab onClick={() => setCreating(true)} />
+      <Fab onClick={() => setCreating(true)} aria-label="New stay" />
 
       {(creating || editing) && (
         <StayForm

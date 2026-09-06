@@ -7,7 +7,7 @@ import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
 import type { ChecklistItem } from '../types';
 
-const ITEM_PRESETS = ['Διαβατήριο', 'Φορτιστής', 'Αντηλιακό', 'Ομπρέλα', 'Φάρμακα'];
+const ITEM_PRESETS = ['Passport', 'Charger', 'Sunscreen', 'Umbrella', 'Medicine'];
 const OTHER = '__other__';
 
 interface AddChecklistItemSheetProps {
@@ -27,7 +27,7 @@ export function AddChecklistItemSheet({ onClose, onSave }: AddChecklistItemSheet
 
   return (
     <Modal
-      title="Νέο αντικείμενο"
+      title="New item"
       onClose={onClose}
       footer={
         <Button
@@ -35,18 +35,18 @@ export function AddChecklistItemSheet({ onClose, onSave }: AddChecklistItemSheet
           disabled={!canSave}
           onClick={() => onSave({ text: text.trim(), category: effectiveCategory, quantity })}
         >
-          Αποθήκευση
+          Save
         </Button>
       }
     >
-      <TextField label="Τι παίρνεις" autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="π.χ. Γυαλιά ηλίου" />
-      <FieldWrapper label="Γρήγορη επιλογή">
+      <TextField label="What are you taking" autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="e.g. Adapter" />
+      <FieldWrapper label="Quick picks">
         <PresetChips presets={ITEM_PRESETS} onSelect={setText} hideInput />
       </FieldWrapper>
 
-      <FieldWrapper label="Κατηγορία">
+      <FieldWrapper label="Category">
         <ChipSelect
-          options={[...CHECKLIST_CATEGORIES.map((c) => ({ id: c, label: c })), { id: OTHER, label: 'Άλλο' }]}
+          options={[...CHECKLIST_CATEGORIES.map((c) => ({ id: c, label: c })), { id: OTHER, label: 'Other' }]}
           value={creatingCategory ? OTHER : category}
           onChange={(id) => {
             if (id === OTHER) setCreatingCategory(true);
@@ -58,11 +58,11 @@ export function AddChecklistItemSheet({ onClose, onSave }: AddChecklistItemSheet
         />
       </FieldWrapper>
       {creatingCategory && (
-        <TextField label="Νέα κατηγορία" autoFocus value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} />
+        <TextField label="New category" autoFocus value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} />
       )}
 
       <TextField
-        label="Ποσότητα"
+        label="Quantity"
         type="number"
         min={1}
         value={quantity}

@@ -55,14 +55,3 @@
   color: var(--color-text-faint);
   padding: var(--space-4) 0;
 }
-
-.addStopButton {
-  width: 100%;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  border: 1.5px dashed var(--color-border-strong);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  margin: var(--space-3) 0 var(--space-5);
-}

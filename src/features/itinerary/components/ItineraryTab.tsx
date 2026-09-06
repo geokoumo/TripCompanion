@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { dayNumber, weekdayShort, todayStr, formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { generateId } from '../../../shared/lib/id';
@@ -53,7 +54,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
 
   const legsForDay = trip.legs.filter((leg) => selectedDate >= leg.startDate && selectedDate <= leg.endDate);
   const legHeaderLabel = legsForDay
-    .map((l) => l.city || 'ΧΩΡΙΣ ΠΟΛΗ')
+    .map((l) => l.city || 'NO CITY')
     .join(' → ')
     .toUpperCase();
 
@@ -64,7 +65,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       const rememberedLocations = stop.location ? addRememberedLocation(t.rememberedLocations, stop.location) : t.rememberedLocations;
       return { ...t, itineraryStops, rememberedLocations };
     });
-    showToast('Η στάση αποθηκεύτηκε.');
+    showToast('Stop saved.');
     setEditingStop(null);
     setCreatingStop(false);
   };
@@ -99,7 +100,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       ideas: t.ideas.filter((i) => i.id !== idea.id),
       itineraryStops: [...t.itineraryStops, stop],
     }));
-    showToast(`Μπήκε στις ${formatDateNoYear(date)} στις ${time}.`);
+    showToast(`Added to ${formatDateNoYear(date)} at ${time}.`);
   };
 
   return (
@@ -117,7 +118,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
 
       {allDayStopsForDay.length > 0 && (
         <>
-          <div className={styles.legHeader}>Όλη μέρα</div>
+          <div className={styles.legHeader}>All day</div>
           {allDayStopsForDay.map((stop) => (
             <StopCard key={stop.id} stop={stop} travelers={trip.travelers} onOpen={openStop} />
           ))}
@@ -132,15 +133,13 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       ))}
       {autoPulledForDay.length === 0 && stopsForDay.length === 0 && (
         <div className={styles.emptyDay}>
-          Κενή μέρα
+          Empty day
           <br />
-          Πρόσθεσε στάση ή τράβα μία από τις ιδέες σου παρακάτω.
+          Add a stop, or pull one of your ideas up from below.
         </div>
       )}
 
-      <button type="button" className={styles.addStopButton} onClick={() => setCreatingStop(true)}>
-        + Προσθήκη στάσης
-      </button>
+      <Fab onClick={() => setCreatingStop(true)} aria-label="New stop" />
 
       <IdeasBacklog
         ideas={trip.ideas}

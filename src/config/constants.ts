@@ -46,8 +46,8 @@ export type FlightStatusId = (typeof FLIGHT_STATUSES)[number]['id'];
 
 export const CHECKLIST_CATEGORIES = [
   'Documents',
-  'Electronics',
   'Clothes',
+  'Electronics',
   'Medicine',
   'Other',
 ] as const;
