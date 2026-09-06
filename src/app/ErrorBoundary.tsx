@@ -19,9 +19,9 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div style={{ padding: 32, fontFamily: 'sans-serif' }}>
-          <h1>Κάτι πήγε στραβά</h1>
+          <h1>Something went wrong</h1>
           <p>{this.state.error.message}</p>
-          <button onClick={() => this.setState({ error: null })}>Δοκίμασε ξανά</button>
+          <button onClick={() => this.setState({ error: null })}>Try again</button>
         </div>
       );
     }

@@ -16,7 +16,7 @@ export const ItineraryStopSchema = z
     time: nullableOptional(z.string()),
     allDay: z.boolean().default(false),
     durationMinutes: nullableOptional(z.number().int().positive()),
-    title: z.string().min(1, 'Ο τίτλος είναι υποχρεωτικός'),
+    title: z.string().min(1, 'Title is required'),
     type: z.enum(stopTypeIds),
     location: nullableOptional(z.string()),
     link: nullableOptional(z.string()),
@@ -26,7 +26,7 @@ export const ItineraryStopSchema = z
   })
   .superRefine((data, ctx) => {
     if (!data.allDay && !data.time) {
-      ctx.addIssue({ code: 'custom', path: ['time'], message: 'Η ώρα είναι υποχρεωτική εκτός αν είναι όλη μέρα' });
+      ctx.addIssue({ code: 'custom', path: ['time'], message: 'Time is required unless it is all day' });
     }
   });
 
@@ -34,7 +34,7 @@ export type ItineraryStop = z.infer<typeof ItineraryStopSchema>;
 
 export const IdeaSchema = z.object({
   id: z.string(),
-  title: z.string().min(1, 'Ο τίτλος είναι υποχρεωτικός'),
+  title: z.string().min(1, 'Title is required'),
   type: z.enum(stopTypeIds),
   location: nullableOptional(z.string()),
   link: nullableOptional(z.string()),

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import styles from './CalendarDatePicker.module.css';
 
-const WEEKDAYS = ['Κυ', 'Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα'];
+const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = [
-  'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος',
-  'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος',
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
 interface CalendarDatePickerProps {
@@ -57,13 +57,13 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
-        <button type="button" className={styles.navButton} onClick={() => goMonth(-1)} aria-label="Προηγούμενος μήνας">
+        <button type="button" className={styles.navButton} onClick={() => goMonth(-1)} aria-label="Previous month">
           ‹
         </button>
         <span className={styles.headerLabel}>
           {MONTHS[month]} {year}
         </span>
-        <button type="button" className={styles.navButton} onClick={() => goMonth(1)} aria-label="Επόμενος μήνας">
+        <button type="button" className={styles.navButton} onClick={() => goMonth(1)} aria-label="Next month">
           ›
         </button>
       </div>

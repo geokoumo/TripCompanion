@@ -8,11 +8,10 @@ import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
 import type { Trip, TripTab } from '../types';
 import { CreateTripWizard } from './CreateTripWizard';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
-import { QuickActionsGrid } from './QuickActionsGrid';
+import { HelpSheet } from './HelpSheet';
 import { ShareSheet } from './ShareSheet';
 import { TripCard } from './TripCard';
 import { TripMenuSheet } from './TripMenuSheet';
-import { TripPickerSheet } from './TripPickerSheet';
 import styles from './TripListScreen.module.css';
 
 interface TripListScreenProps {
@@ -28,11 +27,10 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const [duplicateSource, setDuplicateSource] = useState<Trip | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Trip | null>(null);
   const [editDescriptionTrip, setEditDescriptionTrip] = useState<Trip | null>(null);
-  const [quickActionPicker, setQuickActionPicker] = useState<TripTab | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const visible = trips.filter((t) => (filter === 'active' ? !t.archived : t.archived));
-  const activeTrips = trips.filter((t) => !t.archived);
   const todayLabel = formatDateShort(new Date().toISOString().slice(0, 10));
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,13 +43,13 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
       const text = await file.text();
       imported = parseImportedTrip(text);
     } catch {
-      showToast('Το αρχείο δεν είναι έγκυρο ταξίδι.', { variant: 'error' });
+      showToast('That file is not a valid trip.', { variant: 'error' });
       return;
     }
 
     try {
       await saveTrip(imported);
-      showToast('Το ταξίδι εισήχθη.');
+      showToast('Trip imported.');
     } catch {
       // saveTrip already surfaced its own error toast
     }
@@ -65,60 +63,45 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
     if (full) setMenuTrip(full);
   };
 
-  // A quick-action tile has no trip context of its own — resolve one: the
-  // single active trip if there's exactly one, a lightweight picker if
-  // there's more than one, or a nudge to create a trip first. Never a
-  // silent no-op.
-  const handleQuickAction = (tab: TripTab) => {
-    if (activeTrips.length === 0) {
-      showToast('Δημιούργησε πρώτα ένα ενεργό ταξίδι.', { variant: 'neutral' });
-      return;
-    }
-    if (activeTrips.length === 1) {
-      onOpenTrip(activeTrips[0]!.id, tab);
-      return;
-    }
-    setQuickActionPicker(tab);
-  };
-
   const confirmDeleteTrip = () => {
     if (!pendingDelete) return;
     const snapshot = pendingDelete;
     void deleteTrip(snapshot.id);
     setPendingDelete(null);
-    showToast('Διαγράφηκε.', {
+    showToast('Deleted.', {
       variant: 'neutral',
-      action: { label: 'Αναίρεση', onClick: () => void saveTrip(snapshot) },
+      action: { label: 'Undo', onClick: () => void saveTrip(snapshot) },
     });
   };
 
   return (
     <div className={styles.screen}>
-      <h1 className={styles.title}>Τα ταξίδια μου</h1>
-      <div className={styles.subtitle}>Σήμερα {todayLabel}</div>
-
-      <div className={styles.filters}>
-        <button type="button" className={styles.filterChip} data-active={filter === 'active'} onClick={() => setFilter('active')}>
-          Ενεργά
+      <div className={styles.topRow}>
+        <div>
+          <h1 className={styles.title}>My trips</h1>
+          <div className={styles.subtitle}>Today {todayLabel}</div>
+        </div>
+        <button type="button" className={styles.helpButton} onClick={() => setHelpOpen(true)} aria-label="Help">
+          ?
         </button>
-        <button type="button" className={styles.filterChip} data-active={filter === 'archived'} onClick={() => setFilter('archived')}>
-          Αρχείο
-        </button>
-        <button type="button" className={styles.importButton} onClick={() => importInputRef.current?.click()}>
-          Εισαγωγή ταξιδιού
-        </button>
-        <input ref={importInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={(e) => void handleImportFile(e)} />
       </div>
 
-      <QuickActionsGrid onSelect={handleQuickAction} />
+      <div className={styles.segmented}>
+        <button type="button" className={styles.segment} data-active={filter === 'active'} onClick={() => setFilter('active')}>
+          Active
+        </button>
+        <button type="button" className={styles.segment} data-active={filter === 'archived'} onClick={() => setFilter('archived')}>
+          Archive
+        </button>
+      </div>
 
       {!loading && visible.length === 0 && (
         <EmptyState
-          headline={filter === 'active' ? 'Κανένα ταξίδι ακόμα' : 'Κανένα αρχειοθετημένο ταξίδι'}
+          headline={filter === 'active' ? 'Nothing yet' : 'Nothing archived'}
           body={
             filter === 'active'
-              ? 'Ξεκίνα με τον τίτλο και τις ημερομηνίες. Όλα τα υπόλοιπα μπορούν να περιμένουν.'
-              : 'Όσα ταξίδια αρχειοθετήσεις θα μαζεύονται εδώ.'
+              ? 'Start with a title and dates. Everything else can wait.'
+              : 'Trips you archive will collect here.'
           }
         />
       )}
@@ -163,17 +146,8 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
         <DeleteConfirmSheet itemName={pendingDelete.title} onCancel={() => setPendingDelete(null)} onConfirm={confirmDeleteTrip} />
       )}
 
-      {quickActionPicker && (
-        <TripPickerSheet
-          title="Ποιο ταξίδι;"
-          trips={activeTrips}
-          onClose={() => setQuickActionPicker(null)}
-          onSelect={(tripId) => {
-            onOpenTrip(tripId, quickActionPicker);
-            setQuickActionPicker(null);
-          }}
-        />
-      )}
+      {helpOpen && <HelpSheet onClose={() => setHelpOpen(false)} onImportFile={() => importInputRef.current?.click()} />}
+      <input ref={importInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={(e) => void handleImportFile(e)} />
     </div>
   );
 }

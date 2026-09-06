@@ -18,7 +18,7 @@ export function Modal({ title, onClose, children, footer }: ModalProps) {
         <div className={styles.handle} />
         <div className={styles.header}>
           <span className={styles.title}>{title}</span>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Κλείσιμο">
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">
             ✕
           </button>
         </div>

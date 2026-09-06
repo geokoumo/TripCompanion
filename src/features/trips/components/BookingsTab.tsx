@@ -19,10 +19,10 @@ export function BookingsTab({ trip, activeTab, onTabChange, updateTrip }: Bookin
     <div>
       <div className={styles.segmented}>
         <button type="button" className={styles.segment} data-active={activeTab === 'flights'} onClick={() => onTabChange('flights')}>
-          Πτήσεις
+          Flights
         </button>
         <button type="button" className={styles.segment} data-active={activeTab === 'stays'} onClick={() => onTabChange('stays')}>
-          Διαμονή
+          Stays
         </button>
       </div>
       {activeTab === 'flights' ? <FlightsTab trip={trip} updateTrip={updateTrip} /> : <StaysTab trip={trip} updateTrip={updateTrip} />}

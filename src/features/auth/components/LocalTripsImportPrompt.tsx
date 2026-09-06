@@ -39,26 +39,26 @@ export function LocalTripsImportPrompt({ localTrips, onClose }: LocalTripsImport
     onClose();
     showToast(
       succeeded === localTrips.length
-        ? `Προστέθηκαν ${succeeded} ταξίδια στον λογαριασμό σου.`
-        : `Προστέθηκαν ${succeeded} από ${localTrips.length} ταξίδια.`,
+        ? `Added ${succeeded} trips to your account.`
+        : `Added ${succeeded} of ${localTrips.length} trips.`,
     );
   };
 
   return (
     <Modal
-      title="Τοπικά ταξίδια"
+      title="Local trips"
       onClose={onClose}
       footer={
         <Button variant="primary" onClick={() => void handleImport()} disabled={importing}>
-          Προσθήκη στον λογαριασμό
+          Add to account
         </Button>
       }
     >
       <p style={{ color: 'var(--color-text)' }}>
-        Βρέθηκαν {localTrips.length} τοπικά {localTrips.length === 1 ? 'ταξίδι' : 'ταξίδια'}. Θέλεις να τα προσθέσεις στον λογαριασμό σου;
+        Found {localTrips.length} local {localTrips.length === 1 ? 'trip' : 'trips'}. Want to add them to your account?
       </p>
       <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--fs-meta)' }}>
-        Τα τοπικά ταξίδια δεν διαγράφονται — θα παραμείνουν και στη συσκευή.
+        Local trips won't be deleted — they'll stay on this device too.
       </p>
     </Modal>
   );

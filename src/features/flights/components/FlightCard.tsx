@@ -6,9 +6,9 @@ import { computeFlightDuration } from '../lib/duration';
 import type { Flight } from '../types';
 import styles from './FlightCard.module.css';
 
-const STATUS_TONE: Record<string, 'teal' | 'rust' | 'gray'> = {
+const STATUS_TONE: Record<string, 'teal' | 'rust' | 'gray' | 'brass'> = {
   scheduled: 'teal',
-  delayed: 'rust',
+  delayed: 'brass',
   cancelled: 'rust',
   landed: 'gray',
 };
@@ -37,7 +37,7 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
         </div>
         <div className={styles.middle}>
           {duration && <div className={styles.duration}>{duration.label}</div>}
-          {nextDay && <div className={styles.nextDay}>+1 μέρα</div>}
+          {nextDay && <div className={styles.nextDay}>+1 day</div>}
         </div>
         <div className={styles.alignRight}>
           <div className={styles.airportCode}>{flight.arrAirport}</div>
@@ -51,7 +51,7 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
         <div className={styles.footer}>
           {flight.terminal && (
             <span className={styles.footerItem}>
-              <span className={styles.footerLabel}>Τερμ.</span>
+              <span className={styles.footerLabel}>Term</span>
               {flight.terminal}
             </span>
           )}
@@ -63,7 +63,7 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
           )}
           {flight.bookingRef && (
             <span className={styles.footerItem} data-align="end">
-              <span className={styles.footerLabel}>Κωδ.</span>
+              <span className={styles.footerLabel}>Ref</span>
               {flight.bookingRef}
             </span>
           )}

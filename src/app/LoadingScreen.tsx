@@ -2,7 +2,7 @@
 export function LoadingScreen() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
-      Φόρτωση…
+      Loading…
     </div>
   );
 }

@@ -8,13 +8,13 @@ import styles from './AuthForm.module.css';
 type Mode = 'signIn' | 'signUp' | 'forgot';
 
 const TITLES: Record<Mode, string> = {
-  signIn: 'Sign in',
+  signIn: 'Welcome back',
   signUp: 'Create an account',
   forgot: 'Reset your password',
 };
 
 const SUBTITLES: Record<Mode, string> = {
-  signIn: 'Welcome back.',
+  signIn: 'Sign in to pick up where you left off.',
   signUp: 'So your trips sync across every device.',
   forgot: "We'll email you a reset link.",
 };
@@ -26,22 +26,6 @@ const SUBMIT_LABELS: Record<Mode, string> = {
 };
 
 const MIN_PASSWORD_LENGTH = 8;
-
-// AuthProvider's error strings are shared with ResetPasswordScreen, which is
-// still Greek — rather than translating that shared function (and breaking
-// that screen), this form translates the fixed, known set of messages it can
-// come back with, locally.
-const ERROR_TRANSLATIONS: Record<string, string> = {
-  'Λάθος email ή κωδικός.': 'Incorrect email or password.',
-  'Υπάρχει ήδη λογαριασμός με αυτό το email.': 'An account with this email already exists.',
-  'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.': 'Password must be at least 6 characters.',
-  'Κάτι πήγε στραβά. Δοκίμασε ξανά.': 'Something went wrong. Please try again.',
-  'Η σύνδεση λογαριασμού δεν έχει ρυθμιστεί.': "Account sign-in isn't set up.",
-};
-
-function translateAuthError(message: string): string {
-  return ERROR_TRANSLATIONS[message] ?? message;
-}
 
 interface AuthFormProps {
   /** Which form to open on — the Welcome screen's two buttons land here differently. */
@@ -82,7 +66,7 @@ export function AuthForm({ initialMode = 'signIn', onBack, onContinueLocally }: 
       const result = await resetPassword(email.trim());
       setSubmitting(false);
       if (result) {
-        setError(translateAuthError(result));
+        setError(result);
         return;
       }
       setInfo('Check your email for a reset link.');
@@ -101,7 +85,7 @@ export function AuthForm({ initialMode = 'signIn', onBack, onContinueLocally }: 
     const result = mode === 'signIn' ? await signIn(email.trim(), password) : await signUp(email.trim(), password, name);
     setSubmitting(false);
     if (result) {
-      setError(translateAuthError(result));
+      setError(result);
       return;
     }
     if (mode === 'signUp') {
@@ -177,7 +161,7 @@ export function AuthForm({ initialMode = 'signIn', onBack, onContinueLocally }: 
         ) : (
           <>
             <span>Don't have an account? </span>
-            <span className={styles.footerLinkAccent}>Create one</span>
+            <span className={styles.footerLinkAccent}>Sign up</span>
           </>
         )}
       </button>

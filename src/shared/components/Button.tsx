@@ -11,7 +11,7 @@ export function Button({ variant = 'primary', className, ...rest }: ButtonProps)
 
 export function Fab(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button type="button" className={styles.fab} aria-label="Νέο ταξίδι" {...props}>
+    <button type="button" className={styles.fab} aria-label="New trip" {...props}>
       +
     </button>
   );

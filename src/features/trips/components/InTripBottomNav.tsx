@@ -3,11 +3,11 @@ import type { TripTab } from '../types';
 import styles from './InTripBottomNav.module.css';
 
 const NAV_ITEMS: { key: TripTab | 'bookings'; label: string; Icon: typeof CompassIcon; navigateTab: TripTab }[] = [
-  { key: 'overview', label: 'Επισκόπηση', Icon: CompassIcon, navigateTab: 'overview' },
-  { key: 'itinerary', label: 'Πρόγραμμα', Icon: ListIcon, navigateTab: 'itinerary' },
-  { key: 'bookings', label: 'Κρατήσεις', Icon: TicketIcon, navigateTab: 'flights' },
+  { key: 'overview', label: 'Overview', Icon: CompassIcon, navigateTab: 'overview' },
+  { key: 'itinerary', label: 'Itinerary', Icon: ListIcon, navigateTab: 'itinerary' },
+  { key: 'bookings', label: 'Bookings', Icon: TicketIcon, navigateTab: 'flights' },
   { key: 'budget', label: 'Budget', Icon: WalletIcon, navigateTab: 'budget' },
-  { key: 'checklist', label: 'Βαλίτσα', Icon: BackpackIcon, navigateTab: 'checklist' },
+  { key: 'checklist', label: 'Packing', Icon: BackpackIcon, navigateTab: 'checklist' },
 ];
 
 function isActive(itemKey: TripTab | 'bookings', activeTab: TripTab): boolean {

@@ -27,7 +27,7 @@ export function IdeasBacklog({ ideas, defaultDate, onAdd, onAssignToDay, onRemov
   return (
     <div className={styles.wrapper}>
       <div className={styles.header} onClick={() => setOpen((v) => !v)}>
-        <span className={styles.headerTitle}>Ιδέες ({ideas.length})</span>
+        <span className={styles.headerTitle}>Ideas ({ideas.length})</span>
         <span className={styles.chevron}>{open ? '▾' : '▸'}</span>
       </div>
       {open && (
@@ -37,11 +37,11 @@ export function IdeasBacklog({ ideas, defaultDate, onAdd, onAssignToDay, onRemov
             return (
               <div key={idea.id} className={styles.row}>
                 <span className={styles.badge}>{type?.letter}</span>
-                <span className={styles.rowTitle} onClick={() => onRemove(idea.id)} title="Πάτα για διαγραφή">
+                <span className={styles.rowTitle} onClick={() => onRemove(idea.id)} title="Tap to remove">
                   {idea.title}
                 </span>
                 <button type="button" className={styles.dateChip} onClick={() => onAssignToDay(idea)}>
-                  Στις {formatDateNoYear(idea.suggestedDate ?? defaultDate)}
+                  On {formatDateNoYear(idea.suggestedDate ?? defaultDate)}
                 </button>
               </div>
             );
@@ -57,7 +57,7 @@ export function IdeasBacklog({ ideas, defaultDate, onAdd, onAssignToDay, onRemov
                   addIdea();
                 }
               }}
-              placeholder="Νέα ιδέα…"
+              placeholder="New idea…"
             />
           </div>
         </>

@@ -3,7 +3,7 @@ import { TRAVELER_AVATAR_COLORS } from '../../config/constants';
 
 export const TravelerSchema = z.object({
   id: z.string(),
-  name: z.string().min(1, 'Το όνομα είναι υποχρεωτικό'),
+  name: z.string().min(1, 'Name is required'),
   avatarColor: z.enum(TRAVELER_AVATAR_COLORS),
 });
 

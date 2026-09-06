@@ -48,27 +48,27 @@ export function SearchScreen({ onOpenTrip }: SearchScreenProps) {
 
   return (
     <div className={styles.screen}>
-      <h1 className={styles.title}>Αναζήτηση</h1>
+      <h1 className={styles.title}>Search</h1>
       <div className={styles.inputWrap}>
         <SearchIcon size={18} className={styles.inputIcon} />
         <input
           className={styles.input}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Αριθμός πτήσης, κατάλυμα, στάση, σημείωση εξόδου…"
+          placeholder="Flight number, stay, stop, expense note…"
           autoFocus
         />
       </div>
 
       {!trimmedQuery && (
         <EmptyState
-          headline="Βρες κάτι δικό σου"
-          body="Αναζήτησε πτήσεις, καταλύματα, στάσεις προγράμματος και σημειώσεις εξόδων στα ταξίδια σου."
+          headline="Find something of yours"
+          body="Search flights, stays, itinerary stops and expense notes across your trips."
         />
       )}
 
       {trimmedQuery && !loading && results && results.length === 0 && (
-        <EmptyState headline="Κανένα αποτέλεσμα" body={`Δεν βρέθηκε τίποτα για «${trimmedQuery}».`} />
+        <EmptyState headline="No results" body={`Nothing found for "${trimmedQuery}".`} />
       )}
 
       {results &&

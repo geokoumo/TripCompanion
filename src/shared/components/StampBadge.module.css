@@ -5,27 +5,32 @@
   font-family: var(--font-body);
   font-size: var(--fs-chip);
   font-weight: 600;
-  padding: 4px 12px;
+  padding: 3px 11px;
   border-radius: var(--radius-pill);
   white-space: nowrap;
-  background: var(--color-gray-soft);
+  background: var(--color-surface-raised);
+  border: 1.5px solid var(--color-border-strong);
   color: var(--color-text-muted);
 }
 
 .badge[data-tone='rust'] {
-  background: var(--color-rust-soft);
-  color: var(--color-rust-on-soft);
+  border-color: var(--color-rust);
+  color: var(--color-rust);
 }
 .badge[data-tone='teal'] {
-  background: var(--color-teal-soft);
-  color: var(--color-teal-on-soft);
+  border-color: var(--color-teal);
+  color: var(--color-teal);
 }
 .badge[data-tone='gray'] {
-  background: var(--color-gray-soft);
+  border-color: var(--color-border-strong);
   color: var(--color-text-muted);
 }
+.badge[data-tone='brass'] {
+  border-color: var(--color-brass);
+  color: var(--color-brass);
+}
 
-/* The itinerary's "κλειδωμένο" tag marks a read-only source, not a state
+/* The itinerary's "Locked" tag marks a read-only source, not a state
    value — kept visually distinct from status pills as a plain outlined tag
    rather than a soft-fill pill, so the two don't read as the same signal. */
 .badge[data-locked='true'] {

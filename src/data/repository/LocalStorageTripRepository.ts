@@ -88,7 +88,7 @@ export class LocalStorageTripRepository implements TripRepository {
         const migrated = migrateTrip(record);
         items.push(tripToListItem(TripSchema.parse(migrated)));
       } catch {
-        this.onRecordError('Αποτυχία φόρτωσης ενός ταξιδιού.');
+        this.onRecordError('Failed to load a trip.');
       }
     }
     return items;
@@ -102,7 +102,7 @@ export class LocalStorageTripRepository implements TripRepository {
       const migrated = migrateTrip(record);
       return TripSchema.parse(migrated);
     } catch {
-      this.onRecordError('Αποτυχία φόρτωσης ενός ταξιδιού.');
+      this.onRecordError('Failed to load a trip.');
       return null;
     }
   }
@@ -132,7 +132,7 @@ export class LocalStorageTripRepository implements TripRepository {
       try {
         trip = TripSchema.parse(migrateTrip(record));
       } catch {
-        this.onRecordError('Αποτυχία φόρτωσης ενός ταξιδιού.');
+        this.onRecordError('Failed to load a trip.');
         continue;
       }
       const matches = searchWithinTrip(trip, query);

@@ -48,14 +48,14 @@ export function DateTimeField({
     <FieldWrapper label={label} caption={caption} error={error} badge={badge}>
       <div className={styles.row}>
         <button type="button" className={styles.pill} onClick={() => openPicker('date')}>
-          {date ? formatDateShort(date) : 'Επίλεξε ημερομηνία'}
+          {date ? formatDateShort(date) : 'Select date'}
         </button>
         <button type="button" className={styles.pill} onClick={() => openPicker('time')}>
           {time || '--:--'}
         </button>
       </div>
       {open === 'date' && (
-        <Modal title="Ημερομηνία" onClose={() => setOpen(null)}>
+        <Modal title="Date" onClose={() => setOpen(null)}>
           <CalendarDatePicker
             value={date}
             minDate={minDate}
@@ -69,11 +69,11 @@ export function DateTimeField({
       )}
       {open === 'time' && (
         <Modal
-          title="Ώρα"
+          title="Time"
           onClose={() => setOpen(null)}
           footer={
             <Button variant="primary" onClick={() => setOpen(null)}>
-              Έτοιμο
+              Done
             </Button>
           }
         >

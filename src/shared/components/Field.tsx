@@ -5,7 +5,7 @@ interface FieldWrapperProps {
   label: string;
   error?: string;
   caption?: string;
-  /** Small tag next to the label (e.g. "αυτόματο") marking a value the app filled in, not the user. */
+  /** Small tag next to the label (e.g. "auto") marking a value the app filled in, not the user. */
   badge?: string;
   children: ReactNode;
 }
@@ -59,7 +59,7 @@ export function FieldRow({ children }: { children: ReactNode }) {
 export function MoreToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
     <button type="button" className={styles.more} onClick={onToggle}>
-      {open ? '− Λιγότερα' : '+ Περισσότερα'}
+      {open ? '− Less' : '+ More'}
     </button>
   );
 }

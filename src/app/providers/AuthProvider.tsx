@@ -22,15 +22,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 function authErrorMessage(message: string): string {
   const lower = message.toLowerCase();
   if (lower.includes('invalid login credentials')) {
-    return 'Λάθος email ή κωδικός.';
+    return 'Incorrect email or password.';
   }
   if (lower.includes('already registered')) {
-    return 'Υπάρχει ήδη λογαριασμός με αυτό το email.';
+    return 'An account with this email already exists.';
   }
   if (lower.includes('password')) {
-    return 'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.';
+    return 'Password must be at least 6 characters.';
   }
-  return 'Κάτι πήγε στραβά. Δοκίμασε ξανά.';
+  return 'Something went wrong. Try again.';
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, name?: string) => {
-    if (!supabase) return 'Η σύνδεση λογαριασμού δεν έχει ρυθμιστεί.';
+    if (!supabase) return 'Account sign-in is not configured.';
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    if (!supabase) return 'Η σύνδεση λογαριασμού δεν έχει ρυθμιστεί.';
+    if (!supabase) return 'Account sign-in is not configured.';
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return error ? authErrorMessage(error.message) : null;
   };
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
-    if (!supabase) return 'Η σύνδεση λογαριασμού δεν έχει ρυθμιστεί.';
+    if (!supabase) return 'Account sign-in is not configured.';
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}${window.location.pathname}`,
     });
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updatePassword = async (password: string) => {
-    if (!supabase) return 'Η σύνδεση λογαριασμού δεν έχει ρυθμιστεί.';
+    if (!supabase) return 'Account sign-in is not configured.';
     const { error } = await supabase.auth.updateUser({ password });
     if (error) return authErrorMessage(error.message);
     setRecoveryMode(false);

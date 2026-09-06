@@ -11,24 +11,24 @@ interface BottomNavProps {
   onAccountTap: () => void;
 }
 
-/** App-shell-level primary navigation — unrelated to the in-trip tab bar (Επισκόπηση/Πτήσεις/…). */
+/** App-shell-level primary navigation — unrelated to the in-trip tab bar (Overview/Flights/…). */
 export function BottomNav({ active, onNavigate, onCreateTrip, accountActive, onAccountTap }: BottomNavProps) {
   return (
     <nav className={styles.bar}>
       <button type="button" className={styles.item} data-active={active === 'home'} onClick={() => onNavigate('home')}>
         <HomeIcon size={20} />
-        Αρχική
+        Home
       </button>
       <button type="button" className={styles.item} data-active={active === 'search'} onClick={() => onNavigate('search')}>
         <SearchIcon size={20} />
-        Αναζήτηση
+        Search
       </button>
-      <button type="button" className={styles.createButton} onClick={onCreateTrip} aria-label="Νέο ταξίδι">
+      <button type="button" className={styles.createButton} onClick={onCreateTrip} aria-label="New trip">
         +
       </button>
       <button type="button" className={styles.item} data-active={accountActive} onClick={onAccountTap}>
         <UserIcon size={20} />
-        Λογαριασμός
+        Account
       </button>
     </nav>
   );

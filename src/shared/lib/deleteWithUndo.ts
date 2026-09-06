@@ -14,7 +14,7 @@ interface DeleteWithUndoParams<K extends ArrayFieldKeys> {
 
 /**
  * Deletes one item from a trip's array field and raises the standard undo
- * toast ("Διαγράφηκε." + Αναίρεση) that restores it on tap. The one pattern
+ * toast ("Deleted." + Undo) that restores it on tap. The one pattern
  * behind every delete in the app — flights, stays, stops, expenses, the lot.
  */
 export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
@@ -22,7 +22,7 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
   showToast,
   arrayKey,
   id,
-  deletedMessage = 'Διαγράφηκε.',
+  deletedMessage = 'Deleted.',
 }: DeleteWithUndoParams<K>): void {
   const key = arrayKey as unknown as string;
 
@@ -38,7 +38,7 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
     showToast(deletedMessage, {
       variant: 'neutral',
       action: {
-        label: 'Αναίρεση',
+        label: 'Undo',
         onClick: () => {
           if (!snapshot) return;
           void updateTrip((t) => {

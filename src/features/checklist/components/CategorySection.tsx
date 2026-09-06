@@ -29,7 +29,7 @@ export function CategorySection({ category, items, onToggle, onRemove }: Categor
               {item.text}
             </span>
             {item.quantity > 1 && <span className={styles.quantity}>×{item.quantity}</span>}
-            <button type="button" className={styles.removeButton} onClick={() => onRemove(item.id)} aria-label="Διαγραφή">
+            <button type="button" className={styles.removeButton} onClick={() => onRemove(item.id)} aria-label="Remove">
               ✕
             </button>
           </div>

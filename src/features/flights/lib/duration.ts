@@ -2,7 +2,7 @@ import { checkFlightTimeOrder, type FlightTimeInput } from './flightTime';
 
 export interface FlightDuration {
   totalMinutes: number;
-  label: string; // e.g. "4ω 45λ"
+  label: string; // e.g. "4h 45m"
 }
 
 /**
@@ -18,7 +18,7 @@ export function computeFlightDuration(input: FlightTimeInput): FlightDuration | 
   const totalMinutes = Math.round((result.arrUtcMs - result.depUtcMs) / 60_000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  const label = hours > 0 ? `${hours}ω ${minutes}λ` : `${minutes}λ`;
+  const label = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   return { totalMinutes, label };
 }
 

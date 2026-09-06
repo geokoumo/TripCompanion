@@ -21,19 +21,19 @@ export function EditDescriptionSheet({ trip, onClose, onSave }: EditDescriptionS
 
   return (
     <Modal
-      title="Περιγραφή ταξιδιού"
+      title="Trip description"
       onClose={onClose}
       footer={
         <Button variant="primary" onClick={save}>
-          Αποθήκευση
+          Save
         </Button>
       }
     >
       <TextAreaField
-        label="Περιγραφή (προαιρετικό)"
+        label="Description (optional)"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="Λίγα λόγια για το ταξίδι…"
+        placeholder="A few words about the trip…"
         rows={4}
         autoFocus
       />

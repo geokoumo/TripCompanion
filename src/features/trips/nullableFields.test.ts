@@ -13,15 +13,15 @@ describe('TripSchema accepts explicit null for every optional field (get_full_tr
   it('parses a trip where every optional field is null, not omitted', () => {
     const raw = {
       id: 't1',
-      title: 'Ιαπωνία 2026',
+      title: 'Japan 2026',
       homeCurrency: 'EUR',
       archived: false,
       budget: null,
       description: null,
       rememberedLocations: [],
-      travelers: [{ id: 'tr1', name: 'Άννα', avatarColor: 'avatar-1' }],
+      travelers: [{ id: 'tr1', name: 'Anna', avatarColor: 'avatar-1' }],
       legs: [
-        { id: 'l1', city: 'Τόκιο', country: 'Ιαπωνία', startDate: '2026-09-05', endDate: '2026-09-10', currency: 'JPY', exchangeRateToHome: null },
+        { id: 'l1', city: 'Tokyo', country: 'Japan', startDate: '2026-09-05', endDate: '2026-09-10', currency: 'JPY', exchangeRateToHome: null },
       ],
       flights: [
         {
@@ -42,16 +42,16 @@ describe('TripSchema accepts explicit null for every optional field (get_full_tr
       itineraryStops: [
         {
           id: 'i1', legId: null, date: '2026-09-06', time: null, allDay: true, durationMinutes: null,
-          title: 'Ξεκούραστη μέρα', type: 'rest', location: null, link: null, note: null,
+          title: 'Rest day', type: 'rest', location: null, link: null, note: null,
           travelerIds: [], done: false,
         },
       ],
-      ideas: [{ id: 'idea1', title: 'Ιδέα', type: 'sight', location: null, link: null, note: null, suggestedDate: null }],
-      budgetCategories: [{ id: 'c1', name: 'Φαγητό', color: 'rust' }],
+      ideas: [{ id: 'idea1', title: 'Idea', type: 'sight', location: null, link: null, note: null, suggestedDate: null }],
+      budgetCategories: [{ id: 'c1', name: 'Food', color: 'rust' }],
       expenses: [
         { id: 'e1', amount: 20, currency: 'JPY', exchangeRateToHome: null, categoryId: 'c1', date: '2026-09-06', note: null, link: null, paidBy: 'tr1', splitAmong: ['tr1'] },
       ],
-      checklistItems: [{ id: 'ci1', travelerId: 'tr1', text: 'Διαβατήριο', category: 'Έγγραφα', quantity: 1, done: false, link: null }],
+      checklistItems: [{ id: 'ci1', travelerId: 'tr1', text: 'Passport', category: 'Documents', quantity: 1, done: false, link: null }],
       shareSettings: { enabled: false, includedTabs: [], shareToken: null },
       schemaVersion: 2,
       createdAt: '2026-01-01T00:00:00.000Z',

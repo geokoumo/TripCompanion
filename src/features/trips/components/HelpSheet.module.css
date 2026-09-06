@@ -1,3 +1,9 @@
+.body {
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0 0 var(--space-4);
+}
+
 .rows {
   border-top: 1px solid var(--color-border);
   margin-bottom: var(--space-5);
@@ -7,18 +13,13 @@
   display: block;
   width: 100%;
   text-align: left;
-  padding: 15px 2px;
-  border: none;
   background: none;
+  border: none;
   border-bottom: 1px solid var(--color-border);
-  font-size: 0.96875rem; /* 15.5px */
-  font-weight: 500;
+  padding: var(--space-4) 2px;
+  font-size: var(--fs-body);
   color: var(--color-text);
   cursor: pointer;
-}
-
-.row[data-danger='true'] {
-  color: var(--color-rust);
 }
 
 .closeButton {

@@ -50,7 +50,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
       const loaded = await repository.getTrips();
       setTrips(loaded);
     } catch {
-      showToast('Αποτυχία φόρτωσης ταξιδιών', { variant: 'error' });
+      showToast('Failed to load trips', { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
       try {
         return await repository.getTrip(id);
       } catch {
-        showToast('Αποτυχία φόρτωσης ταξιδιού.', { variant: 'error' });
+        showToast('Failed to load trip.', { variant: 'error' });
         return null;
       }
     },
@@ -84,7 +84,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
         await repository.saveTrip(trip);
       } catch {
         setTrips(previous);
-        showToast('Η αποθήκευση απέτυχε. Δοκίμασε ξανά.', { variant: 'error' });
+        showToast('Save failed. Try again.', { variant: 'error' });
         throw new Error('save-failed');
       }
     },
@@ -99,7 +99,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
         await repository.deleteTrip(id);
       } catch {
         setTrips(previous);
-        showToast('Η διαγραφή απέτυχε. Δοκίμασε ξανά.', { variant: 'error' });
+        showToast('Delete failed. Try again.', { variant: 'error' });
         throw new Error('delete-failed');
       }
     },
@@ -111,7 +111,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
       try {
         return await repository.searchTrips(query);
       } catch {
-        showToast('Η αναζήτηση απέτυχε.', { variant: 'error' });
+        showToast('Search failed.', { variant: 'error' });
         return [];
       }
     },

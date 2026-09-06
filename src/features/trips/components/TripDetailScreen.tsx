@@ -33,7 +33,7 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
   }
 
   if (!trip) {
-    return <div style={{ padding: 32 }}>Το ταξίδι δεν βρέθηκε.</div>;
+    return <div style={{ padding: 32 }}>Trip not found.</div>;
   }
 
   const confirmDeleteTrip = () => {
@@ -41,9 +41,9 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
     void deleteTrip(trip.id);
     setConfirmDelete(false);
     onBack();
-    showToast('Διαγράφηκε.', {
+    showToast('Deleted.', {
       variant: 'neutral',
-      action: { label: 'Αναίρεση', onClick: () => void saveTrip(snapshot) },
+      action: { label: 'Undo', onClick: () => void saveTrip(snapshot) },
     });
   };
 

@@ -33,7 +33,7 @@ export type ShareSettings = z.infer<typeof ShareSettingsSchema>;
 
 export const TripSchema = z.object({
   id: z.string(),
-  title: z.string().min(1, 'Ο τίτλος είναι υποχρεωτικός'),
+  title: z.string().min(1, 'Title is required'),
   homeCurrency: z.string().min(1).default('EUR'),
   archived: z.boolean().default(false),
   // Optional free-text blurb, shown on Overview when present. Backed by the

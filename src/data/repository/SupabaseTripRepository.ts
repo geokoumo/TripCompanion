@@ -33,7 +33,7 @@ export class SupabaseTripRepository implements TripRepository {
       try {
         items.push(TripListItemSchema.parse(row));
       } catch {
-        this.onRecordError('Αποτυχία φόρτωσης ενός ταξιδιού.');
+        this.onRecordError('Failed to load a trip.');
       }
     }
     return items;
@@ -69,7 +69,7 @@ export class SupabaseTripRepository implements TripRepository {
       try {
         groups.push(SearchResultGroupSchema.parse(row));
       } catch {
-        this.onRecordError('Αποτυχία αναζήτησης.');
+        this.onRecordError('Search failed.');
       }
     }
     return groups;

@@ -29,11 +29,11 @@ export function DateField({ label, date, onChange, minDate, maxDate, error }: Da
     <FieldWrapper label={label} error={error}>
       <div className={styles.row}>
         <button type="button" className={styles.pill} onClick={openPicker}>
-          {date ? formatDateShort(date) : 'Επίλεξε ημερομηνία'}
+          {date ? formatDateShort(date) : 'Select date'}
         </button>
       </div>
       {open && (
-        <Modal title="Ημερομηνία" onClose={() => setOpen(false)}>
+        <Modal title="Date" onClose={() => setOpen(false)}>
           <CalendarDatePicker
             value={date}
             minDate={minDate}

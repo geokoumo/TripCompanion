@@ -79,6 +79,17 @@
   text-transform: uppercase;
 }
 
+.disclaimer {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(226, 89, 28, 0.55);
+  text-align: center;
+  margin-top: var(--space-3);
+}
+
 .features {
   display: flex;
   gap: var(--space-6);

@@ -9,7 +9,7 @@ interface PresetChipsProps {
 }
 
 /** Dashed pre-fill chips — tapping fills a value but never auto-submits. Free-text fallback below unless hidden. */
-export function PresetChips({ presets, onSelect, freeTextPlaceholder = 'Άλλο…', hideInput = false }: PresetChipsProps) {
+export function PresetChips({ presets, onSelect, freeTextPlaceholder = 'Other…', hideInput = false }: PresetChipsProps) {
   const [customValue, setCustomValue] = useState('');
 
   const submitCustom = () => {

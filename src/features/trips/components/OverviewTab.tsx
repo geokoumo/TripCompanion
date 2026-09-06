@@ -34,14 +34,14 @@ export function OverviewTab({ trip }: { trip: Trip }) {
   if (range && status !== 'completed') {
     if (status === 'upcoming') {
       const days = daysBetween(today, range.startDate);
-      countdownKicker = 'Αναχώρηση σε';
-      countdownValue = days === 1 ? '1 μέρα' : `${days} μέρες`;
+      countdownKicker = 'Departing in';
+      countdownValue = days === 1 ? '1 day' : `${days} days`;
     } else {
       // 'today' and 'ongoing' share the same "Day X of N" framing.
       const totalDays = daysBetween(range.startDate, range.endDate) + 1;
       const currentDay = Math.min(Math.max(daysBetween(range.startDate, today) + 1, 1), totalDays);
-      countdownKicker = 'Σε εξέλιξη';
-      countdownValue = `Ημέρα ${currentDay} από ${totalDays}`;
+      countdownKicker = 'In progress';
+      countdownValue = `Day ${currentDay} of ${totalDays}`;
       countdownTone = 'teal';
       showLoggedStamp = true;
     }
@@ -52,7 +52,7 @@ export function OverviewTab({ trip }: { trip: Trip }) {
       <div className={styles.wrapper}>
         {trip.description && <p className={styles.description}>{trip.description}</p>}
         <StatGrid trip={trip} />
-        <EmptyState headline="Τίποτα ακόμα" body="Πρόσθεσε πτήσεις ή διαμονή και θα εμφανιστούν εδώ." />
+        <EmptyState headline="Nothing yet" body="Add flights or a stay and they'll show up here." />
       </div>
     );
   }
@@ -75,7 +75,7 @@ export function OverviewTab({ trip }: { trip: Trip }) {
 
       {nextFlight && (
         <div className={styles.snapshotCard} data-tone="rust">
-          <div className={styles.snapshotLabel}>Επόμενη πτήση · {nextFlight.flightNumber}</div>
+          <div className={styles.snapshotLabel}>Next flight · {nextFlight.flightNumber}</div>
           <div className={styles.flightRoute}>
             <div>
               <div className={styles.flightAirportCode}>{nextFlight.depAirport}</div>
@@ -94,7 +94,7 @@ export function OverviewTab({ trip }: { trip: Trip }) {
 
       {stayToShow && (
         <div className={styles.snapshotCard} data-tone="teal">
-          <div className={styles.snapshotLabel}>Διαμονή</div>
+          <div className={styles.snapshotLabel}>Stay</div>
           <div className={styles.snapshotTitle}>{stayToShow.name}</div>
           <div className={styles.snapshotSubtitle}>
             {formatDateNoYear(stayToShow.checkinDate)} {stayToShow.checkinTime} → {formatDateNoYear(stayToShow.checkoutDate)} {stayToShow.checkoutTime}
@@ -104,7 +104,7 @@ export function OverviewTab({ trip }: { trip: Trip }) {
 
       {nextStop && (
         <div className={styles.snapshotCard}>
-          <div className={styles.snapshotLabel}>{status === 'ongoing' || status === 'today' ? 'Επόμενη στάση' : 'Πρώτη στάση'}</div>
+          <div className={styles.snapshotLabel}>{status === 'ongoing' || status === 'today' ? 'Next stop' : 'First stop'}</div>
           <div className={styles.snapshotTitle}>{nextStop.title}</div>
           <div className={styles.snapshotSubtitle}>
             {formatDateNoYear(nextStop.date)} · {nextStop.time} {nextStop.location ? `· ${nextStop.location}` : ''}

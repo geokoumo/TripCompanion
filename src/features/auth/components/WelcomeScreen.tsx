@@ -7,9 +7,9 @@ interface WelcomeScreenProps {
 }
 
 const FEATURES = [
-  { Icon: ListIcon, label: 'Σχεδίασε' },
-  { Icon: TargetIcon, label: 'Κατέγραψε' },
-  { Icon: SparkleIcon, label: 'Απόλαυσε' },
+  { Icon: ListIcon, label: 'Plan' },
+  { Icon: TargetIcon, label: 'Log' },
+  { Icon: SparkleIcon, label: 'Enjoy' },
 ];
 
 /** First screen a signed-out visitor sees — before choosing to sign up, sign in, or continue without an account. */
@@ -26,12 +26,13 @@ export function WelcomeScreen({ onGetStarted, onSignIn }: WelcomeScreenProps) {
           COMPANION
         </div>
         <div className={styles.divider} />
-        <p className={styles.tagline}>Το δικό σου ταξιδιωτικό ημερολόγιο.</p>
+        <p className={styles.tagline}>Your own travel journal.</p>
         <div className={styles.badge}>
           <span className={styles.badgeLabel}>ADVENTURE</span>
           <PlaneIcon size={20} />
           <span className={styles.badgeLabel}>AWAITS</span>
         </div>
+        <p className={styles.disclaimer}>NO AI · NO LIVE APIS</p>
       </div>
 
       <div className={styles.features}>
@@ -47,10 +48,10 @@ export function WelcomeScreen({ onGetStarted, onSignIn }: WelcomeScreenProps) {
 
       <div className={styles.actions}>
         <button type="button" className={styles.primaryButton} onClick={onGetStarted}>
-          Ξεκίνα
+          Get started
         </button>
         <button type="button" className={styles.secondaryButton} onClick={onSignIn}>
-          Έχω ήδη λογαριασμό
+          I already have an account
         </button>
       </div>
     </div>

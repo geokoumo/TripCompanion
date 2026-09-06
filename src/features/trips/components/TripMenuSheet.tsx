@@ -21,23 +21,28 @@ export function TripMenuSheet({ trip, onClose, onShare, onDuplicate, onExport, o
 
   return (
     <Modal title={trip.title} onClose={onClose}>
-      <button type="button" className={styles.row} onClick={() => run(onShare)}>
-        Κοινή χρήση
-      </button>
-      <button type="button" className={styles.row} onClick={() => run(onDuplicate)}>
-        Αντιγραφή ταξιδιού
-      </button>
-      <button type="button" className={styles.row} onClick={() => run(onExport)}>
-        Εξαγωγή σε αρχείο
-      </button>
-      <button type="button" className={styles.row} onClick={() => run(onEditDescription)}>
-        {trip.description ? 'Επεξεργασία περιγραφής' : 'Προσθήκη περιγραφής'}
-      </button>
-      <button type="button" className={styles.row} onClick={() => run(onArchiveToggle)}>
-        {trip.archived ? 'Επαναφορά από αρχείο' : 'Αρχειοθέτηση'}
-      </button>
-      <button type="button" className={styles.row} data-danger="true" onClick={() => run(onDelete)}>
-        Διαγραφή ταξιδιού
+      <div className={styles.rows}>
+        <button type="button" className={styles.row} onClick={() => run(onShare)}>
+          Share
+        </button>
+        <button type="button" className={styles.row} onClick={() => run(onDuplicate)}>
+          Duplicate trip
+        </button>
+        <button type="button" className={styles.row} onClick={() => run(onExport)}>
+          Export to file
+        </button>
+        <button type="button" className={styles.row} onClick={() => run(onEditDescription)}>
+          {trip.description ? 'Edit description' : 'Add description'}
+        </button>
+        <button type="button" className={styles.row} onClick={() => run(onArchiveToggle)}>
+          {trip.archived ? 'Restore from archive' : 'Archive trip'}
+        </button>
+        <button type="button" className={styles.row} data-danger="true" onClick={() => run(onDelete)}>
+          Delete trip
+        </button>
+      </div>
+      <button type="button" className={styles.closeButton} onClick={onClose}>
+        Close
       </button>
     </Modal>
   );

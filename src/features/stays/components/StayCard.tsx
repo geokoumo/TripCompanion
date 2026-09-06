@@ -5,7 +5,7 @@ import styles from './StayCard.module.css';
 
 function StayCardComponent({ stay, onOpen, overlapping }: { stay: Stay; onOpen: (stay: Stay) => void; overlapping: boolean }) {
   const nights = daysBetween(stay.checkinDate, stay.checkoutDate);
-  const nightsLabel = nights === 1 ? '1 νύχτα' : `${nights} νύχτες`;
+  const nightsLabel = nights === 1 ? '1 night' : `${nights} nights`;
 
   return (
     <div className={styles.card} onClick={() => onOpen(stay)}>
@@ -16,7 +16,7 @@ function StayCardComponent({ stay, onOpen, overlapping }: { stay: Stay; onOpen: 
         </div>
         <div className={styles.statusArea}>
           {overlapping && (
-            <span className={styles.overlapIcon} role="img" aria-label="Επικάλυψη με άλλη διαμονή" title="Επικάλυψη με άλλη διαμονή">
+            <span className={styles.overlapIcon} role="img" aria-label="Overlaps with another stay" title="Overlaps with another stay">
               ⚠
             </span>
           )}
@@ -42,7 +42,7 @@ function StayCardComponent({ stay, onOpen, overlapping }: { stay: Stay; onOpen: 
         <>
           <div className={styles.divider} />
           <div className={styles.bookingRef}>
-            <span className={styles.label}>Κωδ.</span> {stay.bookingRef}
+            <span className={styles.label}>Ref</span> {stay.bookingRef}
           </div>
         </>
       )}

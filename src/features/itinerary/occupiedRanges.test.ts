@@ -84,15 +84,15 @@ describe('computeOccupiedRanges', () => {
   });
 
   it('includes a manual timed stop with a duration as [time, time+duration)', () => {
-    const stops = [stop({ id: 'other', time: '14:00', durationMinutes: 90, title: 'Ginza βραδινή βόλτα' })];
+    const stops = [stop({ id: 'other', time: '14:00', durationMinutes: 90, title: 'Ginza evening walk' })];
     const ranges = computeOccupiedRanges({ date: '2026-09-06', stops, flights: [], stays: [] });
-    expect(ranges).toEqual([{ startMin: 14 * 60, endMin: 15 * 60 + 30, label: 'Ginza βραδινή βόλτα' }]);
+    expect(ranges).toEqual([{ startMin: 14 * 60, endMin: 15 * 60 + 30, label: 'Ginza evening walk' }]);
   });
 });
 
 describe('findConflict', () => {
   it('finds the range a candidate span intersects', () => {
-    const ranges = [{ startMin: 20 * 60, endMin: 21 * 60, label: 'Ginza βραδινή βόλτα' }];
+    const ranges = [{ startMin: 20 * 60, endMin: 21 * 60, label: 'Ginza evening walk' }];
     expect(findConflict(20 * 60 + 30, 30, ranges)).toEqual(ranges[0]);
     expect(findConflict(21 * 60, 30, ranges)).toBeUndefined();
   });

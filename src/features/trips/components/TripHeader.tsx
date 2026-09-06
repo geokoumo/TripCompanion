@@ -33,13 +33,13 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
     <div className={styles.header}>
       <div className={styles.topRow}>
         <button type="button" className={styles.backLink} onClick={onBack}>
-          ← Ταξίδια
+          ← Trips
         </button>
         <div className={styles.actions}>
           <button type="button" className={styles.shareButton} onClick={() => setShareOpen(true)}>
-            Κοινή χρήση
+            Share
           </button>
-          <button type="button" className={styles.menuButton} onClick={() => setMenuOpen(true)} aria-label="Περισσότερα">
+          <button type="button" className={styles.menuButton} onClick={() => setMenuOpen(true)} aria-label="More">
             ···
           </button>
         </div>

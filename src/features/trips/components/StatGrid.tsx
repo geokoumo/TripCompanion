@@ -10,10 +10,10 @@ export function StatGrid({ trip }: { trip: Trip }) {
   const days = range ? daysBetween(range.startDate, range.endDate) + 1 : 0;
 
   const stats = [
-    { Icon: PlaneIcon, value: trip.flights.length, label: 'Πτήσεις' },
-    { Icon: BedIcon, value: trip.stays.length, label: 'Διαμονές' },
-    { Icon: CalendarIcon, value: days, label: 'Ημέρες' },
-    { Icon: PeopleIcon, value: trip.travelers.length, label: 'Ταξιδιώτες' },
+    { Icon: PlaneIcon, value: trip.flights.length, label: 'Flights' },
+    { Icon: BedIcon, value: trip.stays.length, label: 'Stays' },
+    { Icon: CalendarIcon, value: days, label: 'Days' },
+    { Icon: PeopleIcon, value: trip.travelers.length, label: 'Travelers' },
   ];
 
   return (

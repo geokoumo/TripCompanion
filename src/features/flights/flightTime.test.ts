@@ -16,7 +16,7 @@ describe('checkFlightTimeOrder / computeFlightDuration', () => {
     expect(result.isValid).toBe(true);
     const duration = computeFlightDuration(input);
     expect(duration?.totalMinutes).toBe(240);
-    expect(duration?.label).toBe('4ω 0λ');
+    expect(duration?.label).toBe('4h 0m');
   });
 
   it('handles an overnight flight crossing midnight', () => {
@@ -32,7 +32,7 @@ describe('checkFlightTimeOrder / computeFlightDuration', () => {
     expect(result.isValid).toBe(true);
     const duration = computeFlightDuration(input);
     expect(duration?.totalMinutes).toBe(210);
-    expect(duration?.label).toBe('3ω 30λ');
+    expect(duration?.label).toBe('3h 30m');
   });
 
   it('correctly accounts for a DST transition date (Athens spring-forward)', () => {

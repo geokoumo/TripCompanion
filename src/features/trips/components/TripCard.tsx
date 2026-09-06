@@ -14,16 +14,19 @@ interface TripCardProps {
 export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
   const range = trip.startDate && trip.endDate ? { startDate: trip.startDate, endDate: trip.endDate } : null;
   const status = trip.archived ? 'completed' : getTripStatus(range);
-  const tone = trip.archived ? 'gray' : status === 'ongoing' || status === 'today' ? 'teal' : status === 'completed' ? 'gray' : 'rust';
+  const pillTone = trip.archived ? 'gray' : status === 'ongoing' || status === 'today' ? 'teal' : status === 'completed' ? 'gray' : 'rust';
+  // The left-border accent reads archived trips as a muted brass, distinct
+  // from the neutral-gray status pill — two separate signals on the card.
+  const borderTone = trip.archived ? 'brass' : pillTone;
 
   const dest = destinationLabel(trip.cities);
   const subtitle = range ? `${formatDateShort(range.startDate)} – ${formatDateShort(range.endDate)}${dest ? ` · ${dest}` : ''}` : dest;
 
   return (
-    <div className={styles.card} onClick={onOpen}>
+    <div className={styles.card} data-tone={borderTone} onClick={onOpen}>
       <div className={styles.topRow}>
         <span className={styles.title}>{trip.title}</span>
-        <StampBadge tone={tone}>{statusStampLabel({ archived: trip.archived, range })}</StampBadge>
+        <StampBadge tone={pillTone}>{statusStampLabel({ archived: trip.archived, range })}</StampBadge>
       </div>
       {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
       <div className={styles.footerRow}>
@@ -35,7 +38,7 @@ export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
             e.stopPropagation();
             onOpenMenu();
           }}
-          aria-label="Περισσότερα"
+          aria-label="More"
         >
           ···
         </button>
