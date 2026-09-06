@@ -8,9 +8,9 @@ import styles from './BudgetTab.module.css';
 type SubTab = 'categories' | 'expenses' | 'settleup';
 
 const LABELS: Record<SubTab, string> = {
-  categories: 'Κατηγορίες',
-  expenses: 'Έξοδα',
-  settleup: 'Εξόφληση',
+  categories: 'Categories',
+  expenses: 'Expenses',
+  settleup: 'Settle up',
 };
 
 interface BudgetTabProps {

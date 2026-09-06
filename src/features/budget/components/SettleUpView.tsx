@@ -25,7 +25,7 @@ export function SettleUpView({ trip }: { trip: Trip }) {
   const foreignExpense = trip.expenses.find((e) => e.currency !== trip.homeCurrency && e.exchangeRateToHome);
 
   if (trip.travelers.length === 0) {
-    return <p style={{ color: 'var(--color-text-faint)', padding: '16px 0' }}>Πρόσθεσε ταξιδιώτες για να δεις την εξόφληση.</p>;
+    return <p style={{ color: 'var(--color-text-faint)', padding: '16px 0' }}>Add travellers to see the settle-up.</p>;
   }
 
   return (
@@ -44,7 +44,7 @@ export function SettleUpView({ trip }: { trip: Trip }) {
                 {balance > 0 ? '+' : ''}
                 {balance.toFixed(2)} {trip.homeCurrency}
               </span>
-              <div className={styles.balanceNote}>{sign === 'positive' ? 'του/της χρωστάνε' : sign === 'negative' ? 'χρωστάει' : 'πάτσι'}</div>
+              <div className={styles.balanceNote}>{sign === 'positive' ? 'is owed' : sign === 'negative' ? 'owes' : 'settled up'}</div>
             </span>
           </div>
         );
@@ -52,7 +52,7 @@ export function SettleUpView({ trip }: { trip: Trip }) {
 
       {payments.length > 0 ? (
         <>
-          <div className={styles.sectionTitle}>Προτεινόμενες εξοφλήσεις</div>
+          <div className={styles.sectionTitle}>Suggested transfers</div>
           {payments.map((payment, i) => {
             const from = trip.travelers.find((t) => t.id === payment.from);
             const to = trip.travelers.find((t) => t.id === payment.to);
@@ -69,17 +69,17 @@ export function SettleUpView({ trip }: { trip: Trip }) {
           })}
         </>
       ) : (
-        <p className={styles.evenNote}>Είστε πάτσι. Καμία μεταφορά δεν χρειάζεται.</p>
+        <p className={styles.evenNote}>You're all settled up. No transfers needed.</p>
       )}
 
       <p className={styles.transparencyNote}>
         {foreignExpense
-          ? `Τα ποσά υπολογίζονται από τα καταχωρημένα έξοδα με την ισοτιμία που όρισες χειροκίνητα (1 ${foreignExpense.currency} = ${foreignExpense.exchangeRateToHome} ${trip.homeCurrency}). Άλλαξέ την επεξεργαζόμενος/η το έξοδο.`
-          : `Τα ποσά υπολογίζονται από τα καταχωρημένα έξοδα στο νόμισμα ${trip.homeCurrency}.`}
+          ? `Balances come from the logged expenses at the rate you set by hand (1 ${foreignExpense.currency} = ${foreignExpense.exchangeRateToHome} ${trip.homeCurrency}). Change it by editing the expense.`
+          : `Balances come from the logged expenses in ${trip.homeCurrency}.`}
       </p>
       {unconvertedCount > 0 && (
         <p className={styles.unconvertedNote}>
-          {unconvertedCount === 1 ? '1 έξοδο' : `${unconvertedCount} έξοδα`} χωρίς ισοτιμία δεν προσμετρήθηκαν εδώ.
+          {unconvertedCount === 1 ? '1 expense' : `${unconvertedCount} expenses`} without a rate weren't counted here.
         </p>
       )}
     </div>

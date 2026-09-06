@@ -54,13 +54,13 @@ export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
       <div className={styles.summaryCard}>
         <div className={styles.summaryHeader}>
           <div>
-            <div className={styles.summaryLabel}>Συνολικά δαπανήθηκαν</div>
+            <div className={styles.summaryLabel}>Total</div>
             <div className={styles.summaryTotal}>
               {total.toFixed(2)} {trip.homeCurrency}
             </div>
           </div>
           <div className={styles.summaryBudgetCol}>
-            <div className={styles.summaryLabel}>Προϋπολογισμός</div>
+            <div className={styles.summaryLabel}>Budget</div>
             {editingBudget ? (
               <input
                 autoFocus
@@ -80,7 +80,7 @@ export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
               />
             ) : (
               <button type="button" className={styles.summaryBudgetValue} onClick={() => setEditingBudget(true)}>
-                {budgetTotal > 0 ? `${budgetTotal.toFixed(2)} ${trip.homeCurrency}` : 'Ορισμός'}
+                {budgetTotal > 0 ? `${budgetTotal.toFixed(2)} ${trip.homeCurrency}` : 'Set'}
               </button>
             )}
           </div>
@@ -88,7 +88,7 @@ export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
 
         {unconvertedCount > 0 && (
           <div className={styles.unconvertedNote}>
-            {unconvertedCount === 1 ? '1 έξοδο' : `${unconvertedCount} έξοδα`} χωρίς ισοτιμία — δεν προσμετρήθηκε στο σύνολο.
+            {unconvertedCount === 1 ? '1 expense' : `${unconvertedCount} expenses`} without a rate — not counted in the total.
           </div>
         )}
 
@@ -104,9 +104,9 @@ export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
 
         {budgetTotal > 0 && (
           <div className={styles.summaryFooterRow}>
-            <span>{Math.round(pctOfBudget)}% του προϋπολογισμού</span>
+            <span>{Math.round(pctOfBudget)}% of budget</span>
             <span className={overBudget ? styles.overBudgetLabel : styles.remainingLabel}>
-              {overBudget ? `${Math.abs(remaining).toFixed(2)} ${trip.homeCurrency} υπέρβαση` : `${remaining.toFixed(2)} ${trip.homeCurrency} απομένουν`}
+              {overBudget ? `${Math.abs(remaining).toFixed(2)} ${trip.homeCurrency} over` : `${remaining.toFixed(2)} ${trip.homeCurrency} left`}
             </span>
           </div>
         )}
@@ -145,7 +145,7 @@ export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
       })}
 
       <div className={styles.addSection}>
-        <PresetChips presets={BUDGET_CATEGORY_PRESETS} onSelect={addCategory} freeTextPlaceholder="Νέα κατηγορία…" />
+        <PresetChips presets={BUDGET_CATEGORY_PRESETS} onSelect={addCategory} freeTextPlaceholder="New category…" />
       </div>
     </div>
   );

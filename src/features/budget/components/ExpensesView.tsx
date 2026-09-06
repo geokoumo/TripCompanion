@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { AvatarChip } from '../../../shared/components/AvatarChip';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import type { Trip } from '../../trips/types';
@@ -28,7 +29,7 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
       const exists = t.expenses.some((e) => e.id === expense.id);
       return { ...t, expenses: exists ? t.expenses.map((e) => (e.id === expense.id ? expense : e)) : [...t.expenses, expense] };
     });
-    showToast('Το έξοδο καταγράφηκε.');
+    showToast('Expense logged.');
     setEditing(null);
     setCreating(false);
   };
@@ -42,24 +43,20 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
   return (
     <div>
       {sorted.length === 0 && (
-        <p style={{ color: 'var(--color-text-faint)', padding: '16px 0' }}>
-          Κανένα έξοδο
-          <br />
-          Κατέγραψε το πρώτο έξοδο σε δέκα δευτερόλεπτα.
-        </p>
+        <EmptyState headline="No expenses" body="Log your first expense in ten seconds." />
       )}
       {sorted.map((expense) => {
         const category = trip.budgetCategories.find((c) => c.id === expense.categoryId);
         const payer = trip.travelers.find((t) => t.id === expense.paidBy);
         const amountHome = expenseAmountInHome(expense, trip.homeCurrency);
         const differsCurrency = expense.currency !== trip.homeCurrency;
-        const splitLabel = expense.splitAmong.length <= 1 ? 'ατομικό' : `/${expense.splitAmong.length}`;
+        const splitLabel = expense.splitAmong.length <= 1 ? 'personal' : `split ${expense.splitAmong.length} ways`;
         return (
           <div key={expense.id} className={styles.row} onClick={() => setEditing(expense)}>
             <div className={styles.left}>
               {payer && <AvatarChip name={payer.name} color={payer.avatarColor} size="sm" />}
               <div>
-                <div className={styles.description}>{expense.note || category?.name || 'Έξοδο'}</div>
+                <div className={styles.description}>{expense.note || category?.name || 'Expense'}</div>
                 <div className={styles.meta}>
                   {formatDateNoYear(expense.date)} · {category?.name ?? '—'} · {splitLabel}
                 </div>
@@ -67,7 +64,7 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
             </div>
             <div className={styles.amountBlock}>
               {amountHome === null ? (
-                <span className={styles.amountUnknown}>χωρίς ισοτιμία</span>
+                <span className={styles.amountUnknown}>no rate</span>
               ) : (
                 <span className={styles.amount}>
                   {amountHome.toFixed(2)} {trip.homeCurrency}
@@ -84,7 +81,7 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
       })}
 
       <button type="button" className={styles.addButton} onClick={() => setCreating(true)}>
-        + Νέο έξοδο
+        + New expense
       </button>
 
       {(creating || editing) && (
@@ -105,7 +102,7 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
 
       {pendingDelete && (
         <DeleteConfirmSheet
-          itemName={pendingDelete.note || 'το έξοδο'}
+          itemName={pendingDelete.note || 'the expense'}
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => remove(pendingDelete.id)}
         />
