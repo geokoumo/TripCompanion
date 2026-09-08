@@ -32,20 +32,18 @@ export function ResetPasswordScreen() {
     <div className={styles.screen}>
       <h1 className={styles.title}>New password</h1>
       <p className={styles.subtitle}>Set a new password for your account.</p>
-      <div className={styles.card}>
-        {error && <div className={styles.error}>{error}</div>}
-        <TextField label="New password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <TextField
-          label="Confirm password"
-          type="password"
-          autoComplete="new-password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-        />
-        <Button variant="primary" onClick={() => void submit()} disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
-          Save password
-        </Button>
-      </div>
+      {error && <div className={styles.error}>{error}</div>}
+      <TextField label="New password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <TextField
+        label="Confirm password"
+        type="password"
+        autoComplete="new-password"
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+      />
+      <Button variant="primary" onClick={() => void submit()} disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
+        Save password
+      </Button>
     </div>
   );
 }
