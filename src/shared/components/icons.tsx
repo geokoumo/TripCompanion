@@ -93,6 +93,16 @@ export function HomeIcon(props: IconProps) {
   );
 }
 
+/** Onboarding pillars' "Plan" row — a location pin. */
+export function PinIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 21s-7-6.2-7-11.2A7 7 0 0 1 19 9.8C19 14.8 12 21 12 21z" />
+      <circle cx="12" cy="9.6" r="2.4" />
+    </svg>
+  );
+}
+
 /** Welcome screen's brand mark. */
 export function TriangleIcon(props: IconProps) {
   return (

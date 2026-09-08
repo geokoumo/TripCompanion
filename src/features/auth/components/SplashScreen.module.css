@@ -1,0 +1,57 @@
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.hero {
+  position: relative;
+  flex: 1;
+  min-height: 45vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 100% at 30% 15%, #2f7a6c 0%, #1c4f47 45%, #10302c 100%);
+  overflow: hidden;
+}
+
+.heroDecoration {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+}
+
+.wordmark {
+  position: relative;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+  padding: 0 var(--space-5);
+}
+
+.content {
+  padding: var(--space-6) var(--space-5) var(--space-7);
+  max-width: 420px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tagline {
+  font-family: var(--font-display);
+  font-size: var(--fs-header-title);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-5);
+  line-height: 1.25;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

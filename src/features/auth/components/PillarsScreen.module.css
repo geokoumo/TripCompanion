@@ -1,0 +1,95 @@
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--space-7) var(--space-5) var(--space-6);
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.backLink {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0 0 var(--space-4);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.iconBadge {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-lg);
+  background: var(--color-teal-soft);
+  color: var(--color-teal-on-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-5);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--fs-header-title);
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 var(--space-6);
+}
+
+.pillars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.pillar {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.pillarIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--color-teal-soft);
+  color: var(--color-teal-on-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pillarTitle {
+  font-weight: 700;
+  font-size: var(--fs-item-title);
+  color: var(--color-text);
+}
+
+.pillarBody {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin-top: 2px;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: var(--space-6) 0 var(--space-5);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-border-strong);
+}
+
+.dot[data-active='true'] {
+  background: var(--color-teal);
+}
