@@ -242,7 +242,7 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
         badge={badgeFor('arrDate') ?? badgeFor('arrTime')}
       />
       {timeCheck && !timeCheck.unresolvedTimezone && !timeCheck.isValid && (
-        <p style={{ color: 'var(--color-rust)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
+        <p style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
           Arrival must be after departure (based on time zones).
         </p>
       )}

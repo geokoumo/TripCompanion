@@ -154,21 +154,21 @@
   --color-text-faint: #9d9488;
   --color-text-on-accent: #ffffff;
 
-  --color-rust: #f2733d;
-  --color-rust-soft: #3f2416;
-  --color-rust-on-soft: #f2733d;
+  --color-rust: #e07a56;
+  --color-rust-soft: #3d2721;
+  --color-rust-on-soft: #e07a56;
   --color-brass: #d4a851;
   --color-brass-soft: #33291a;
-  --color-teal: #3fc38d;
-  --color-teal-soft: #123326;
-  --color-teal-on-soft: #3fc38d;
+  --color-teal: #4fb3a3;
+  --color-teal-soft: #1f423c;
+  --color-teal-on-soft: #4fb3a3;
   --color-purple: #a596d6;
   --color-purple-soft: #2c2740;
   --color-gray: #9d9488;
   --color-gray-soft: #2a2620;
 
-  --color-danger: #f2733d;
-  --color-success: #3fc38d;
+  --color-danger: #e07a56;
+  --color-success: #4fb3a3;
   --color-scrim: rgba(0, 0, 0, 0.6);
 
   color-scheme: dark;

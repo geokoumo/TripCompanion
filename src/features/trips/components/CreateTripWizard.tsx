@@ -206,7 +206,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
             <DateField label="End date" date={endDate} onChange={setEndDate} minDate={startDate || undefined} />
           </FieldRow>
           {startDate && endDate && !isEndOnOrAfterStart(startDate, endDate) && (
-            <p style={{ color: 'var(--color-rust)', fontSize: 13 }}>The end date must be on or after the start date.</p>
+            <p style={{ color: 'var(--color-danger)', fontSize: 13 }}>The end date must be on or after the start date.</p>
           )}
           <p className={styles.note}>Past dates are allowed — you can log a trip you already took.</p>
 

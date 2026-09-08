@@ -1,0 +1,28 @@
+.circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+}
+
+.circle[data-tone='rust'] {
+  background: var(--color-rust-soft);
+  color: var(--color-rust-on-soft);
+}
+.circle[data-tone='teal'] {
+  background: var(--color-teal-soft);
+  color: var(--color-teal-on-soft);
+}
+.circle[data-tone='brass'] {
+  background: var(--color-brass-soft);
+  color: var(--color-brass);
+}
+.circle[data-tone='purple'] {
+  background: var(--color-purple-soft);
+  color: var(--color-purple);
+}
+.circle[data-tone='gray'] {
+  background: var(--color-gray-soft);
+  color: var(--color-gray);
+}

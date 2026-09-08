@@ -97,7 +97,7 @@ export function StayForm({ initial, existingStays, recentLocations, onClose, onS
         minDate={stay.checkinDate || undefined}
       />
       {hasFullDates && !datesValid && (
-        <p style={{ color: 'var(--color-rust)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
+        <p style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: -8, marginBottom: 16 }}>
           Check-out must be on or after check-in.
         </p>
       )}
