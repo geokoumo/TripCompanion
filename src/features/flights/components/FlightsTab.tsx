@@ -56,6 +56,8 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
 
       {(creating || editing) && (
         <FlightForm
+          trip={trip}
+          updateTrip={updateTrip}
           initial={editing ?? undefined}
           onClose={() => {
             setCreating(false);

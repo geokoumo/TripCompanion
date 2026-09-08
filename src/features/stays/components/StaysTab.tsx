@@ -78,6 +78,8 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
 
       {(creating || editing) && (
         <StayForm
+          trip={trip}
+          updateTrip={updateTrip}
           initial={editing ?? undefined}
           existingStays={trip.stays}
           recentLocations={trip.rememberedLocations}

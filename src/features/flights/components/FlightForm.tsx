@@ -14,11 +14,15 @@ import { checkFlightTimeOrder } from '../lib/flightTime';
 import { hasParsedFields, parseFlightText } from '../lib/parseFlightText';
 import { getRecentValues, rememberRecentValue } from '../lib/recentValues';
 import { lookupAirportTimezone, MANUAL_TIMEZONE_OPTIONS, rememberAirportTimezone, resolveTimezone, timezoneDisplayLabel } from '../lib/timezones';
+import { AttachmentsField } from '../../documents/components/AttachmentsField';
+import type { Trip } from '../../trips/types';
 import type { FlightStatusId } from '../../../config/constants';
 import type { Flight } from '../types';
 import styles from './FlightForm.module.css';
 
 interface FlightFormProps {
+  trip: Trip;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
   initial?: Flight;
   onClose: () => void;
   onSave: (flight: Flight) => void;
@@ -38,7 +42,7 @@ const emptyFlight = (): Flight => ({
   status: 'scheduled',
 });
 
-export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormProps) {
+export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelete }: FlightFormProps) {
   const { showToast } = useToast();
   const [flight, setFlight] = useState<Flight>(initial ?? emptyFlight());
   const [showMore, setShowMore] = useState(Boolean(initial?.terminal || initial?.gate || initial?.bookingRef || initial?.link));
@@ -288,6 +292,13 @@ export function FlightForm({ initial, onClose, onSave, onDelete }: FlightFormPro
           />
         </>
       )}
+
+      <AttachmentsField
+        trip={trip}
+        updateTrip={updateTrip}
+        relatedTo={flight.depAirport && flight.arrAirport ? `${flight.depAirport} → ${flight.arrAirport} flight` : 'Flight'}
+        defaultCategory="boarding_pass"
+      />
     </Modal>
   );
 }

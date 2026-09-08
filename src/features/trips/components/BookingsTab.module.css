@@ -1,26 +1,54 @@
-.segmented {
+.switcherRow {
   display: flex;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  padding: 3px;
+  align-items: center;
+  gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
 
-.segment {
+.switcherScroll {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
   flex: 1;
-  border: none;
-  background: none;
-  border-radius: var(--radius-pill);
-  padding: 9px 12px;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  color: var(--color-text-muted);
-  cursor: pointer;
+  padding-bottom: 2px;
+  scrollbar-width: none;
 }
 
-.segment[data-active='true'] {
-  background: var(--color-surface-raised);
+.switcherScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.switcherPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.switcherPill[data-active='true'] {
+  background: var(--color-teal);
+  border-color: var(--color-teal);
+  color: var(--color-text-on-accent);
+}
+
+.moreButton {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text);
-  box-shadow: var(--shadow-sm);
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
 }

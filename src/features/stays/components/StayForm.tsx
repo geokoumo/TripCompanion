@@ -7,10 +7,14 @@ import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
 import { generateId } from '../../../shared/lib/id';
 import { isEndOnOrAfterStart } from '../../trips/validation';
+import { AttachmentsField } from '../../documents/components/AttachmentsField';
+import type { Trip } from '../../trips/types';
 import { dateTimeRangesOverlap } from '../lib/overlap';
 import type { Stay } from '../types';
 
 interface StayFormProps {
+  trip: Trip;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
   initial?: Stay;
   existingStays: Stay[];
   recentLocations: string[];
@@ -36,7 +40,7 @@ function toRange(stay: Stay) {
   };
 }
 
-export function StayForm({ initial, existingStays, recentLocations, onClose, onSave, onDelete }: StayFormProps) {
+export function StayForm({ trip, updateTrip, initial, existingStays, recentLocations, onClose, onSave, onDelete }: StayFormProps) {
   const { showToast } = useToast();
   const [stay, setStay] = useState<Stay>(initial ?? emptyStay());
   const [showMore, setShowMore] = useState(Boolean(initial?.phone || initial?.bookingRef || initial?.notes || initial?.link));
@@ -133,6 +137,8 @@ export function StayForm({ initial, existingStays, recentLocations, onClose, onS
           <TextField label="Link" value={stay.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
         </>
       )}
+
+      <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={stay.name || 'Stay'} defaultCategory="hotel_confirmation" />
     </Modal>
   );
 }
