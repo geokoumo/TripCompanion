@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AccountSheet } from '../features/auth/components/AccountSheet';
+import { SettingsScreen } from '../features/settings/components/SettingsScreen';
 import { isOnboarded, markOnboarded } from '../features/auth/lib/onboarding';
 import { useLocalTripsImportPrompt } from '../features/auth/lib/localImportPrompt';
 import { LocalTripsImportPrompt } from '../features/auth/components/LocalTripsImportPrompt';
@@ -52,7 +52,7 @@ function AuthGatedApp() {
   const { loading, recoveryMode, enabled, user } = useAuth();
   const [route, navigate] = useHashRoute();
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [accountSheetOpen, setAccountSheetOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [onboarded, setOnboarded] = useState(() => isOnboarded());
   const { localTrips, dismiss: dismissLocalTripsPrompt } = useLocalTripsImportPrompt(!!user);
 
@@ -100,8 +100,8 @@ function AuthGatedApp() {
             active={route.name === 'search' ? 'search' : 'home'}
             onNavigate={(name) => navigate({ name })}
             onCreateTrip={() => setWizardOpen(true)}
-            accountActive={accountSheetOpen}
-            onAccountTap={() => setAccountSheetOpen(true)}
+            settingsActive={settingsOpen}
+            onSettingsTap={() => setSettingsOpen(true)}
           />
         )}
 
@@ -115,7 +115,7 @@ function AuthGatedApp() {
           />
         )}
 
-        {accountSheetOpen && <AccountSheet onClose={() => setAccountSheetOpen(false)} />}
+        {settingsOpen && <SettingsScreen onClose={() => setSettingsOpen(false)} />}
 
         {localTrips && <LocalTripsImportPrompt localTrips={localTrips} onClose={dismissLocalTripsPrompt} />}
       </ErrorBoundary>

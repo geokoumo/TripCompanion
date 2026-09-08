@@ -9,6 +9,7 @@ import { PresetChips } from '../../../shared/components/PresetChips';
 import { generateId } from '../../../shared/lib/id';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { suggestCurrencyForCountry } from '../../budget/lib/currency';
+import { getDefaultCurrency } from '../../settings/lib/preferences';
 import type { BudgetCategory } from '../../budget/types';
 import { buildChecklistFromTemplate, loadMasterTemplate, hasMasterTemplate, TEMPLATE_NAMES } from '../../checklist/lib/templates';
 import { nextAvatarColor } from '../../travelers/lib/avatarColors';
@@ -102,7 +103,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
     const finalLegs: Leg[] =
       legs.length > 0
         ? legs
-        : [{ id: generateId(), city: '', country: '', startDate, endDate, currency: 'EUR' }];
+        : [{ id: generateId(), city: '', country: '', startDate, endDate, currency: getDefaultCurrency() }];
 
     const checklistItems = duplicateSeed
       ? effectiveTravelers.flatMap((t) =>
@@ -119,7 +120,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
     const trip: Trip = {
       id: generateId(),
       title: title.trim(),
-      homeCurrency: finalLegs[0]?.currency ?? 'EUR',
+      homeCurrency: finalLegs[0]?.currency ?? getDefaultCurrency(),
       archived: false,
       travelers: effectiveTravelers,
       legs: finalLegs,

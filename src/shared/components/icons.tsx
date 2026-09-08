@@ -208,6 +208,16 @@ export function StarIcon(props: IconProps) {
   );
 }
 
+/** Settings entry point — a gear. */
+export function GearIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 3.5v2.4M12 18.1v2.4M20.5 12h-2.4M5.9 12H3.5M17.7 6.3l-1.7 1.7M8 16l-1.7 1.7M17.7 17.7L16 16M8 8L6.3 6.3" />
+    </svg>
+  );
+}
+
 /** "Add to trip" picker's "Other" tile, and generic misc/more affordances. */
 export function DotsCircleIcon(props: IconProps) {
   return (

@@ -1,0 +1,137 @@
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  margin-bottom: var(--space-5);
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: var(--color-teal-soft);
+  color: var(--color-teal-on-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  flex-shrink: 0;
+}
+
+.profileName {
+  font-weight: 700;
+  font-size: var(--fs-item-title);
+  color: var(--color-text);
+}
+
+.profileEmail {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin-top: 2px;
+}
+
+.sectionHeader {
+  color: var(--color-text-muted);
+  font-size: var(--fs-field-label);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.sectionHeader:first-of-type {
+  margin-top: 0;
+}
+
+.group {
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: none;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--fs-item-title);
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+
+.group > .row:last-child {
+  border-bottom: none;
+}
+
+.rowValue {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  flex-shrink: 0;
+}
+
+.storageBar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+  margin-top: var(--space-2);
+}
+
+.storageFill {
+  height: 100%;
+  background: var(--color-teal);
+}
+
+.storageBox {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}
+
+.staticRows {
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  overflow: hidden;
+  margin-bottom: var(--space-5);
+}
+
+.logout {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--color-danger);
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+  text-align: center;
+  padding: var(--space-4) 0;
+  cursor: pointer;
+  margin-top: var(--space-3);
+}
+
+.backLink {
+  border: none;
+  background: none;
+  color: var(--color-teal);
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+  cursor: pointer;
+  padding: 0 0 var(--space-4);
+}
+
+.staticBody {
+  color: var(--color-text);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+}
