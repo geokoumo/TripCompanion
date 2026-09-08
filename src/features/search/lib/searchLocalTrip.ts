@@ -37,5 +37,13 @@ export function searchWithinTrip(trip: Trip, query: string): SearchMatch[] {
     }
   }
 
+  // Tab is 'flights' (not a new tab id) — the Bookings screen's specific
+  // sub-view is client-side UI state, so a match just lands on its default view.
+  for (const b of trip.bookingItems) {
+    if (normalizeForMatch(b.name).includes(needle)) {
+      matches.push({ type: 'booking', id: b.id, label: b.name, tab: 'flights' });
+    }
+  }
+
   return matches;
 }

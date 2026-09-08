@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { ITINERARY_STOP_TYPES } from '../../config/constants';
+import { ITINERARY_STOP_TYPES, type ItineraryStopTypeId } from '../../config/constants';
 import { nullableOptional } from '../../shared/lib/zodHelpers';
 
-const stopTypeIds = ITINERARY_STOP_TYPES.map((t) => t.id) as [string, ...string[]];
+const stopTypeIds = ITINERARY_STOP_TYPES.map((t) => t.id) as [ItineraryStopTypeId, ...ItineraryStopTypeId[]];
 
 export const ItineraryStopSchema = z
   .object({

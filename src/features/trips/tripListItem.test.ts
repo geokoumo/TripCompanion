@@ -12,6 +12,8 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
     legs: [],
     flights: [],
     stays: [],
+    bookingItems: [],
+    documents: [],
     itineraryStops: [],
     ideas: [],
     budgetCategories: [],

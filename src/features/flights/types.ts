@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { FLIGHT_STATUSES } from '../../config/constants';
+import { FLIGHT_STATUSES, type FlightStatusId } from '../../config/constants';
 import { nullableOptional } from '../../shared/lib/zodHelpers';
 
-const statusIds = FLIGHT_STATUSES.map((s) => s.id) as [string, ...string[]];
+const statusIds = FLIGHT_STATUSES.map((s) => s.id) as [FlightStatusId, ...FlightStatusId[]];
 
 export const FlightSchema = z.object({
   id: z.string(),

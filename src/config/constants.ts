@@ -36,6 +36,44 @@ export const ITINERARY_STOP_TYPES = [
 ] as const;
 export type ItineraryStopTypeId = (typeof ITINERARY_STOP_TYPES)[number]['id'];
 
+// Multi-type bookings — everything that isn't a Flight or a Stay (those keep
+// their own dedicated tables/screens). One shared booking_items table, keyed
+// by `type`, per the Round 11 spec.
+export const BOOKING_ITEM_TYPES = [
+  { id: 'sight', label: 'Sights', singular: 'Sight' },
+  { id: 'restaurant', label: 'Restaurants', singular: 'Restaurant' },
+  { id: 'bar', label: 'Bars & Nightlife', singular: 'Bar' },
+  { id: 'transport', label: 'Transport', singular: 'Transport' },
+  { id: 'ticket', label: 'Tickets', singular: 'Ticket' },
+  { id: 'activity', label: 'Activities', singular: 'Activity' },
+  { id: 'other', label: 'Other', singular: 'Other' },
+] as const;
+export type BookingItemTypeId = (typeof BOOKING_ITEM_TYPES)[number]['id'];
+
+// The itinerary only has 5 stop types — this is how each booking type's
+// "Add to itinerary" toggle maps onto one of them.
+export const BOOKING_ITEM_TO_STOP_TYPE: Record<BookingItemTypeId, ItineraryStopTypeId> = {
+  sight: 'sight',
+  restaurant: 'food',
+  bar: 'rest',
+  transport: 'transport',
+  ticket: 'sight',
+  activity: 'sight',
+  other: 'sight',
+};
+
+export const DOCUMENT_CATEGORIES = [
+  { id: 'boarding_pass', label: 'Boarding Passes', singular: 'Boarding Pass' },
+  { id: 'hotel_confirmation', label: 'Hotel Confirmations', singular: 'Hotel Confirmation' },
+  { id: 'ticket', label: 'Tickets', singular: 'Ticket' },
+  { id: 'insurance', label: 'Insurance', singular: 'Insurance' },
+  { id: 'other', label: 'Other', singular: 'Other' },
+] as const;
+export type DocumentCategoryId = (typeof DOCUMENT_CATEGORIES)[number]['id'];
+
+export const DOCUMENT_FILE_TYPES = ['pdf', 'image', 'qr'] as const;
+export type DocumentFileTypeId = (typeof DOCUMENT_FILE_TYPES)[number];
+
 export const FLIGHT_STATUSES = [
   { id: 'scheduled', label: 'Scheduled' },
   { id: 'delayed', label: 'Delayed' },

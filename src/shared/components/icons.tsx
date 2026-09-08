@@ -154,3 +154,113 @@ export function BackpackIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** "Add to trip" picker + Sights list — a temple/landmark silhouette. */
+export function LandmarkIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 3l8 4.5H4z" />
+      <path d="M5 8.5v9M9.5 8.5v9M14.5 8.5v9M19 8.5v9" />
+      <path d="M3.5 20.5h17" />
+    </svg>
+  );
+}
+
+/** "Add to trip" picker + Restaurants list — fork and knife. */
+export function ForkKnifeIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M7 3v7a2 2 0 0 0 4 0V3M9 10v11" />
+      <path d="M16 3c-1.2 0-2 1.5-2 4s.8 4 2 4v10" />
+    </svg>
+  );
+}
+
+/** "Add to trip" picker + Bars & Nightlife list — a martini glass. */
+export function DrinkIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 4h16l-8 9z" />
+      <path d="M12 13v7M8 20h8" />
+    </svg>
+  );
+}
+
+/** "Add to trip" picker + Transport list — a car. */
+export function CarIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 16V11.5l2-4.5h12l2 4.5V16" />
+      <path d="M4 16a1.3 1.3 0 0 0 1.3 1.3H6a1.3 1.3 0 0 0 1.3-1.3M16.7 16A1.3 1.3 0 0 0 18 17.3h.7A1.3 1.3 0 0 0 20 16" />
+      <path d="M4 13h16" />
+      <circle cx="7.5" cy="16" r="1" fill="currentColor" stroke="none" />
+      <circle cx="16.5" cy="16" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** "Add to trip" picker + Activities list — a compass-star for "things to do". */
+export function StarIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 4l2.2 5.8L20 12l-5.8 2.2L12 20l-2.2-5.8L4 12l5.8-2.2z" />
+    </svg>
+  );
+}
+
+/** "Add to trip" picker's "Other" tile, and generic misc/more affordances. */
+export function DotsCircleIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="8" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Documents list/detail — a file/page glyph. */
+export function FileIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z" />
+      <path d="M14 3.5v4h4" />
+      <path d="M8 12.5h8M8 16h8" />
+    </svg>
+  );
+}
+
+/** A small QR-code glyph for document previews and the "View QR" action. */
+export function QrIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1" />
+      <rect x="14" y="3.5" width="6.5" height="6.5" rx="1" />
+      <rect x="3.5" y="14" width="6.5" height="6.5" rx="1" />
+      <path d="M14 14h3v3h-3zM20.5 14v3M17 20.5h3.5" />
+    </svg>
+  );
+}
+
+/** Download action (documents, exports). */
+export function DownloadIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 3.5v11.5M8 11.5l4 4 4-4" />
+      <path d="M4.5 17v2.5a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5V17" />
+    </svg>
+  );
+}
+
+/** Share-outside-the-app action (native share sheet), distinct from the app's own trip-sharing icon. */
+export function ShareExternalIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="18" cy="5.5" r="2.3" />
+      <circle cx="6" cy="12" r="2.3" />
+      <circle cx="18" cy="18.5" r="2.3" />
+      <path d="M8.1 10.8l7.8-4.4M8.1 13.2l7.8 4.4" />
+    </svg>
+  );
+}

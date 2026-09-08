@@ -125,6 +125,8 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
       legs: finalLegs,
       flights: [],
       stays: [],
+      bookingItems: [],
+      documents: [],
       itineraryStops: [],
       ideas: [],
       budgetCategories,

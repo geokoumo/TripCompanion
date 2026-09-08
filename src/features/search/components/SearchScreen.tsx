@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { EmptyState } from '../../../shared/components/EmptyState';
-import { BedIcon, CalendarIcon, PlaneIcon, SearchIcon, WalletIcon } from '../../../shared/components/icons';
+import { BedIcon, CalendarIcon, PlaneIcon, SearchIcon, TicketIcon, WalletIcon } from '../../../shared/components/icons';
 import type { TripTab } from '../../trips/types';
 import type { SearchMatchType, SearchResultGroup } from '../types';
 import styles from './SearchScreen.module.css';
@@ -11,6 +11,7 @@ const MATCH_ICON: Record<SearchMatchType, typeof PlaneIcon> = {
   stay: BedIcon,
   stop: CalendarIcon,
   expense: WalletIcon,
+  booking: TicketIcon,
 };
 
 interface SearchScreenProps {

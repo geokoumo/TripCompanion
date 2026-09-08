@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRIP_TABS } from '../trips/types';
 
-export const SEARCH_MATCH_TYPES = ['flight', 'stay', 'stop', 'expense'] as const;
+export const SEARCH_MATCH_TYPES = ['flight', 'stay', 'stop', 'expense', 'booking'] as const;
 export type SearchMatchType = (typeof SEARCH_MATCH_TYPES)[number];
 
 export const SearchMatchSchema = z.object({

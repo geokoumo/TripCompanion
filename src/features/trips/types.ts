@@ -4,6 +4,8 @@ import { nullableOptional } from '../../shared/lib/zodHelpers';
 import { TravelerSchema } from '../travelers/types';
 import { FlightSchema } from '../flights/types';
 import { StaySchema } from '../stays/types';
+import { BookingItemSchema } from '../bookings/types';
+import { DocumentSchema } from '../documents/types';
 import { ItineraryStopSchema, IdeaSchema } from '../itinerary/types';
 import { BudgetCategorySchema, ExpenseSchema } from '../budget/types';
 import { ChecklistItemSchema } from '../checklist/types';
@@ -45,6 +47,11 @@ export const TripSchema = z.object({
   legs: z.array(LegSchema).default([]),
   flights: z.array(FlightSchema).default([]),
   stays: z.array(StaySchema).default([]),
+  // Everything that isn't a Flight or a Stay — Sights, Restaurants, Bars,
+  // Transport, Tickets, Activities, Other. Those two keep their own
+  // dedicated arrays/tables; this is deliberately not a third home for them.
+  bookingItems: z.array(BookingItemSchema).default([]),
+  documents: z.array(DocumentSchema).default([]),
   itineraryStops: z.array(ItineraryStopSchema).default([]),
   ideas: z.array(IdeaSchema).default([]),
   budgetCategories: z.array(BudgetCategorySchema).default([]),
