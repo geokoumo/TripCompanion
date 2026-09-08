@@ -1,7 +1,6 @@
 .card {
-  background: var(--color-surface-raised);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
 }
 
 .backLink {

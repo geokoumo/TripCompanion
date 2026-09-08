@@ -37,7 +37,7 @@
   width: 100%;
   padding: 12px 14px;
   border-radius: var(--radius-md);
-  border: 1.5px solid transparent;
+  border: 1.5px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   font-size: var(--fs-body);

@@ -28,7 +28,7 @@ function authErrorMessage(message: string): string {
     return 'An account with this email already exists.';
   }
   if (lower.includes('password')) {
-    return 'Password must be at least 6 characters.';
+    return 'Password must be at least 8 characters.';
   }
   return 'Something went wrong. Try again.';
 }
