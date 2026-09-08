@@ -101,7 +101,7 @@
 }
 
 .overBudgetLabel {
-  color: var(--color-rust);
+  color: var(--color-danger);
   font-weight: 600;
 }
 

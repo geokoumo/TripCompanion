@@ -39,7 +39,7 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--color-rust);
+  border-color: var(--color-teal);
 }
 
 .group {

@@ -35,11 +35,11 @@
 
 .toast[data-variant='error'] {
   background: var(--color-rust-soft);
-  border-color: var(--color-rust);
+  border-color: var(--color-danger);
   color: var(--color-rust-on-soft);
 }
 .toast[data-variant='error'] .dot {
-  background: var(--color-rust);
+  background: var(--color-danger);
 }
 
 .toast[data-variant='warn'] {
@@ -70,7 +70,7 @@
 }
 
 .toast[data-variant='neutral'] .action {
-  color: var(--color-rust);
+  color: var(--color-teal);
 }
 
 @keyframes rise {

@@ -35,7 +35,7 @@
 }
 
 .item[data-active='true'] {
-  color: var(--color-rust);
+  color: var(--color-teal);
 }
 
 .createButton {
@@ -45,7 +45,7 @@
   margin-top: -26px;
   border-radius: 999px;
   border: none;
-  background: var(--color-rust);
+  background: var(--color-teal);
   color: var(--color-text-on-accent);
   font-size: 1.6rem;
   line-height: 1;

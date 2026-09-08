@@ -1,7 +1,7 @@
 .pasteToggle {
   border: none;
   background: none;
-  color: var(--color-rust);
+  color: var(--color-teal);
   font-weight: 600;
   font-size: var(--fs-meta);
   cursor: pointer;
@@ -24,14 +24,14 @@
 }
 
 .parseError {
-  color: var(--color-rust);
+  color: var(--color-danger);
   font-size: var(--fs-meta);
   margin: var(--space-2) 0 0;
 }
 
 .autoNote {
-  background: var(--color-rust-soft);
-  color: var(--color-rust-on-soft);
+  background: var(--color-teal-soft);
+  color: var(--color-teal-on-soft);
   border-radius: var(--radius-md);
   padding: 10px 14px;
   font-size: var(--fs-meta);

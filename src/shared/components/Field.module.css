@@ -25,8 +25,8 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: none;
-  color: var(--color-rust-on-soft);
-  background: var(--color-rust-soft);
+  color: var(--color-teal-on-soft);
+  background: var(--color-teal-soft);
   border-radius: var(--radius-pill);
   padding: 1px 8px;
 }
@@ -48,7 +48,7 @@
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: var(--color-rust);
+  border-color: var(--color-teal);
 }
 
 .textarea {
@@ -57,7 +57,7 @@
 }
 
 .error {
-  color: var(--color-rust);
+  color: var(--color-danger);
   font-size: var(--fs-meta);
   margin-top: 4px;
 }
@@ -82,7 +82,7 @@
   display: block;
   border: none;
   background: none;
-  color: var(--color-rust);
+  color: var(--color-teal);
   font-weight: 600;
   font-size: var(--fs-meta);
   cursor: pointer;

@@ -22,8 +22,8 @@
 }
 
 .tab[data-active='true'] {
-  background: var(--color-rust);
-  border-color: var(--color-rust);
+  background: var(--color-teal);
+  border-color: var(--color-teal);
   color: var(--color-text-on-accent);
 }
 
@@ -121,7 +121,7 @@
 .linkButton {
   border: none;
   background: none;
-  color: var(--color-rust);
+  color: var(--color-teal);
   font-weight: 500;
   cursor: pointer;
 }

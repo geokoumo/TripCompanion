@@ -60,7 +60,7 @@
 }
 
 .item[data-active='true'] {
-  background: var(--color-rust);
+  background: var(--color-teal);
   color: var(--color-text-on-accent);
   font-weight: 500;
   font-size: 1rem; /* 16px */

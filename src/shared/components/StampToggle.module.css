@@ -20,7 +20,7 @@
 }
 
 .option[data-active='true'] {
-  background: var(--color-rust);
-  border-color: var(--color-rust);
+  background: var(--color-teal);
+  border-color: var(--color-teal);
   color: var(--color-text-on-accent);
 }

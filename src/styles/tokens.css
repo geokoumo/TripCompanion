@@ -12,26 +12,28 @@
   --color-text-faint: #7d766c;
   --color-text-on-accent: #ffffff;
 
-  /* Accents — Round 9: bolder, more saturated rust/teal (was #b4462a/#1c7a6e).
-     Brass/purple/gray and the avatar/budget-category rotations are untouched. */
-  --color-rust: #e2591c;
-  --color-rust-soft: #fde3d2;
+  /* Accents — Round 10: teal is the brand primary (buttons, active states,
+     links); rust is now only the warm decorative tone + danger/negative
+     semantic. Brass/purple/gray and the avatar/budget-category rotations
+     are untouched. */
+  --color-rust: #b4462a;
+  --color-rust-soft: #f9ece9;
   /* Text sitting directly on a -soft tint (badges, pills, inline notes) uses
      this instead of --color-rust itself — the bolder accent is too vivid to
      read comfortably as small text on its own soft background. */
-  --color-rust-on-soft: #c94a12;
+  --color-rust-on-soft: #b4462a;
   --color-brass: #9a752a;
   --color-brass-soft: #f7efdb;
-  --color-teal: #15563d;
-  --color-teal-soft: #dbeee2;
-  --color-teal-on-soft: #0f4530;
+  --color-teal: #1c7a6e;
+  --color-teal-soft: #e5f2f0;
+  --color-teal-on-soft: #1c7a6e;
   --color-purple: #6b5b95;
   --color-purple-soft: #e8e4f0;
   --color-gray: #7d766c;
   --color-gray-soft: #ece8e0;
 
-  --color-danger: #e2591c;
-  --color-success: #15563d;
+  --color-danger: #b4462a;
+  --color-success: #1c7a6e;
   --color-scrim: rgba(28, 26, 23, 0.42);
 
   /* Avatar palette — fixed order, cycling */
@@ -119,21 +121,21 @@
     --color-text-faint: #9d9488;
     --color-text-on-accent: #ffffff;
 
-    --color-rust: #f2733d;
-    --color-rust-soft: #3f2416;
-    --color-rust-on-soft: #f2733d;
+    --color-rust: #e07a56;
+    --color-rust-soft: #3d2721;
+    --color-rust-on-soft: #e07a56;
     --color-brass: #d4a851;
     --color-brass-soft: #33291a;
-    --color-teal: #3fc38d;
-    --color-teal-soft: #123326;
-    --color-teal-on-soft: #3fc38d;
+    --color-teal: #4fb3a3;
+    --color-teal-soft: #1f423c;
+    --color-teal-on-soft: #4fb3a3;
     --color-purple: #a596d6;
     --color-purple-soft: #2c2740;
     --color-gray: #9d9488;
     --color-gray-soft: #2a2620;
 
-    --color-danger: #f2733d;
-    --color-success: #3fc38d;
+    --color-danger: #e07a56;
+    --color-success: #4fb3a3;
     --color-scrim: rgba(0, 0, 0, 0.6);
 
     color-scheme: dark;
@@ -203,5 +205,5 @@ textarea {
 }
 
 a {
-  color: var(--color-rust);
+  color: var(--color-teal);
 }

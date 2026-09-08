@@ -70,7 +70,7 @@
 }
 
 .day[data-selected='true'] {
-  background: var(--color-rust);
+  background: var(--color-teal);
   color: var(--color-text-on-accent);
   font-weight: 600;
 }

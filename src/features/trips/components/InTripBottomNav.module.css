@@ -32,5 +32,5 @@
 }
 
 .item[data-active='true'] {
-  color: var(--color-rust);
+  color: var(--color-teal);
 }

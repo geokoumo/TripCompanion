@@ -19,7 +19,7 @@
 }
 
 .button[data-variant='primary'] {
-  background: var(--color-rust);
+  background: var(--color-teal);
   color: var(--color-text-on-accent);
   flex: 1;
 }
@@ -32,8 +32,8 @@
 
 .button[data-variant='danger'] {
   background: transparent;
-  color: var(--color-rust);
-  border: 1.5px solid var(--color-rust);
+  color: var(--color-danger);
+  border: 1.5px solid var(--color-danger);
 }
 
 .button[data-variant='ghost'] {
@@ -48,7 +48,7 @@
   width: 54px;
   height: 54px;
   border-radius: 999px;
-  background: var(--color-rust);
+  background: var(--color-teal);
   color: var(--color-text-on-accent);
   border: none;
   font-size: 1.75rem;

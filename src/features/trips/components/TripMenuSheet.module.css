@@ -18,7 +18,7 @@
 }
 
 .row[data-danger='true'] {
-  color: var(--color-rust);
+  color: var(--color-danger);
 }
 
 .closeButton {
