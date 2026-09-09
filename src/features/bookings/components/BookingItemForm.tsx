@@ -66,7 +66,8 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
   const updateDetails = <K extends keyof BookingItem['details']>(key: K, value: BookingItem['details'][K]) =>
     setItem((prev) => ({ ...prev, details: { ...prev.details, [key]: value } }));
 
-  const canSave = item.name.trim().length > 0;
+  const timeOrderValid = !item.startTime || !item.endTime || item.endTime >= item.startTime;
+  const canSave = item.name.trim().length > 0 && timeOrderValid;
 
   return (
     <Modal
@@ -139,6 +140,7 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
         <TimeField label="Start time" time={item.startTime ?? ''} onChange={(t) => update('startTime', t)} />
         <TimeField label="End time" time={item.endTime ?? ''} onChange={(t) => update('endTime', t)} />
       </FieldRow>
+      {!timeOrderValid && <p className={styles.conflictNote}>End time must be after start time.</p>}
 
       {type === 'transport' && (
         <FieldRow>

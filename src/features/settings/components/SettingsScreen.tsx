@@ -58,10 +58,13 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
     else setSharingUpdates(value);
   };
 
-  const saveCurrency = (value: string) => {
-    const trimmed = value.trim().toUpperCase();
+  // Only persisted on blur — saving on every keystroke would write partial
+  // input ("E", "EU") as the real default the moment it's typed, and briefly
+  // snap back to EUR whenever the field is cleared to retype something else.
+  const commitCurrency = (value: string) => {
+    const trimmed = value.trim().toUpperCase() || 'EUR';
     setCurrency(trimmed);
-    setDefaultCurrency(trimmed || 'EUR');
+    setDefaultCurrency(trimmed);
   };
 
   const handleChangePassword = async () => {
@@ -185,7 +188,11 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
             style={{ border: 'none', background: 'none', textAlign: 'right', font: 'inherit', color: 'inherit', width: 70 }}
             value={currency}
             maxLength={3}
-            onChange={(e) => saveCurrency(e.target.value)}
+            onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+            onBlur={(e) => commitCurrency(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+            }}
           />
         </div>
         <div className={styles.row} style={{ cursor: 'default' }}>

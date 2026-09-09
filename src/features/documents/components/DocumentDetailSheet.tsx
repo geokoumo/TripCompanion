@@ -30,14 +30,25 @@ export function DocumentDetailSheet({ doc, trip, updateTrip, onClose }: Document
 
   const category = DOCUMENT_CATEGORIES.find((c) => c.id === doc.category);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!url) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = doc.title;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.click();
+    // A signed Storage URL is cross-origin, and browsers silently ignore the
+    // `download` attribute (and the filename it sets) on a cross-origin
+    // link — it just opens/navigates instead of saving. Fetching it into a
+    // blob first gives a same-origin blob: URL that downloads reliably with
+    // the right filename, for both a signed URL and a local data: URL alike.
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = doc.title;
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      showToast('Download failed.', { variant: 'error' });
+    }
   };
 
   const handleShare = async () => {
@@ -93,7 +104,7 @@ export function DocumentDetailSheet({ doc, trip, updateTrip, onClose }: Document
             View QR
           </button>
         )}
-        <button type="button" className={styles.actionButton} onClick={handleDownload} disabled={!url}>
+        <button type="button" className={styles.actionButton} onClick={() => void handleDownload()} disabled={!url}>
           <DownloadIcon size={20} />
           Download
         </button>
