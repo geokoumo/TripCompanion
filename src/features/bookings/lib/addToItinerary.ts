@@ -12,7 +12,7 @@ function toMinutes(time: string): number {
   return (h ?? 0) * 60 + (m ?? 0);
 }
 
-export type LinkedStopResult = { stop: ItineraryStop } | { conflictMessage: string } | { skipped: true };
+export type LinkedStopResult = { stop: ItineraryStop } | { conflictMessage: string };
 
 /**
  * Builds the itinerary stop a booking item's "Add to itinerary" toggle
@@ -22,7 +22,9 @@ export type LinkedStopResult = { stop: ItineraryStop } | { conflictMessage: stri
  * create an overlapping stop rather than silently bypassing that rule.
  */
 export function buildLinkedItineraryStop(trip: Trip, item: BookingItem): LinkedStopResult {
-  if (!item.date || !item.startTime) return { skipped: true };
+  if (!item.date || !item.startTime) {
+    return { conflictMessage: 'Add a date and start time to add this to the itinerary.' };
+  }
 
   const startMin = toMinutes(item.startTime);
   const durationMinutes = item.endTime ? Math.max(toMinutes(item.endTime) - startMin, 15) : DEFAULT_DURATION_MINUTES;

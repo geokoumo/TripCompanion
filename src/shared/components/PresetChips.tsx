@@ -6,10 +6,12 @@ interface PresetChipsProps {
   onSelect: (value: string) => void;
   freeTextPlaceholder?: string;
   hideInput?: boolean;
+  /** When a preset already exists elsewhere (e.g. a budget category already added), return its assigned color token to render the chip filled and disabled instead of a plain tappable outline. */
+  filledColor?: (preset: string) => string | undefined;
 }
 
 /** Dashed pre-fill chips — tapping fills a value but never auto-submits. Free-text fallback below unless hidden. */
-export function PresetChips({ presets, onSelect, freeTextPlaceholder = 'Other…', hideInput = false }: PresetChipsProps) {
+export function PresetChips({ presets, onSelect, freeTextPlaceholder = 'Other…', hideInput = false, filledColor }: PresetChipsProps) {
   const [customValue, setCustomValue] = useState('');
 
   const submitCustom = () => {
@@ -23,11 +25,21 @@ export function PresetChips({ presets, onSelect, freeTextPlaceholder = 'Other…
   return (
     <div>
       <div className={styles.group}>
-        {presets.map((preset) => (
-          <button key={preset} type="button" className={styles.chip} onClick={() => onSelect(preset)}>
-            {preset}
-          </button>
-        ))}
+        {presets.map((preset) => {
+          const color = filledColor?.(preset);
+          return (
+            <button
+              key={preset}
+              type="button"
+              className={styles.chip}
+              data-color={color}
+              disabled={!!color}
+              onClick={() => onSelect(preset)}
+            >
+              {preset}
+            </button>
+          );
+        })}
       </div>
       {!hideInput && (
         <input

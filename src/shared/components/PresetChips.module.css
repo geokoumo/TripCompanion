@@ -15,6 +15,19 @@
   cursor: pointer;
 }
 
+.chip:disabled {
+  border-style: solid;
+  border-color: transparent;
+  color: var(--color-text-on-accent);
+  cursor: default;
+}
+
+.chip[data-color='rust'] { background: var(--color-rust); }
+.chip[data-color='teal'] { background: var(--color-teal); }
+.chip[data-color='brass'] { background: var(--color-brass); }
+.chip[data-color='purple'] { background: var(--color-purple); }
+.chip[data-color='gray'] { background: var(--color-gray); }
+
 .input {
   margin-top: 8px;
   width: 100%;

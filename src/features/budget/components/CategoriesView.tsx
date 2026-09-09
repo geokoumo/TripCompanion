@@ -145,7 +145,12 @@ export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
       })}
 
       <div className={styles.addSection}>
-        <PresetChips presets={BUDGET_CATEGORY_PRESETS} onSelect={addCategory} freeTextPlaceholder="New category…" />
+        <PresetChips
+          presets={BUDGET_CATEGORY_PRESETS}
+          onSelect={addCategory}
+          freeTextPlaceholder="New category…"
+          filledColor={(name) => trip.budgetCategories.find((c) => c.name === name)?.color}
+        />
       </div>
     </div>
   );
