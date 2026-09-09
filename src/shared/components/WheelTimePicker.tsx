@@ -14,35 +14,73 @@ interface WheelColumnProps {
 
 function WheelColumn({ values, selected, onSelect, pad = 2, disabled }: WheelColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const hasMounted = useRef(false);
+  const scrollTimer = useRef<number | undefined>(undefined);
+  // Refs so the scroll/scrollend listeners (bound once) always read the
+  // latest props instead of whatever was current when they were attached.
+  const valuesRef = useRef(values);
+  const selectedRef = useRef(selected);
+  const disabledRef = useRef(disabled);
+  const onSelectRef = useRef(onSelect);
+  valuesRef.current = values;
+  selectedRef.current = selected;
+  disabledRef.current = disabled;
+  onSelectRef.current = onSelect;
 
+  // Keeps the column in sync when `selected` changes from OUTSIDE its own
+  // scroll gesture (a preset tap, or the value it opens with) — skipped
+  // when the column is already resting at that position, which is exactly
+  // the case right after the user's own scroll just produced this value.
+  // Forcing scrollTop there was the bug: it cut off the browser's native
+  // momentum/snap deceleration mid-flight with an instant jump, which is
+  // what made scrolling feel rough instead of smooth.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const index = values.indexOf(selected);
-    if (index >= 0) {
-      el.scrollTop = index * ITEM_HEIGHT;
+    if (index < 0) return;
+    const target = index * ITEM_HEIGHT;
+    if (Math.abs(el.scrollTop - target) > 1) {
+      el.scrollTo({ top: target, behavior: hasMounted.current ? 'smooth' : 'auto' });
     }
+    hasMounted.current = true;
   }, [selected, values]);
 
-  const handleScrollEnd = () => {
+  // Committing on `scrollend` (when supported) reflects the value once the
+  // browser's own momentum/snap animation has actually finished, rather
+  // than at touchend/mouseup — momentum scrolling continues well after the
+  // finger lifts, so reading the position right then was capturing a
+  // mid-flight value, not the settled one. The debounced `scroll` listener
+  // is a fallback for browsers without scrollend.
+  useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const index = Math.round(el.scrollTop / ITEM_HEIGHT);
-    const clamped = Math.min(Math.max(index, 0), values.length - 1);
-    const value = values[clamped];
-    if (value !== undefined && value !== selected && !disabled?.(value)) {
-      onSelect(value);
-    }
-  };
+
+    const commit = () => {
+      const index = Math.round(el.scrollTop / ITEM_HEIGHT);
+      const clamped = Math.min(Math.max(index, 0), valuesRef.current.length - 1);
+      const value = valuesRef.current[clamped];
+      if (value !== undefined && value !== selectedRef.current && !disabledRef.current?.(value)) {
+        onSelectRef.current(value);
+      }
+    };
+
+    const onScroll = () => {
+      window.clearTimeout(scrollTimer.current);
+      scrollTimer.current = window.setTimeout(commit, 120);
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    el.addEventListener('scrollend', commit);
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      el.removeEventListener('scrollend', commit);
+      window.clearTimeout(scrollTimer.current);
+    };
+  }, []);
 
   return (
-    <div
-      ref={ref}
-      className={styles.column}
-      onTouchEnd={handleScrollEnd}
-      onMouseUp={handleScrollEnd}
-      onWheel={() => setTimeout(handleScrollEnd, 60)}
-    >
+    <div ref={ref} className={styles.column}>
       <div className={styles.spacer} style={{ height: pad * ITEM_HEIGHT }} />
       {values.map((v) => {
         const isDisabled = disabled?.(v) ?? false;
