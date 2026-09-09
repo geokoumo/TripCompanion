@@ -22,10 +22,12 @@ function WheelColumn({ values, selected, onSelect, pad = 2, disabled }: WheelCol
   const selectedRef = useRef(selected);
   const disabledRef = useRef(disabled);
   const onSelectRef = useRef(onSelect);
-  valuesRef.current = values;
-  selectedRef.current = selected;
-  disabledRef.current = disabled;
-  onSelectRef.current = onSelect;
+  useEffect(() => {
+    valuesRef.current = values;
+    selectedRef.current = selected;
+    disabledRef.current = disabled;
+    onSelectRef.current = onSelect;
+  });
 
   // Keeps the column in sync when `selected` changes from OUTSIDE its own
   // scroll gesture (a preset tap, or the value it opens with) — skipped
