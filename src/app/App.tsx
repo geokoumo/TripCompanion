@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { SettingsScreen } from '../features/settings/components/SettingsScreen';
-import { isOnboarded, markOnboarded } from '../features/auth/lib/onboarding';
 import { useLocalTripsImportPrompt } from '../features/auth/lib/localImportPrompt';
 import { LocalTripsImportPrompt } from '../features/auth/components/LocalTripsImportPrompt';
 import { OnboardingFlow } from '../features/auth/components/OnboardingFlow';
@@ -53,34 +52,20 @@ function AuthGatedApp() {
   const [route, navigate] = useHashRoute();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [onboarded, setOnboarded] = useState(() => isOnboarded());
+  // Deliberately in-memory only, not persisted — "continue without an
+  // account" is a per-session choice now, not a permanent opt-out. Every
+  // fresh load re-checks the real login state instead of remembering a
+  // device ever dismissed sign-in.
+  const [continuingLocally, setContinuingLocally] = useState(false);
   const { localTrips, dismiss: dismissLocalTripsPrompt } = useLocalTripsImportPrompt(!!user);
-
-  // A signed-in session on its own means this device is past onboarding —
-  // covers signing up/in for the first time, and any later device that
-  // already has a session, without waiting for a click that never happens.
-  useEffect(() => {
-    if (user && !onboarded) {
-      markOnboarded();
-      setOnboarded(true);
-    }
-  }, [user, onboarded]);
 
   if (loading) return <LoadingScreen />;
   if (recoveryMode) return <ResetPasswordScreen />;
-  // Accounts are configured, nobody's signed in, and this device hasn't been
-  // through Welcome yet — show it once. Continuing without an account (or
-  // signing in/up) marks the device onboarded either way, so a later
-  // sign-out lands in local-only mode rather than back at Welcome.
-  if (enabled && !user && !onboarded) {
-    return (
-      <OnboardingFlow
-        onContinueLocally={() => {
-          markOnboarded();
-          setOnboarded(true);
-        }}
-      />
-    );
+  // Accounts are configured and nobody's signed in — always show sign-in
+  // first. "Continue without an account" only bypasses it for the current
+  // session; reloading the app checks the login state again from scratch.
+  if (enabled && !user && !continuingLocally) {
+    return <OnboardingFlow onContinueLocally={() => setContinuingLocally(true)} />;
   }
 
   // The bottom nav is the app-shell's primary navigation across the three
