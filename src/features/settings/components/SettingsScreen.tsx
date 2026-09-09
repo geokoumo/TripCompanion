@@ -109,6 +109,9 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
           autoComplete="new-password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void handleChangePassword();
+          }}
           caption="At least 8 characters."
         />
       </Modal>

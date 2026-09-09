@@ -98,7 +98,13 @@ export function AuthForm({ initialMode = 'signIn', onBack, onContinueLocally }: 
   };
 
   return (
-    <div className={styles.card}>
+    <form
+      className={styles.card}
+      onSubmit={(e) => {
+        e.preventDefault();
+        void submit();
+      }}
+    >
       {onBack && (
         <button type="button" className={styles.backLink} onClick={onBack} aria-label="Back">
           ‹
@@ -128,7 +134,7 @@ export function AuthForm({ initialMode = 'signIn', onBack, onContinueLocally }: 
       {mode === 'forgot' && error && <p className={styles.error}>{error}</p>}
       {info && <p className={styles.info}>{info}</p>}
 
-      <Button variant="primary" onClick={() => void submit()} disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
+      <Button type="submit" variant="primary" disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
         {SUBMIT_LABELS[mode]}
       </Button>
 
@@ -165,6 +171,6 @@ export function AuthForm({ initialMode = 'signIn', onBack, onContinueLocally }: 
           </>
         )}
       </button>
-    </div>
+    </form>
   );
 }

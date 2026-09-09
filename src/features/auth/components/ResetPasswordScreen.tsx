@@ -29,7 +29,13 @@ export function ResetPasswordScreen() {
   };
 
   return (
-    <div className={styles.screen}>
+    <form
+      className={styles.screen}
+      onSubmit={(e) => {
+        e.preventDefault();
+        void submit();
+      }}
+    >
       <h1 className={styles.title}>New password</h1>
       <p className={styles.subtitle}>Set a new password for your account.</p>
       {error && <div className={styles.error}>{error}</div>}
@@ -41,9 +47,9 @@ export function ResetPasswordScreen() {
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
       />
-      <Button variant="primary" onClick={() => void submit()} disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
+      <Button type="submit" variant="primary" disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
         Save password
       </Button>
-    </div>
+    </form>
   );
 }

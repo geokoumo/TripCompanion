@@ -24,11 +24,23 @@ function authErrorMessage(message: string): string {
   if (lower.includes('invalid login credentials')) {
     return 'Incorrect email or password.';
   }
+  if (lower.includes('email not confirmed')) {
+    return 'Check your email and confirm your address before signing in.';
+  }
   if (lower.includes('already registered')) {
     return 'An account with this email already exists.';
   }
   if (lower.includes('password')) {
     return 'Password must be at least 8 characters.';
+  }
+  // supabase-js wraps a failed fetch (offline, DNS, a blocked/unreachable
+  // host) as an AuthRetryableFetchError whose message is the raw fetch
+  // failure text ("Failed to fetch", "NetworkError when attempting to
+  // fetch resource", ...) — worth naming specifically instead of the
+  // generic fallback, since "something went wrong" reads like a mistake
+  // the user made rather than a connectivity problem.
+  if (lower.includes('fetch') || lower.includes('network')) {
+    return "Can't reach the server. Check your connection and try again.";
   }
   return 'Something went wrong. Try again.';
 }
