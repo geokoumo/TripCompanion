@@ -43,7 +43,10 @@
 
 .fab {
   position: fixed;
-  bottom: 46px;
+  /* The in-trip nav bar underneath is 64px tall, plus the safe-area inset on
+     devices with a home indicator — this must clear both, or the button
+     sinks into (or through) the bar. 16px is the clear gap above it. */
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 16px);
   right: 18px;
   width: 54px;
   height: 54px;
