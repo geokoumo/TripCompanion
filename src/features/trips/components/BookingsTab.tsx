@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { DocumentsListScreenLazy } from '../../../app/lazyScreens';
+import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { BOOKING_ITEM_TYPES, type BookingItemTypeId } from '../../../config/constants';
 import { BedIcon, FileIcon, PlaneIcon } from '../../../shared/components/icons';
 import { AddToTripSheet } from '../../bookings/components/AddToTripSheet';
 import { BookingItemsListScreen } from '../../bookings/components/BookingItemsListScreen';
 import { BOOKING_TYPE_ICON, type AddToTripDestination } from '../../bookings/lib/bookingGridConfig';
-import { DocumentsListScreen } from '../../documents/components/DocumentsListScreen';
 import { FlightsTab } from '../../flights/components/FlightsTab';
 import { StaysTab } from '../../stays/components/StaysTab';
 import type { Trip, TripTab } from '../types';
@@ -65,7 +66,11 @@ export function BookingsTab({ trip, activeTab, onTabChange, updateTrip }: Bookin
 
       {subView === 'flights' && <FlightsTab trip={trip} updateTrip={updateTrip} />}
       {subView === 'stays' && <StaysTab trip={trip} updateTrip={updateTrip} />}
-      {subView === 'documents' && <DocumentsListScreen trip={trip} updateTrip={updateTrip} />}
+      {subView === 'documents' && (
+        <Suspense fallback={<ScreenLoadingFallback />}>
+          <DocumentsListScreenLazy trip={trip} updateTrip={updateTrip} />
+        </Suspense>
+      )}
       {BOOKING_TYPE_IDS.has(subView) && <BookingItemsListScreen type={subView as BookingItemTypeId} trip={trip} updateTrip={updateTrip} />}
 
       {pickerOpen && (

@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { ShareSheetLazy } from '../../../app/lazyScreens';
+import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { CompassIcon } from '../../../shared/components/icons';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { downloadTripAsJson } from '../lib/tripFile';
 import { getTripStatus, type Trip } from '../types';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
-import { ShareSheet } from './ShareSheet';
 import { TripMenuSheet } from './TripMenuSheet';
 import styles from './TripHeader.module.css';
 
@@ -53,7 +54,11 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
           {formatDateShort(range.startDate)} – {formatDateShort(range.endDate)}
         </div>
       )}
-      {shareOpen && <ShareSheet trip={trip} onClose={() => setShareOpen(false)} onSave={onSaveTrip} />}
+      {shareOpen && (
+        <Suspense fallback={<ScreenLoadingFallback />}>
+          <ShareSheetLazy trip={trip} onClose={() => setShareOpen(false)} onSave={onSaveTrip} />
+        </Suspense>
+      )}
       {menuOpen && (
         <TripMenuSheet
           trip={trip}

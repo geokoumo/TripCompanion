@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { CreateTripWizardLazy } from '../../../app/lazyScreens';
 import { LoadingScreen } from '../../../app/LoadingScreen';
+import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { OverviewTab } from './OverviewTab';
 import { BookingsTab } from './BookingsTab';
@@ -10,7 +12,6 @@ import { BudgetTab } from '../../budget/components/BudgetTab';
 import { ChecklistTab } from '../../checklist/components/ChecklistTab';
 import { useTrip } from '../hooks/useTrip';
 import type { Trip, TripTab } from '../types';
-import { CreateTripWizard } from './CreateTripWizard';
 import { InTripBottomNav } from './InTripBottomNav';
 import { TripHeader } from './TripHeader';
 
@@ -74,19 +75,21 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
       )}
 
       {duplicating && (
-        <CreateTripWizard
-          onClose={() => setDuplicating(false)}
-          onCreated={() => {
-            setDuplicating(false);
-            onBack();
-          }}
-          duplicateSeed={{
-            categories: trip.budgetCategories,
-            checklistTemplateItems: trip.checklistItems
-              .filter((i) => i.travelerId === trip.travelers[0]?.id)
-              .map(({ text, category, quantity }) => ({ text, category, quantity })),
-          }}
-        />
+        <Suspense fallback={<ScreenLoadingFallback />}>
+          <CreateTripWizardLazy
+            onClose={() => setDuplicating(false)}
+            onCreated={() => {
+              setDuplicating(false);
+              onBack();
+            }}
+            duplicateSeed={{
+              categories: trip.budgetCategories,
+              checklistTemplateItems: trip.checklistItems
+                .filter((i) => i.travelerId === trip.travelers[0]?.id)
+                .map(({ text, category, quantity }) => ({ text, category, quantity })),
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );

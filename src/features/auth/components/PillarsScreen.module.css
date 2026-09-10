@@ -76,20 +76,3 @@
   margin-top: 2px;
 }
 
-.dots {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin: var(--space-6) 0 var(--space-5);
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--color-border-strong);
-}
-
-.dot[data-active='true'] {
-  background: var(--color-teal);
-}

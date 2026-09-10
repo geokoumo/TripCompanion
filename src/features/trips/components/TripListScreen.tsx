@@ -1,15 +1,15 @@
-import { useRef, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { CreateTripWizardLazy, ShareSheetLazy } from '../../../app/lazyScreens';
+import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { useTrips } from '../hooks/useTrips';
 import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
 import type { Trip, TripTab } from '../types';
-import { CreateTripWizard } from './CreateTripWizard';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
 import { HelpSheet } from './HelpSheet';
-import { ShareSheet } from './ShareSheet';
 import { TripCard } from './TripCard';
 import { TripMenuSheet } from './TripMenuSheet';
 import styles from './TripListScreen.module.css';
@@ -123,23 +123,29 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
         />
       )}
 
-      {shareTrip && <ShareSheet trip={shareTrip} onClose={() => setShareTrip(null)} onSave={(updated) => void saveTrip(updated)} />}
+      {shareTrip && (
+        <Suspense fallback={<ScreenLoadingFallback />}>
+          <ShareSheetLazy trip={shareTrip} onClose={() => setShareTrip(null)} onSave={(updated) => void saveTrip(updated)} />
+        </Suspense>
+      )}
 
       {editDescriptionTrip && (
         <EditDescriptionSheet trip={editDescriptionTrip} onClose={() => setEditDescriptionTrip(null)} onSave={(updated) => void saveTrip(updated)} />
       )}
 
       {duplicateSource && (
-        <CreateTripWizard
-          onClose={() => setDuplicateSource(null)}
-          onCreated={() => setDuplicateSource(null)}
-          duplicateSeed={{
-            categories: duplicateSource.budgetCategories,
-            checklistTemplateItems: duplicateSource.checklistItems
-              .filter((i) => i.travelerId === duplicateSource.travelers[0]?.id)
-              .map(({ text, category, quantity }) => ({ text, category, quantity })),
-          }}
-        />
+        <Suspense fallback={<ScreenLoadingFallback />}>
+          <CreateTripWizardLazy
+            onClose={() => setDuplicateSource(null)}
+            onCreated={() => setDuplicateSource(null)}
+            duplicateSeed={{
+              categories: duplicateSource.budgetCategories,
+              checklistTemplateItems: duplicateSource.checklistItems
+                .filter((i) => i.travelerId === duplicateSource.travelers[0]?.id)
+                .map(({ text, category, quantity }) => ({ text, category, quantity })),
+            }}
+          />
+        </Suspense>
       )}
 
       {pendingDelete && (

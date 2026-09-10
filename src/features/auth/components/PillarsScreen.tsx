@@ -41,13 +41,7 @@ export function PillarsScreen({ onBack, onGetStarted }: PillarsScreenProps) {
         ))}
       </div>
 
-      <div className={styles.dots}>
-        <span className={styles.dot} />
-        <span className={styles.dot} data-active="true" />
-        <span className={styles.dot} />
-      </div>
-
-      <Button variant="primary" onClick={onGetStarted} style={{ flex: 'none', width: '100%' }}>
+      <Button variant="primary" onClick={onGetStarted} style={{ flex: 'none', width: '100%', marginTop: 'var(--space-5)' }}>
         Get started
       </Button>
     </div>

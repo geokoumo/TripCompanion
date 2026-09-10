@@ -1,19 +1,17 @@
-import { useState } from 'react';
-import { SettingsScreen } from '../features/settings/components/SettingsScreen';
+import { Suspense, useState } from 'react';
 import { useLocalTripsImportPrompt } from '../features/auth/lib/localImportPrompt';
 import { LocalTripsImportPrompt } from '../features/auth/components/LocalTripsImportPrompt';
 import { OnboardingFlow } from '../features/auth/components/OnboardingFlow';
 import { ResetPasswordScreen } from '../features/auth/components/ResetPasswordScreen';
-import { SearchScreen } from '../features/search/components/SearchScreen';
 import { TripListScreen } from '../features/trips/components/TripListScreen';
 import { TripDetailScreen } from '../features/trips/components/TripDetailScreen';
-import { SharedTripView } from '../features/trips/components/SharedTripView';
-import { CreateTripWizard } from '../features/trips/components/CreateTripWizard';
 import { useHashRoute, type Route } from '../shared/lib/useHashRoute';
 import { BottomNav } from './BottomNav';
 import { ErrorBoundary } from './ErrorBoundary';
+import { CreateTripWizardLazy, SearchScreenLazy, SettingsScreenLazy, SharedTripViewLazy } from './lazyScreens';
 import { LoadingScreen } from './LoadingScreen';
 import { AuthProvider, useAuth } from './providers/AuthProvider';
+import { ScreenLoadingFallback } from './ScreenLoadingFallback';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './providers/ToastProvider';
 import { TripsProvider } from './providers/TripsProvider';
@@ -22,7 +20,7 @@ const TOP_LEVEL_ROUTES = new Set(['home', 'search']);
 
 function Router({ route, navigate }: { route: Route; navigate: (route: Route) => void }) {
   if (route.name === 'shared') {
-    return <SharedTripView tripId={route.tripId} onExit={() => navigate({ name: 'home' })} />;
+    return <SharedTripViewLazy tripId={route.tripId} onExit={() => navigate({ name: 'home' })} />;
   }
 
   if (route.name === 'trip') {
@@ -37,7 +35,7 @@ function Router({ route, navigate }: { route: Route; navigate: (route: Route) =>
   }
 
   if (route.name === 'search') {
-    return <SearchScreen onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab })} />;
+    return <SearchScreenLazy onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab })} />;
   }
 
   return <TripListScreen onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab: tab ?? 'overview' })} />;
@@ -77,7 +75,9 @@ function AuthGatedApp() {
     <TripsProvider>
       <ErrorBoundary>
         <div style={{ paddingBottom: showBottomNav ? 'calc(64px + env(safe-area-inset-bottom, 0px))' : 0 }}>
-          <Router route={route} navigate={navigate} />
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <Router route={route} navigate={navigate} />
+          </Suspense>
         </div>
 
         {showBottomNav && (
@@ -91,16 +91,22 @@ function AuthGatedApp() {
         )}
 
         {wizardOpen && (
-          <CreateTripWizard
-            onClose={() => setWizardOpen(false)}
-            onCreated={(tripId) => {
-              setWizardOpen(false);
-              navigate({ name: 'trip', tripId, tab: 'overview' });
-            }}
-          />
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <CreateTripWizardLazy
+              onClose={() => setWizardOpen(false)}
+              onCreated={(tripId) => {
+                setWizardOpen(false);
+                navigate({ name: 'trip', tripId, tab: 'overview' });
+              }}
+            />
+          </Suspense>
         )}
 
-        {settingsOpen && <SettingsScreen onClose={() => setSettingsOpen(false)} />}
+        {settingsOpen && (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <SettingsScreenLazy onClose={() => setSettingsOpen(false)} />
+          </Suspense>
+        )}
 
         {localTrips && <LocalTripsImportPrompt localTrips={localTrips} onClose={dismissLocalTripsPrompt} />}
       </ErrorBoundary>
