@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { FLIGHT_STATUSES } from '../../../config/constants';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { formatDateShort, formatDateNoYear, todayStr, daysBetween } from '../../../shared/lib/dateFormat';
+import { TripHealthBanner } from '../../tripHealth/components/TripHealthBanner';
+import { computeTripHealth } from '../../tripHealth/lib/computeTripHealth';
 import { getTripDateRange } from '../lib/dateRange';
 import { getTripStatus, type Trip } from '../types';
 import { StatGrid } from './StatGrid';
@@ -10,10 +13,16 @@ function statusLabel(status: string): string {
   return FLIGHT_STATUSES.find((s) => s.id === status)?.label ?? status;
 }
 
-export function OverviewTab({ trip }: { trip: Trip }) {
+interface OverviewTabProps {
+  trip: Trip;
+  onOpenTripHealth: () => void;
+}
+
+export function OverviewTab({ trip, onOpenTripHealth }: OverviewTabProps) {
   const range = getTripDateRange(trip.legs, trip.flights);
-  const status = getTripStatus(range);
   const today = todayStr();
+  const { warnings } = useMemo(() => computeTripHealth(trip, today), [trip, today]);
+  const status = getTripStatus(range);
 
   const sortedFlights = [...trip.flights].sort((a, b) => (a.depDate + a.depTime).localeCompare(b.depDate + b.depTime));
   const nextFlight = sortedFlights.find((f) => f.depDate + f.depTime >= today) ?? sortedFlights[sortedFlights.length - 1];
@@ -51,6 +60,7 @@ export function OverviewTab({ trip }: { trip: Trip }) {
     <div className={styles.wrapper}>
       {trip.description && <p className={styles.description}>{trip.description}</p>}
       <StatGrid trip={trip} />
+      <TripHealthBanner warnings={warnings} onOpen={onOpenTripHealth} />
 
       {countdownKicker && range && (
         <div className={styles.countdownCard} data-tone={countdownTone}>

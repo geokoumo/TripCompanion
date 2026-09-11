@@ -5,6 +5,7 @@ import { CreateTripWizardLazy } from '../../../app/lazyScreens';
 import { LoadingScreen } from '../../../app/LoadingScreen';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
+import { TripHealthScreen } from '../../tripHealth/components/TripHealthScreen';
 import { OverviewTab } from './OverviewTab';
 import { BookingsTab } from './BookingsTab';
 import { ItineraryTab } from '../../itinerary/components/ItineraryTab';
@@ -28,6 +29,7 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
   const { showToast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [showTripHealth, setShowTripHealth] = useState(false);
 
   if (loading) {
     return <LoadingScreen />;
@@ -50,23 +52,36 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
 
   return (
     <div style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
-      <TripHeader
-        trip={trip}
-        onBack={onBack}
-        onArchiveToggle={() => void saveTrip({ ...trip, archived: !trip.archived })}
-        onDuplicate={() => setDuplicating(true)}
-        onDeleteRequest={() => setConfirmDelete(true)}
-        onSaveTrip={(updated) => void saveTrip(updated)}
-      />
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
-        {activeTab === 'overview' && <OverviewTab trip={trip} />}
-        {(activeTab === 'flights' || activeTab === 'stays') && (
-          <BookingsTab trip={trip} activeTab={activeTab} onTabChange={onTabChange} updateTrip={updateTrip} />
-        )}
-        {activeTab === 'itinerary' && <ItineraryTab trip={trip} updateTrip={updateTrip} />}
-        {activeTab === 'budget' && <BudgetTab trip={trip} updateTrip={updateTrip} />}
-        {activeTab === 'checklist' && <ChecklistTab trip={trip} updateTrip={updateTrip} />}
-      </div>
+      {showTripHealth ? (
+        <TripHealthScreen
+          trip={trip}
+          onBack={() => setShowTripHealth(false)}
+          onNavigate={(target) => {
+            setShowTripHealth(false);
+            onTabChange(target);
+          }}
+        />
+      ) : (
+        <>
+          <TripHeader
+            trip={trip}
+            onBack={onBack}
+            onArchiveToggle={() => void saveTrip({ ...trip, archived: !trip.archived })}
+            onDuplicate={() => setDuplicating(true)}
+            onDeleteRequest={() => setConfirmDelete(true)}
+            onSaveTrip={(updated) => void saveTrip(updated)}
+          />
+          <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
+            {activeTab === 'overview' && <OverviewTab trip={trip} onOpenTripHealth={() => setShowTripHealth(true)} />}
+            {(activeTab === 'flights' || activeTab === 'stays') && (
+              <BookingsTab trip={trip} activeTab={activeTab} onTabChange={onTabChange} updateTrip={updateTrip} />
+            )}
+            {activeTab === 'itinerary' && <ItineraryTab trip={trip} updateTrip={updateTrip} />}
+            {activeTab === 'budget' && <BudgetTab trip={trip} updateTrip={updateTrip} />}
+            {activeTab === 'checklist' && <ChecklistTab trip={trip} updateTrip={updateTrip} />}
+          </div>
+        </>
+      )}
 
       <InTripBottomNav activeTab={activeTab} onTabChange={onTabChange} />
 
