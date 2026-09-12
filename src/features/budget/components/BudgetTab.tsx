@@ -1,17 +1,17 @@
 import { useState } from 'react';
+import { StampToggle } from '../../../shared/components/StampToggle';
 import type { Trip } from '../../trips/types';
 import { CategoriesView } from './CategoriesView';
 import { ExpensesView } from './ExpensesView';
 import { SettleUpView } from './SettleUpView';
-import styles from './BudgetTab.module.css';
 
 type SubTab = 'categories' | 'expenses' | 'settleup';
 
-const LABELS: Record<SubTab, string> = {
-  categories: 'Categories',
-  expenses: 'Expenses',
-  settleup: 'Settle up',
-};
+const OPTIONS: { id: SubTab; label: string }[] = [
+  { id: 'categories', label: 'Categories' },
+  { id: 'expenses', label: 'Expenses' },
+  { id: 'settleup', label: 'Settle up' },
+];
 
 interface BudgetTabProps {
   trip: Trip;
@@ -23,12 +23,8 @@ export function BudgetTab({ trip, updateTrip }: BudgetTabProps) {
 
   return (
     <div style={{ paddingTop: 8 }}>
-      <div className={styles.subTabs}>
-        {(['categories', 'expenses', 'settleup'] as SubTab[]).map((tab) => (
-          <button key={tab} type="button" className={styles.subTab} data-active={tab === subTab} onClick={() => setSubTab(tab)}>
-            {LABELS[tab]}
-          </button>
-        ))}
+      <div style={{ margin: 'var(--space-3) 0 var(--space-4)' }}>
+        <StampToggle options={OPTIONS} value={subTab} onChange={setSubTab} variant="plain" layout="fill" />
       </div>
       {subTab === 'categories' && <CategoriesView trip={trip} updateTrip={updateTrip} />}
       {subTab === 'expenses' && <ExpensesView trip={trip} updateTrip={updateTrip} />}

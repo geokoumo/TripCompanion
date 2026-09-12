@@ -3,6 +3,7 @@ import { DocumentsListScreenLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { BOOKING_ITEM_TYPES, type BookingItemTypeId } from '../../../config/constants';
 import { BedIcon, FileIcon, PlaneIcon } from '../../../shared/components/icons';
+import { StampToggle } from '../../../shared/components/StampToggle';
 import { AddToTripSheet } from '../../bookings/components/AddToTripSheet';
 import { BookingItemsListScreen } from '../../bookings/components/BookingItemsListScreen';
 import { BOOKING_TYPE_ICON, type AddToTripDestination } from '../../bookings/lib/bookingGridConfig';
@@ -52,12 +53,7 @@ export function BookingsTab({ trip, activeTab, onTabChange, updateTrip }: Bookin
     <div>
       <div className={styles.switcherRow}>
         <div className={styles.switcherScroll}>
-          {SWITCHER_ITEMS.map(({ id, label, Icon }) => (
-            <button key={id} type="button" className={styles.switcherPill} data-active={subView === id} onClick={() => select(id)}>
-              <Icon size={15} />
-              {label}
-            </button>
-          ))}
+          <StampToggle options={SWITCHER_ITEMS} value={subView} onChange={select} variant="plain" layout="scroll" />
         </div>
         <button type="button" className={styles.moreButton} onClick={() => setPickerOpen(true)} aria-label="Add to trip">
           +

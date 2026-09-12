@@ -4,7 +4,27 @@
   gap: var(--space-2);
 }
 
+.group[data-layout='scroll'] {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.group[data-layout='scroll']::-webkit-scrollbar {
+  display: none;
+}
+
+.group[data-layout='fill'] .option {
+  flex: 1;
+  text-align: center;
+}
+
 .option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: var(--fs-meta);
   font-weight: 600;
@@ -12,10 +32,11 @@
   text-transform: uppercase;
   padding: 6px 12px;
   border-radius: var(--radius-pill);
-  border: 1.5px solid var(--color-border-strong);
+  border: var(--border-width-default) solid var(--color-border-strong);
   background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.12s ease;
 }
 
@@ -23,4 +44,17 @@
   background: var(--color-teal);
   border-color: var(--color-teal);
   color: var(--color-text-on-accent);
+}
+
+/* The "plain" variant is for navigation-style segmented tabs (Budget's
+   Categories/Expenses/Settle up) — body text, sentence case, no mono/
+   letter-spacing treatment, distinct from the "stamp" status-picker look. */
+.option[data-variant='plain'] {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  border-width: var(--border-width-default);
+  padding: 9px 14px;
 }
