@@ -37,7 +37,7 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
     startDate: '2026-09-05',
     endDate: '2026-09-12',
     homeCurrency: 'EUR',
-    travelers: [],
+    travelers: [{ id: 'tr1', name: 'Nikos' }],
     activities: [],
     flights: [],
     stays: [],

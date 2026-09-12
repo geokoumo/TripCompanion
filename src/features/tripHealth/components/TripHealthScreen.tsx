@@ -3,14 +3,15 @@ import { PageHeader } from '../../../shared/components/PageHeader';
 import { WarningCard } from '../../../shared/components/WarningCard';
 import { todayStr } from '../../../shared/lib/dateFormat';
 import { computeTripHealth } from '../lib/computeTripHealth';
-import type { TripHealthFixTarget } from '../types';
+import { resolveCopy } from '../lib/copy';
+import type { TripHealthNavigationTarget } from '../types';
 import type { Trip } from '../../trips/types';
 import styles from './TripHealthScreen.module.css';
 
 interface TripHealthScreenProps {
   trip: Trip;
   onBack: () => void;
-  onNavigate: (target: TripHealthFixTarget) => void;
+  onNavigate: (target: TripHealthNavigationTarget) => void;
 }
 
 export function TripHealthScreen({ trip, onBack, onNavigate }: TripHealthScreenProps) {
@@ -34,13 +35,13 @@ export function TripHealthScreen({ trip, onBack, onNavigate }: TripHealthScreenP
           <>
             <div className={styles.eyebrow}>Active Warnings</div>
             <div className={styles.warningList}>
-              {warnings.map((warning) => (
+              {warnings.map((warning, index) => (
                 <WarningCard
-                  key={warning.id}
-                  title={warning.title}
-                  description={warning.description}
-                  actionLabel={warning.fixLabel}
-                  onAction={() => onNavigate(warning.fixTarget)}
+                  key={`${warning.type}-${warning.entityId}-${index}`}
+                  title={resolveCopy(warning.titleKey, warning.params)}
+                  description={resolveCopy(warning.descriptionKey, warning.params)}
+                  actionLabel={resolveCopy(warning.action)}
+                  onAction={() => onNavigate(warning.navigationTarget)}
                 />
               ))}
             </div>
@@ -54,7 +55,7 @@ export function TripHealthScreen({ trip, onBack, onNavigate }: TripHealthScreenP
               {passedChecks.map((check) => (
                 <li key={check.id} className={styles.passedItem}>
                   <span className={styles.passedDot} aria-hidden="true" />
-                  <span>{check.label}</span>
+                  <span>{resolveCopy(check.labelKey)}</span>
                 </li>
               ))}
             </ul>

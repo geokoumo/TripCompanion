@@ -1,17 +1,12 @@
-import { computeOccupiedRanges, findConflict } from '../../itinerary/lib/occupiedRanges';
-import { dateTimeRangesOverlap } from '../../stays/lib/overlap';
-import { formatDateShort } from '../../../shared/lib/dateFormat';
+import { validateTrip, type DomainError } from '../../../domain';
+import { isMissingExchangeRate } from '../../budget/lib/currency';
+import { formatDateNoYear, formatDateShort } from '../../../shared/lib/dateFormat';
 import type { Trip } from '../../trips/types';
-import type { Stay } from '../../stays/types';
-import type { TripHealthPassedCheck, TripHealthReport, TripHealthWarning } from '../types';
+import { toDomainTrip } from './domainMapping';
+import type { TripHealthCheckType, TripHealthPassedCheck, TripHealthReport, TripHealthWarning } from '../types';
 
 /** How far ahead a flight has to be before a missing boarding pass is worth flagging — matches the real-world 24–48h check-in window, so a flight three weeks out doesn't get flagged for something nobody would have done yet. */
 const BOARDING_PASS_WINDOW_DAYS = 2;
-
-function toMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return (h ?? 0) * 60 + (m ?? 0);
-}
 
 function addDays(dateStr: string, days: number): string {
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -19,132 +14,337 @@ function addDays(dateStr: string, days: number): string {
   return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
 }
 
-function stayRange(stay: Stay) {
-  return {
-    start: { date: stay.checkinDate, time: stay.checkinTime },
-    end: { date: stay.checkoutDate, time: stay.checkoutTime },
-  };
+function activityLabel(trip: Trip, id: string | undefined): string {
+  return trip.itineraryStops.find((s) => s.id === id)?.title ?? 'This activity';
 }
 
-function checkExchangeRates(trip: Trip, warnings: TripHealthWarning[], passedChecks: TripHealthPassedCheck[]) {
-  const missingByCurrency = new Map<string, number>();
-  for (const expense of trip.expenses) {
-    if (expense.currency !== trip.homeCurrency && expense.exchangeRateToHome == null) {
-      missingByCurrency.set(expense.currency, (missingByCurrency.get(expense.currency) ?? 0) + 1);
+function stayLabel(trip: Trip, id: string | undefined): string {
+  return trip.stays.find((s) => s.id === id)?.name ?? 'This stay';
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  title: 'title',
+  type: 'type',
+  date: 'date',
+  time: 'time',
+  location: 'location',
+  startDate: 'start date',
+  endDate: 'end date',
+  travelers: 'at least one traveler',
+};
+
+function fieldLabel(field: string): string {
+  return FIELD_LABELS[field] ?? field;
+}
+
+/**
+ * Removes the mirror-image duplicate that TIME_OVERLAP/STAY_OVERLAP always
+ * produce (domain.validateTrip reports a conflict from BOTH entities'
+ * perspectives, which is exactly right for per-entity save-time validation
+ * but would show the same real-world conflict twice as separate Trip
+ * Health cards) — keeps exactly one warning per unordered {entityId,
+ * conflictingId} pair.
+ */
+function dedupePairwiseErrors(errors: DomainError[]): DomainError[] {
+  const seen = new Set<string>();
+  const result: DomainError[] = [];
+  for (const error of errors) {
+    if (error.code === 'TIME_OVERLAP' || error.code === 'STAY_OVERLAP') {
+      const key = [error.entityId ?? '', error.conflictingId].sort().join('|');
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    result.push(error);
+  }
+  return result;
+}
+
+/**
+ * Translates one DomainError from domain.validateTrip() into a Trip Health
+ * warning. This is the ONLY place a machine-readable DomainErrorCode is
+ * turned into a check type + copy keys — every check that domain already
+ * covers (required trip fields, per-activity data validity, activity
+ * conflicts, stay overlaps) is sourced from here, never re-derived.
+ */
+function mapDomainError(error: DomainError, trip: Trip): TripHealthWarning {
+  const entityType = error.code === 'STAY_OVERLAP' ? 'stay' : error.entityId ? 'activity' : 'trip';
+  const entityId = error.entityId ?? trip.id;
+
+  switch (error.code) {
+    case 'MISSING_REQUIRED_DATA':
+      if (entityType === 'trip') {
+        return {
+          type: 'MISSING_REQUIRED_TRIP_INFO',
+          severity: 'critical',
+          entityType: 'trip',
+          entityId,
+          titleKey: 'tripHealth.title.missingTripInfo',
+          descriptionKey: 'tripHealth.description.missingTripInfo',
+          params: { field: fieldLabel(error.field) },
+          action: 'tripHealth.action.completeTripInfo',
+          navigationTarget: 'itinerary',
+        };
+      }
+      return {
+        type: 'MISSING_REQUIRED_ACTIVITY_INFO',
+        severity: 'warning',
+        entityType: 'activity',
+        entityId,
+        titleKey: 'tripHealth.title.missingActivityInfo',
+        descriptionKey: 'tripHealth.description.missingActivityInfo',
+        params: { activity: activityLabel(trip, entityId), field: fieldLabel(error.field) },
+        action: 'tripHealth.action.reviewItinerary',
+        navigationTarget: 'itinerary',
+      };
+
+    case 'INVALID_DATE':
+      return {
+        type: 'ACTIVITY_DATE_OUT_OF_RANGE',
+        severity: 'warning',
+        entityType: 'activity',
+        entityId,
+        titleKey: 'tripHealth.title.activityDateOutOfRange',
+        descriptionKey: 'tripHealth.description.activityInvalidDateValue',
+        params: { activity: activityLabel(trip, entityId) },
+        action: 'tripHealth.action.reviewItinerary',
+        navigationTarget: 'itinerary',
+      };
+
+    case 'DATE_OUT_OF_RANGE':
+      return {
+        type: 'ACTIVITY_DATE_OUT_OF_RANGE',
+        severity: 'warning',
+        entityType: 'activity',
+        entityId,
+        titleKey: 'tripHealth.title.activityDateOutOfRange',
+        descriptionKey: 'tripHealth.description.activityDateOutOfRange',
+        params: {
+          activity: activityLabel(trip, entityId),
+          date: formatDateNoYear(error.date),
+          rangeStart: formatDateNoYear(error.rangeStart),
+          rangeEnd: formatDateNoYear(error.rangeEnd),
+        },
+        action: 'tripHealth.action.reviewItinerary',
+        navigationTarget: 'itinerary',
+      };
+
+    case 'INVALID_TIME_RANGE':
+      return {
+        type: 'ACTIVITY_INVALID_TIME',
+        severity: 'warning',
+        entityType: 'activity',
+        entityId,
+        titleKey: 'tripHealth.title.activityInvalidTime',
+        descriptionKey: 'tripHealth.description.activityInvalidTime',
+        params: { activity: activityLabel(trip, entityId) },
+        action: 'tripHealth.action.reviewItinerary',
+        navigationTarget: 'itinerary',
+      };
+
+    case 'INVALID_DURATION':
+      return {
+        type: 'ACTIVITY_INVALID_DURATION',
+        severity: 'warning',
+        entityType: 'activity',
+        entityId,
+        titleKey: 'tripHealth.title.activityInvalidDuration',
+        descriptionKey: 'tripHealth.description.activityInvalidDuration',
+        params: { activity: activityLabel(trip, entityId) },
+        action: 'tripHealth.action.reviewItinerary',
+        navigationTarget: 'itinerary',
+      };
+
+    case 'INVALID_PRICE':
+    case 'INVALID_CURRENCY':
+      return {
+        type: 'ACTIVITY_INVALID_PRICE',
+        severity: 'warning',
+        entityType: 'activity',
+        entityId,
+        titleKey: 'tripHealth.title.activityInvalidPrice',
+        descriptionKey: 'tripHealth.description.activityInvalidPrice',
+        params: { activity: activityLabel(trip, entityId) },
+        action: 'tripHealth.action.reviewItinerary',
+        navigationTarget: 'itinerary',
+      };
+
+    case 'INVALID_LOCATION':
+      return {
+        type: 'ACTIVITY_INVALID_LOCATION',
+        severity: 'warning',
+        entityType: 'activity',
+        entityId,
+        titleKey: 'tripHealth.title.activityInvalidLocation',
+        descriptionKey: 'tripHealth.description.activityInvalidLocation',
+        params: { activity: activityLabel(trip, entityId) },
+        action: 'tripHealth.action.reviewItinerary',
+        navigationTarget: 'itinerary',
+      };
+
+    case 'TIME_OVERLAP':
+      return {
+        type: 'ACTIVITY_CONFLICT',
+        severity: 'warning',
+        entityType: 'activity',
+        entityId,
+        titleKey: 'tripHealth.title.activityConflict',
+        descriptionKey: 'tripHealth.description.activityConflict',
+        params: {
+          activity: activityLabel(trip, entityId),
+          conflicting: activityLabel(trip, error.conflictingId),
+          date: formatDateNoYear(trip.itineraryStops.find((s) => s.id === entityId)?.date ?? ''),
+        },
+        action: 'tripHealth.action.reviewItinerary',
+        navigationTarget: 'itinerary',
+      };
+
+    case 'STAY_OVERLAP': {
+      const stayA = trip.stays.find((s) => s.id === entityId);
+      const stayB = trip.stays.find((s) => s.id === error.conflictingId);
+      // The later of the two check-ins is the day the overlap actually starts.
+      const overlapDate = stayA && stayB ? (stayB.checkinDate >= stayA.checkinDate ? stayB.checkinDate : stayA.checkinDate) : '';
+      return {
+        type: 'STAY_OVERLAP',
+        severity: 'warning',
+        entityType: 'stay',
+        entityId,
+        titleKey: 'tripHealth.title.stayOverlap',
+        descriptionKey: 'tripHealth.description.stayOverlap',
+        params: {
+          stay: stayLabel(trip, entityId),
+          conflicting: stayLabel(trip, error.conflictingId),
+          date: overlapDate ? formatDateNoYear(overlapDate) : '',
+        },
+        action: 'tripHealth.action.updateStayDates',
+        navigationTarget: 'stays',
+      };
     }
   }
-  if (missingByCurrency.size === 0) {
-    passedChecks.push({ id: 'exchange-rates', label: 'All foreign-currency expenses have a saved exchange rate.' });
-    return;
-  }
-  for (const [currency, count] of missingByCurrency) {
-    warnings.push({
-      id: `exchange-rate-${currency}`,
-      severity: 'warning',
-      title: `Missing exchange rate ${currency} to ${trip.homeCurrency}`,
-      description: `${count} ${currency} expense${count === 1 ? '' : 's'} ${count === 1 ? 'is' : 'are'} missing a saved exchange rate. Add a fixed rate so budget totals are calculated from saved trip data only.`,
-      fixLabel: 'Add Exchange Rate',
-      fixTarget: 'budget',
-    });
-  }
 }
 
-function checkBoardingPasses(trip: Trip, today: string, warnings: TripHealthWarning[], passedChecks: TripHealthPassedCheck[]) {
+/** Flights departing imminently with no matching boarding-pass document attached. Not covered by the domain layer (which knows nothing about documents) — a Trip-Health-specific policy check. */
+function checkBoardingPasses(trip: Trip, today: string): TripHealthWarning[] {
   const windowEnd = addDays(today, BOARDING_PASS_WINDOW_DAYS);
-  let flagged = 0;
+  const warnings: TripHealthWarning[] = [];
   for (const flight of trip.flights) {
     if (flight.status === 'cancelled') continue;
     if (flight.depDate < today || flight.depDate > windowEnd) continue;
     const relatedTo = flight.depAirport && flight.arrAirport ? `${flight.depAirport} → ${flight.arrAirport} flight` : 'Flight';
     const hasBoardingPass = trip.documents.some((d) => d.category === 'boarding_pass' && d.relatedTo === relatedTo);
     if (hasBoardingPass) continue;
-    flagged += 1;
     warnings.push({
-      id: `boarding-pass-${flight.id}`,
+      type: 'MISSING_BOARDING_PASS',
       severity: 'warning',
-      title: `Missing boarding pass for ${flight.airline} ${flight.flightNumber}`,
-      description: `This flight departs ${formatDateShort(flight.depDate)}, but no boarding pass is attached to the saved trip. Upload the PDF to complete the document set.`,
-      fixLabel: 'Upload Boarding Pass',
-      fixTarget: 'flights',
+      entityType: 'flight',
+      entityId: flight.id,
+      titleKey: 'tripHealth.title.missingBoardingPass',
+      descriptionKey: 'tripHealth.description.missingBoardingPass',
+      params: { flight: `${flight.airline} ${flight.flightNumber}`, date: formatDateShort(flight.depDate) },
+      action: 'tripHealth.action.uploadBoardingPass',
+      navigationTarget: 'flights',
     });
   }
-  if (flagged === 0) {
-    passedChecks.push({ id: 'boarding-passes', label: 'Boarding passes are attached for flights departing soon.' });
-  }
+  return warnings;
 }
 
-function checkStayOverlaps(trip: Trip, warnings: TripHealthWarning[], passedChecks: TripHealthPassedCheck[]) {
-  const sorted = [...trip.stays].sort((a, b) => (a.checkinDate + a.checkinTime).localeCompare(b.checkinDate + b.checkinTime));
-  let overlapCount = 0;
-  for (let i = 0; i < sorted.length; i++) {
-    for (let j = i + 1; j < sorted.length; j++) {
-      const a = sorted[i]!;
-      const b = sorted[j]!;
-      if (!dateTimeRangesOverlap(stayRange(a), stayRange(b))) continue;
-      overlapCount += 1;
-      warnings.push({
-        id: `stay-overlap-${a.id}-${b.id}`,
-        severity: 'warning',
-        title: `Overlapping stays: ${a.name} & ${b.name}`,
-        description: 'Saved check-out and check-in times overlap. Update one stay to prevent duplicate hotel coverage in the itinerary.',
-        fixLabel: 'Update Stay Dates',
-        fixTarget: 'stays',
-      });
-    }
+/** Stays with no hotel-confirmation document attached — matched the same way StayForm's own Attachments field tags one (relatedTo = the stay's name). Not time-windowed like boarding passes: unlike a boarding pass, a confirmation is normally available the moment the stay is booked. */
+function checkStayDocuments(trip: Trip): TripHealthWarning[] {
+  const warnings: TripHealthWarning[] = [];
+  for (const stay of trip.stays) {
+    const hasConfirmation = trip.documents.some((d) => d.category === 'hotel_confirmation' && d.relatedTo === stay.name);
+    if (hasConfirmation) continue;
+    warnings.push({
+      type: 'MISSING_STAY_DOCUMENT',
+      severity: 'warning',
+      entityType: 'stay',
+      entityId: stay.id,
+      titleKey: 'tripHealth.title.missingStayDocument',
+      descriptionKey: 'tripHealth.description.missingStayDocument',
+      params: { stay: stay.name },
+      action: 'tripHealth.action.addDocument',
+      navigationTarget: 'stays',
+    });
   }
-  if (overlapCount === 0) {
-    passedChecks.push({ id: 'stay-overlaps', label: 'No overlapping stays.' });
-  }
+  return warnings;
 }
 
-/**
- * Audits already-saved itinerary stops for time conflicts. StopForm blocks
- * creating a new conflict at save time, but this re-checks the saved data
- * itself (an edit that changed a duration, an imported trip, etc. could
- * still leave two stops overlapping) rather than trusting that the
- * write-time guard was always in effect.
- */
-function checkItineraryConflicts(trip: Trip, warnings: TripHealthWarning[], passedChecks: TripHealthPassedCheck[]) {
-  const timedStops = trip.itineraryStops.filter((s) => !s.allDay && s.time && s.durationMinutes);
-  let hasConflict = false;
-  for (const stop of timedStops) {
-    const ranges = computeOccupiedRanges({ date: stop.date, stops: trip.itineraryStops, flights: [], stays: [], excludeStopId: stop.id });
-    if (findConflict(toMinutes(stop.time!), stop.durationMinutes!, ranges)) {
-      hasConflict = true;
-      break;
+/** Foreign-currency expenses with no saved conversion rate, grouped by currency — reuses budget's own isMissingExchangeRate rather than re-deriving the same condition. */
+function checkExchangeRates(trip: Trip): TripHealthWarning[] {
+  const missingByCurrency = new Map<string, number>();
+  for (const expense of trip.expenses) {
+    if (isMissingExchangeRate(expense, trip.homeCurrency)) {
+      missingByCurrency.set(expense.currency, (missingByCurrency.get(expense.currency) ?? 0) + 1);
     }
   }
-  if (!hasConflict) {
-    passedChecks.push({ id: 'itinerary-conflicts', label: 'No timed manual activity conflicts.' });
-    return;
+  const warnings: TripHealthWarning[] = [];
+  for (const [currency, count] of missingByCurrency) {
+    warnings.push({
+      type: 'MISSING_EXCHANGE_RATE',
+      severity: 'warning',
+      entityType: 'trip',
+      entityId: trip.id,
+      titleKey: 'tripHealth.title.missingExchangeRate',
+      descriptionKey: 'tripHealth.description.missingExchangeRate',
+      params: { count: String(count), currency, expenseWord: count === 1 ? 'expense is' : 'expenses are' },
+      action: 'tripHealth.action.addExchangeRate',
+      navigationTarget: 'budget',
+    });
   }
-  warnings.push({
-    id: 'itinerary-conflicts',
-    severity: 'warning',
-    title: 'Overlapping itinerary stops',
-    description: 'Two or more timed stops on the same day overlap. Adjust their times or durations so the schedule stays realistic.',
-    fixLabel: 'Review Itinerary',
-    fixTarget: 'itinerary',
-  });
+  return warnings;
 }
+
+const CATEGORY_BY_TYPE: Record<TripHealthCheckType, string> = {
+  MISSING_REQUIRED_TRIP_INFO: 'tripInfo',
+  MISSING_REQUIRED_ACTIVITY_INFO: 'activityIntegrity',
+  ACTIVITY_DATE_OUT_OF_RANGE: 'activityIntegrity',
+  ACTIVITY_INVALID_TIME: 'activityIntegrity',
+  ACTIVITY_INVALID_DURATION: 'activityIntegrity',
+  ACTIVITY_INVALID_PRICE: 'activityIntegrity',
+  ACTIVITY_INVALID_LOCATION: 'activityIntegrity',
+  ACTIVITY_CONFLICT: 'activityConflicts',
+  STAY_OVERLAP: 'stayOverlaps',
+  MISSING_BOARDING_PASS: 'boardingPasses',
+  MISSING_STAY_DOCUMENT: 'stayDocuments',
+  MISSING_EXCHANGE_RATE: 'exchangeRates',
+};
+
+const PASSED_LABEL_BY_CATEGORY: Record<string, string> = {
+  tripInfo: 'tripHealth.passed.tripInfo',
+  activityIntegrity: 'tripHealth.passed.activityIntegrity',
+  activityConflicts: 'tripHealth.passed.activityConflicts',
+  stayOverlaps: 'tripHealth.passed.stayOverlaps',
+  boardingPasses: 'tripHealth.passed.boardingPasses',
+  stayDocuments: 'tripHealth.passed.stayDocuments',
+  exchangeRates: 'tripHealth.passed.exchangeRates',
+};
 
 /**
  * Trip Health is entirely derived from saved trip data — every warning maps
  * to a real, checkable condition and every fix points at a screen that can
- * actually resolve it. Nothing here is hardcoded or simulated.
+ * actually resolve it. Nothing here is hardcoded or simulated: the
+ * required-info/activity-integrity/activity-conflict/stay-overlap checks
+ * all come straight from domain.validateTrip() (the same engine Add/Edit
+ * Activity uses to validate a save), and the remaining checks
+ * (boarding passes, stay documents, exchange rates) are genuine
+ * Trip-Health-only policies with nothing elsewhere to duplicate.
+ *
+ * Purely a function of `trip` and `today` — call it again after any change
+ * to the trip (a new expense, a fixed stay date, an uploaded document) and
+ * the report reflects exactly that change, with nothing cached in between.
  */
 export function computeTripHealth(trip: Trip, today: string): TripHealthReport {
-  const warnings: TripHealthWarning[] = [];
-  const passedChecks: TripHealthPassedCheck[] = [];
+  const domainErrors = dedupePairwiseErrors(validateTrip(toDomainTrip(trip)));
+  const warnings: TripHealthWarning[] = [
+    ...domainErrors.map((error) => mapDomainError(error, trip)),
+    ...checkBoardingPasses(trip, today),
+    ...checkStayDocuments(trip),
+    ...checkExchangeRates(trip),
+  ];
 
-  checkExchangeRates(trip, warnings, passedChecks);
-  checkBoardingPasses(trip, today, warnings, passedChecks);
-  checkStayOverlaps(trip, warnings, passedChecks);
-  checkItineraryConflicts(trip, warnings, passedChecks);
-
-  if (trip.travelers.length > 0 && trip.legs.length > 0) {
-    passedChecks.push({ id: 'required-info', label: 'Required trip information is complete: traveler, destination, and travel dates.' });
-  }
+  const warningCategories = new Set(warnings.map((w) => CATEGORY_BY_TYPE[w.type]));
+  const passedChecks: TripHealthPassedCheck[] = Object.entries(PASSED_LABEL_BY_CATEGORY)
+    .filter(([category]) => !warningCategories.has(category))
+    .map(([id, labelKey]) => ({ id, labelKey }));
 
   return { warnings, passedChecks };
 }

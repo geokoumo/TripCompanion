@@ -10,7 +10,9 @@ function isBlank(value: unknown): boolean {
 }
 
 const REQUIRED_FIELDS: Record<EntityKind, string[]> = {
-  trip: ['id', 'title', 'startDate', 'endDate'],
+  // A trip with no travelers has nobody to plan for — Trip Health treats
+  // this the same as a missing title or missing dates: an incomplete trip.
+  trip: ['id', 'title', 'startDate', 'endDate', 'travelers'],
   traveler: ['id', 'name'],
   activity: ['id', 'title', 'type', 'date'],
   flight: ['id', 'airline', 'flightNumber', 'depAirport', 'depDate', 'depTime', 'arrAirport', 'arrDate', 'arrTime'],

@@ -74,14 +74,23 @@ describe('validateRequiredData', () => {
   });
 
   it('validates a trip entity', () => {
-    expect(validateRequiredData('trip', { id: 't1', title: 'Japan', startDate: '2026-09-01', endDate: '2026-09-10' })).toEqual([]);
+    expect(
+      validateRequiredData('trip', { id: 't1', title: 'Japan', startDate: '2026-09-01', endDate: '2026-09-10', travelers: [{ id: 'tr1' }] }),
+    ).toEqual([]);
     expect(validateRequiredData('trip', { id: 't1' })).toEqual(
       expect.arrayContaining([
         { code: 'MISSING_REQUIRED_DATA', field: 'title' },
         { code: 'MISSING_REQUIRED_DATA', field: 'startDate' },
         { code: 'MISSING_REQUIRED_DATA', field: 'endDate' },
+        { code: 'MISSING_REQUIRED_DATA', field: 'travelers' },
       ]),
     );
+  });
+
+  it('treats an empty travelers array on a trip as missing', () => {
+    expect(
+      validateRequiredData('trip', { id: 't1', title: 'Japan', startDate: '2026-09-01', endDate: '2026-09-10', travelers: [] }),
+    ).toEqual([{ code: 'MISSING_REQUIRED_DATA', field: 'travelers' }]);
   });
 
   it('validates a document entity', () => {

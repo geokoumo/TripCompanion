@@ -1,6 +1,7 @@
 import { Card } from '../../../shared/components/Card';
 import { IconCircle } from '../../../shared/components/IconCircle';
 import { AlertTriangleIcon, CheckCircleIcon } from '../../../shared/components/icons';
+import { resolveCopy } from '../lib/copy';
 import type { TripHealthWarning } from '../types';
 import styles from './TripHealthBanner.module.css';
 
@@ -18,10 +19,10 @@ interface TripHealthBannerProps {
 export function TripHealthBanner({ warnings, onOpen }: TripHealthBannerProps) {
   const allClear = warnings.length === 0;
   const summary = allClear
-    ? 'All checks passed.'
+    ? resolveCopy('tripHealth.passed.allClear')
     : warnings.length === 1
-      ? warnings[0]!.title
-      : warnings.map((w) => w.title).join(', ');
+      ? resolveCopy(warnings[0]!.descriptionKey, warnings[0]!.params)
+      : warnings.map((w) => resolveCopy(w.titleKey, w.params)).join(', ');
 
   return (
     <Card className={styles.card} onClick={onOpen} data-tone={allClear ? 'teal' : 'rust'}>
