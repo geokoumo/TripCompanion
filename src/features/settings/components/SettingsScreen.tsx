@@ -7,6 +7,7 @@ import { TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { Switch } from '../../../shared/components/Switch';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import { getOwnProfile } from '../../../data/repository/profileRepository';
 import { getStorageUsageBytes } from '../../../data/storage/tripFilesBucket';
 import {
   getDefaultCurrency,
@@ -43,13 +44,26 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
   const [storageBytes, setStorageBytes] = useState<number | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [profileName, setProfileName] = useState<string | null>(null);
 
-  const displayName = typeof user?.user_metadata?.name === 'string' ? user.user_metadata.name : undefined;
+  // profiles.display_name is the source of truth once loaded; user_metadata
+  // (writable by the client at signup, not a normal joinable/RLS'd table) is
+  // only a fallback for the instant before that fetch resolves.
+  const metadataName = typeof user?.user_metadata?.name === 'string' ? user.user_metadata.name : undefined;
+  const displayName = profileName ?? metadataName;
   const language = getLanguage();
   const appearance = getResolvedAppearance();
 
   useEffect(() => {
     if (user) void getStorageUsageBytes(user.id).then(setStorageBytes);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setProfileName(null);
+      return;
+    }
+    void getOwnProfile().then((profile) => setProfileName(profile?.displayName ?? null));
   }, [user]);
 
   const toggleNotif = (key: NotificationPrefKey, value: boolean) => {

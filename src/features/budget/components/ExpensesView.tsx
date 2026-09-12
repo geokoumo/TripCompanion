@@ -5,6 +5,7 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
+import { upsertExpense } from '../../../data/repository/expenseRepository';
 import type { Trip } from '../../trips/types';
 import { expenseAmountInHome } from '../lib/currency';
 import type { Expense } from '../types';
@@ -25,10 +26,7 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
   const sorted = [...trip.expenses].sort((a, b) => b.date.localeCompare(a.date));
 
   const save = async (expense: Expense) => {
-    await updateTrip((t) => {
-      const exists = t.expenses.some((e) => e.id === expense.id);
-      return { ...t, expenses: exists ? t.expenses.map((e) => (e.id === expense.id ? expense : e)) : [...t.expenses, expense] };
-    });
+    await updateTrip((t) => upsertExpense(t, expense));
     showToast('Expense logged.');
     setEditing(null);
     setCreating(false);

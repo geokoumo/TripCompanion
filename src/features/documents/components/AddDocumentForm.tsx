@@ -8,6 +8,7 @@ import { FieldWrapper, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { generateId } from '../../../shared/lib/id';
 import { readAsDataUrl, uploadTripFile } from '../../../data/storage/tripFilesBucket';
+import { addDocument } from '../../../data/repository/documentRepository';
 import type { Trip } from '../../trips/types';
 import type { Document } from '../types';
 
@@ -55,7 +56,7 @@ export function AddDocumentForm({ trip, updateTrip, onClose, onSaved }: AddDocum
         storagePath,
         uploadedAt: new Date().toISOString(),
       };
-      await updateTrip((t) => ({ ...t, documents: [...t.documents, doc] }));
+      await updateTrip((t) => addDocument(t, doc));
       showToast('Document added.');
       onSaved();
     } catch {

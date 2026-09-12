@@ -5,6 +5,7 @@ import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { upsertBookingItem } from '../../../data/repository/bookingRepository';
 import type { Trip } from '../../trips/types';
 import { buildLinkedItineraryStop } from '../lib/addToItinerary';
 import type { BookingItem } from '../types';
@@ -43,10 +44,9 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
       }
 
       await updateTrip((t) => {
-        const exists = t.bookingItems.some((b) => b.id === item.id);
+        const withItem = upsertBookingItem(t, item);
         return {
-          ...t,
-          bookingItems: exists ? t.bookingItems.map((b) => (b.id === item.id ? item : b)) : [...t.bookingItems, item],
+          ...withItem,
           itineraryStops: stopToAdd ? [...t.itineraryStops, stopToAdd] : t.itineraryStops,
         };
       });

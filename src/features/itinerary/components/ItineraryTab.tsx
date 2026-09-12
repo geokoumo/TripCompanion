@@ -5,6 +5,7 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { dayNumber, weekdayShort, todayStr, formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { generateId } from '../../../shared/lib/id';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { upsertItineraryStop } from '../../../data/repository/activityRepository';
 import type { Trip } from '../../trips/types';
 import { getTripDateRange } from '../../trips/lib/dateRange';
 import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
@@ -60,10 +61,9 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
 
   const saveStop = async (stop: ItineraryStop) => {
     await updateTrip((t) => {
-      const exists = t.itineraryStops.some((s) => s.id === stop.id);
-      const itineraryStops = exists ? t.itineraryStops.map((s) => (s.id === stop.id ? stop : s)) : [...t.itineraryStops, stop];
+      const withStop = upsertItineraryStop(t, stop);
       const rememberedLocations = stop.location ? addRememberedLocation(t.rememberedLocations, stop.location) : t.rememberedLocations;
-      return { ...t, itineraryStops, rememberedLocations };
+      return { ...withStop, rememberedLocations };
     });
     showToast('Stop saved.');
     setEditingStop(null);

@@ -7,6 +7,7 @@ import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { Modal } from '../../../shared/components/Modal';
 import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile } from '../../../data/storage/tripFilesBucket';
+import { removeDocument, replaceDocumentFile } from '../../../data/repository/documentRepository';
 import type { Trip } from '../../trips/types';
 import { useDocumentUrl } from '../lib/useDocumentUrl';
 import type { Document } from '../types';
@@ -69,10 +70,7 @@ export function DocumentDetailSheet({ doc, trip, updateTrip, onClose }: Document
     try {
       const newPath = user ? await uploadTripFile(user.id, trip.id, file) : await readAsDataUrl(file);
       const oldPath = doc.storagePath;
-      await updateTrip((t) => ({
-        ...t,
-        documents: t.documents.map((d) => (d.id === doc.id ? { ...d, storagePath: newPath, uploadedAt: new Date().toISOString() } : d)),
-      }));
+      await updateTrip((t) => replaceDocumentFile(t, doc.id, newPath, new Date().toISOString()));
       if (!isLocalDataUrl(oldPath)) void deleteTripFile(oldPath);
       showToast('Document replaced.');
     } catch {
@@ -83,7 +81,7 @@ export function DocumentDetailSheet({ doc, trip, updateTrip, onClose }: Document
   };
 
   const handleDelete = async () => {
-    await updateTrip((t) => ({ ...t, documents: t.documents.filter((d) => d.id !== doc.id) }));
+    await updateTrip((t) => removeDocument(t, doc.id));
     if (!isLocalDataUrl(doc.storagePath)) void deleteTripFile(doc.storagePath);
     showToast('Deleted.');
     onClose();

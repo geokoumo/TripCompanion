@@ -1,6 +1,7 @@
 import type { Session, User } from '@supabase/supabase-js';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { supabase } from '../../data/supabase/client';
+import { useToast } from './ToastProvider';
 
 interface AuthContextValue {
   user: User | null;
@@ -49,6 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [recoveryMode, setRecoveryMode] = useState(false);
+  const { showToast } = useToast();
+  // Set only inside signOut(), just before calling it — lets the
+  // SIGNED_OUT handler below tell "the user chose this" apart from an
+  // expired/revoked session ending the same way, without relying on
+  // anything Supabase's event payload itself distinguishes.
+  const explicitSignOut = useRef(false);
+  const hadSession = useRef(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -58,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
+      hadSession.current = data.session !== null;
       setLoading(false);
     });
 
@@ -65,11 +74,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'PASSWORD_RECOVERY') {
         setRecoveryMode(true);
       }
+      if (event === 'SIGNED_OUT' && hadSession.current && !explicitSignOut.current) {
+        showToast('Your session expired. Please sign in again.', { variant: 'error' });
+      }
+      explicitSignOut.current = false;
+      hadSession.current = next !== null;
       setSession(next);
     });
 
     return () => subscription.subscription.unsubscribe();
-  }, []);
+  }, [showToast]);
 
   const signUp = async (email: string, password: string, name?: string) => {
     if (!supabase) return 'Account sign-in is not configured.';
@@ -89,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     if (!supabase) return;
+    explicitSignOut.current = true;
     await supabase.auth.signOut();
     setRecoveryMode(false);
   };
