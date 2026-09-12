@@ -9,140 +9,208 @@
   margin: 0 0 var(--space-4);
 }
 
-.countdownCard {
-  position: relative;
-  background: var(--color-rust-soft);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6) var(--space-5);
-  text-align: center;
+.metaBlock {
   margin-bottom: var(--space-4);
-  overflow: visible;
 }
 
-.countdownCard[data-tone='teal'] {
-  background: var(--color-teal-soft);
-}
-
-.countdownLabel {
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-rust-on-soft);
-}
-
-.countdownCard[data-tone='teal'] .countdownLabel {
-  color: var(--color-teal-on-soft);
-}
-
-.countdownValue {
-  font-family: var(--font-display);
-  font-size: var(--fs-countdown);
-  font-weight: 600;
-  color: var(--color-rust-on-soft);
-  margin: 4px 0;
-  line-height: 1.05;
-}
-
-.countdownCard[data-tone='teal'] .countdownValue {
-  color: var(--color-teal-on-soft);
-}
-
-/* Decorative passport-stamp flourish, English by design (see WelcomeScreen's
-   "ADVENTURE AWAITS" badge for the same convention). */
-.loggedStamp {
-  position: absolute;
-  top: -14px;
-  right: 10px;
-  width: 64px;
-  height: 64px;
-  border-radius: 999px;
-  border: 2px dashed var(--color-teal-on-soft);
-  color: var(--color-teal-on-soft);
-  background: var(--color-surface-raised);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  transform: rotate(-11deg);
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  line-height: 1.15;
-  padding: 4px;
-}
-
-.countdownDates {
-  color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: var(--fs-meta);
-}
-
-.snapshotCard {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
-  margin-bottom: var(--space-3);
-}
-
-.snapshotCard[data-tone='rust'] {
-  border-left-color: var(--color-rust);
-}
-.snapshotCard[data-tone='teal'] {
-  border-left-color: var(--color-teal);
-}
-
-.snapshotLabel {
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-faint);
-}
-
-.snapshotTitle {
-  font-weight: 600;
-  margin-top: 4px;
-  font-size: var(--fs-item-title);
-}
-
-.snapshotSubtitle {
-  color: var(--color-text-muted);
-  font-size: var(--fs-meta);
-  margin-top: 2px;
-}
-
-.flightRoute {
+.metaTopRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+}
+
+.dateRange {
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+  color: var(--color-text);
+}
+
+.metaLine {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin-top: 4px;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+  color: var(--color-text);
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.sectionCount {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+}
+
+.eventsCard > .sectionTitle {
+  display: block;
+  margin-bottom: var(--space-3);
+}
+
+.eventBlock {
+  background: var(--color-surface);
+  border: var(--border-width-hairline) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.eventBlock + .eventBlock {
   margin-top: var(--space-2);
 }
 
-.flightAirportCodeRight {
-  text-align: right;
+.eventTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
 }
 
-.flightAirportCode {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 26px;
-  letter-spacing: -0.02em;
-  line-height: 1;
+.eventLead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
-.flightTime {
-  font-family: var(--font-mono);
-  font-size: var(--fs-data);
+.eventWhen {
   color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  white-space: nowrap;
+}
+
+.eventCountdown {
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  flex-shrink: 0;
+}
+
+.eventTitle {
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+  color: var(--color-text);
+  margin-top: var(--space-2);
+}
+
+.eventSubtitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
   margin-top: 2px;
 }
 
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
 
+.statTile {
+  background: var(--color-surface-raised);
+  border: var(--border-width-hairline) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.statLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+.statValue {
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+  color: var(--color-text);
+  margin-top: var(--space-1);
+}
+
+.listSection {
+  margin-bottom: var(--space-3);
+}
+
+.docRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.docTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-item-title);
+  font-weight: 500;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eyeButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.listCard {
+  cursor: default;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.listRow + .listRow {
+  margin-top: var(--space-3);
+}
+
+.listRowMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.listRowTitle {
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listRowSubtitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dayNumber {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}

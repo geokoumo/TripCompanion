@@ -284,3 +284,33 @@ export function ShareExternalIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** Trip Health's warning state — Overview's compact Trip Health row. */
+export function AlertTriangleIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 4.2l9 15.6H3z" />
+      <path d="M12 10.5v4M12 17.5v.1" />
+    </svg>
+  );
+}
+
+/** Trip Health's all-clear state — Overview's compact Trip Health row. */
+export function CheckCircleIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12.3l2.6 2.6 5.4-5.8" />
+    </svg>
+  );
+}
+
+/** "View" action for a document row (Overview's Documents section). */
+export function EyeIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </svg>
+  );
+}

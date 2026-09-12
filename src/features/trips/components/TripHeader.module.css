@@ -1,5 +1,5 @@
 .header {
-  padding: var(--space-5) var(--space-5) 0;
+  padding: var(--space-5) var(--space-5) var(--space-4);
   max-width: 640px;
   margin: 0 auto;
 }
@@ -86,5 +86,4 @@
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
   margin-top: 4px;
-  padding-bottom: var(--space-4);
 }

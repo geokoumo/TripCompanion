@@ -17,12 +17,14 @@ interface TripHeaderProps {
   onDuplicate: () => void;
   onDeleteRequest: () => void;
   onSaveTrip: (trip: Trip) => void;
+  /** Overview's own meta-block already shows the trip's date range — set this there so it isn't shown twice. */
+  hideDates?: boolean;
 }
 
 // The in-trip tab bar moved to a bottom nav (see InTripBottomNav) — this
 // header is now just identity + trip-level actions (share/menu), no
 // navigation state.
-export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip }: TripHeaderProps) {
+export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip, hideDates = false }: TripHeaderProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
@@ -49,7 +51,7 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
         <CompassIcon size={24} />
       </div>
       <div className={styles.title}>{trip.title}</div>
-      {range && (
+      {range && !hideDates && (
         <div className={styles.dates}>
           {formatDateShort(range.startDate)} – {formatDateShort(range.endDate)}
         </div>

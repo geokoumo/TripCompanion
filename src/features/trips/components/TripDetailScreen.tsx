@@ -70,9 +70,10 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
             onDuplicate={() => setDuplicating(true)}
             onDeleteRequest={() => setConfirmDelete(true)}
             onSaveTrip={(updated) => void saveTrip(updated)}
+            hideDates={activeTab === 'overview'}
           />
           <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
-            {activeTab === 'overview' && <OverviewTab trip={trip} onOpenTripHealth={() => setShowTripHealth(true)} />}
+            {activeTab === 'overview' && <OverviewTab trip={trip} updateTrip={updateTrip} onOpenTripHealth={() => setShowTripHealth(true)} />}
             {(activeTab === 'flights' || activeTab === 'stays') && (
               <BookingsTab trip={trip} activeTab={activeTab} onTabChange={onTabChange} updateTrip={updateTrip} />
             )}

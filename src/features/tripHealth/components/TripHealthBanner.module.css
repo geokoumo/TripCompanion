@@ -1,26 +1,7 @@
-.banner {
+.card {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  width: 100%;
-  text-align: left;
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-rust);
-  background: var(--color-rust-soft);
-  cursor: pointer;
-  margin-bottom: var(--space-4);
-}
-
-.banner[data-tone='teal'] {
-  border-color: var(--color-teal);
-  background: var(--color-teal-soft);
-}
-
-.icon {
-  font-size: 1.1rem;
-  line-height: 1;
-  flex-shrink: 0;
 }
 
 .body {
@@ -45,11 +26,7 @@
 }
 
 .chevron {
-  color: var(--color-rust-on-soft);
+  color: var(--color-text-faint);
   font-size: 1.2rem;
   flex-shrink: 0;
-}
-
-.banner[data-tone='teal'] .chevron {
-  color: var(--color-teal-on-soft);
 }

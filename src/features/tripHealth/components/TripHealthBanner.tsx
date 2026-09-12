@@ -1,3 +1,6 @@
+import { Card } from '../../../shared/components/Card';
+import { IconCircle } from '../../../shared/components/IconCircle';
+import { AlertTriangleIcon, CheckCircleIcon } from '../../../shared/components/icons';
 import type { TripHealthWarning } from '../types';
 import styles from './TripHealthBanner.module.css';
 
@@ -21,10 +24,10 @@ export function TripHealthBanner({ warnings, onOpen }: TripHealthBannerProps) {
       : warnings.map((w) => w.title).join(', ');
 
   return (
-    <button type="button" className={styles.banner} data-tone={allClear ? 'teal' : 'rust'} onClick={onOpen}>
-      <span className={styles.icon} role="img" aria-label={allClear ? 'All checks passed' : 'Warning'}>
-        {allClear ? '✓' : '⚠'}
-      </span>
+    <Card className={styles.card} onClick={onOpen} data-tone={allClear ? 'teal' : 'rust'}>
+      <IconCircle tone={allClear ? 'teal' : 'rust'} size={40}>
+        {allClear ? <CheckCircleIcon size={20} /> : <AlertTriangleIcon size={20} />}
+      </IconCircle>
       <span className={styles.body}>
         <span className={styles.title}>{allClear ? 'Trip Health' : `${warnings.length} Trip Health issue${warnings.length === 1 ? '' : 's'}`}</span>
         <span className={styles.subtitle}>{summary}</span>
@@ -32,6 +35,6 @@ export function TripHealthBanner({ warnings, onOpen }: TripHealthBannerProps) {
       <span className={styles.chevron} aria-hidden="true">
         ›
       </span>
-    </button>
+    </Card>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertToHome, expenseAmountInHome, isMissingExchangeRate, suggestCurrencyForCountry } from './lib/currency';
+import { computeTotalSpent, convertToHome, expenseAmountInHome, isMissingExchangeRate, suggestCurrencyForCountry } from './lib/currency';
 
 describe('suggestCurrencyForCountry', () => {
   it('falls back to EUR for an unrecognized country', () => {
@@ -54,5 +54,34 @@ describe('isMissingExchangeRate', () => {
 
   it('is false once a foreign-currency expense has a rate, even a zero one', () => {
     expect(isMissingExchangeRate({ currency: 'JPY', exchangeRateToHome: 0 }, 'EUR')).toBe(false);
+  });
+});
+
+describe('computeTotalSpent', () => {
+  it('sums every convertible expense', () => {
+    const expenses = [
+      { amount: 50, currency: 'EUR' },
+      { amount: 20, currency: 'EUR' },
+    ];
+    expect(computeTotalSpent(expenses, 'EUR')).toEqual({ total: 70, unconvertedCount: 0 });
+  });
+
+  it('excludes and counts expenses missing an exchange rate rather than treating them as zero or 1:1', () => {
+    const expenses = [
+      { amount: 50, currency: 'EUR' },
+      { amount: 1000, currency: 'JPY' },
+    ];
+    expect(computeTotalSpent(expenses, 'EUR')).toEqual({ total: 50, unconvertedCount: 1 });
+  });
+
+  it('converts foreign-currency expenses that do have a stored rate', () => {
+    const expenses = [{ amount: 1000, currency: 'JPY', exchangeRateToHome: 0.006 }];
+    const result = computeTotalSpent(expenses, 'EUR');
+    expect(result.total).toBeCloseTo(6);
+    expect(result.unconvertedCount).toBe(0);
+  });
+
+  it('returns zero/zero for an empty list', () => {
+    expect(computeTotalSpent([], 'EUR')).toEqual({ total: 0, unconvertedCount: 0 });
   });
 });

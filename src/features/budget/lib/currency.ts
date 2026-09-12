@@ -34,3 +34,28 @@ export function expenseAmountInHome(
 export function isMissingExchangeRate(expense: { currency: string; exchangeRateToHome?: number | null }, homeCurrency: string): boolean {
   return expense.currency !== homeCurrency && expense.exchangeRateToHome == null;
 }
+
+export interface TotalSpent {
+  /** Sum of every expense that could be converted to home currency. */
+  total: number;
+  /** Count of expenses excluded from `total` because they're missing an exchange rate — surfaced so a caller never presents `total` as if it were the complete picture. */
+  unconvertedCount: number;
+}
+
+/** Trip-wide spend in home currency, skipping (and counting) any expense that can't be converted rather than treating it as zero or 1:1. */
+export function computeTotalSpent(
+  expenses: { amount: number; currency: string; exchangeRateToHome?: number | null }[],
+  homeCurrency: string,
+): TotalSpent {
+  let total = 0;
+  let unconvertedCount = 0;
+  for (const expense of expenses) {
+    const amountHome = expenseAmountInHome(expense, homeCurrency);
+    if (amountHome === null) {
+      unconvertedCount += 1;
+      continue;
+    }
+    total += amountHome;
+  }
+  return { total, unconvertedCount };
+}

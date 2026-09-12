@@ -36,3 +36,8 @@ export function daysBetween(fromDateStr: string, toDateStr: string): number {
 export function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
+/** "HH:mm" for the current instant — paired with todayStr() to compare against saved date+time fields, same UTC-based convention as todayStr(). */
+export function nowTimeStr(): string {
+  return new Date().toISOString().slice(11, 16);
+}
