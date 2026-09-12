@@ -1,4 +1,5 @@
 import { AvatarRow } from '../../../shared/components/AvatarChip';
+import { Card } from '../../../shared/components/Card';
 import { StampBadge } from '../../../shared/components/StampBadge';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { destinationLabel, statusStampLabel } from '../lib/summary';
@@ -23,7 +24,7 @@ export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
   const subtitle = range ? `${formatDateShort(range.startDate)} – ${formatDateShort(range.endDate)}${dest ? ` · ${dest}` : ''}` : dest;
 
   return (
-    <div className={styles.card} data-tone={borderTone} onClick={onOpen}>
+    <Card accent={borderTone} onClick={onOpen} nestedInteractive aria-label={`Open ${trip.title}`}>
       <div className={styles.topRow}>
         <span className={styles.title}>{trip.title}</span>
         <StampBadge tone={pillTone}>{statusStampLabel({ archived: trip.archived, range })}</StampBadge>
@@ -43,6 +44,6 @@ export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
           ···
         </button>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -1,3 +1,4 @@
+import { Card } from '../../../shared/components/Card';
 import { IconCircle } from '../../../shared/components/IconCircle';
 import { TicketIcon } from '../../../shared/components/icons';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
@@ -27,7 +28,7 @@ export function BookingItemCard({ item, hasAttachment, onOpen }: BookingItemCard
   const meta = metaLine(item);
 
   return (
-    <button type="button" className={styles.card} onClick={() => onOpen(item)}>
+    <Card className={styles.card} onClick={() => onOpen(item)} aria-label={`Open ${item.name}`}>
       <div className={styles.main}>
         <div className={styles.name}>{item.name}</div>
         {meta && <div className={styles.meta}>{meta}</div>}
@@ -42,6 +43,6 @@ export function BookingItemCard({ item, hasAttachment, onOpen }: BookingItemCard
       <IconCircle tone={tone} size={36}>
         <Icon size={18} />
       </IconCircle>
-    </button>
+    </Card>
   );
 }

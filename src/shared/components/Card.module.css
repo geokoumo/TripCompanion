@@ -1,0 +1,36 @@
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface-raised);
+  border: var(--border-width-hairline) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-3);
+}
+
+.card[data-interactive='true'] {
+  cursor: pointer;
+}
+
+.card[data-accent='rust'] {
+  border-left: 3px solid var(--color-rust);
+}
+.card[data-accent='teal'] {
+  border-left: 3px solid var(--color-teal);
+}
+.card[data-accent='brass'] {
+  border-left: 3px solid var(--color-brass);
+}
+.card[data-accent='purple'] {
+  border-left: 3px solid var(--color-purple);
+}
+.card[data-accent='gray'] {
+  border-left: 3px solid var(--color-border-strong);
+}
+
+.card[data-muted='true'] {
+  opacity: 0.72;
+}

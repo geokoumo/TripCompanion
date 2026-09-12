@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { AIRPORT_CITY_NAMES, FLIGHT_STATUSES } from '../../../config/constants';
+import { Card } from '../../../shared/components/Card';
 import { StampBadge } from '../../../shared/components/StampBadge';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { computeFlightDuration } from '../lib/duration';
@@ -20,7 +21,7 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
   const isCancelled = flight.status === 'cancelled';
 
   return (
-    <div className={styles.card} data-cancelled={isCancelled} onClick={() => onOpen(flight)}>
+    <Card muted={isCancelled} onClick={() => onOpen(flight)} aria-label={`Open ${flight.airline} ${flight.flightNumber}`}>
       <div className={styles.topRow}>
         <span className={styles.airlineLine}>
           {flight.airline} · {flight.flightNumber}
@@ -69,7 +70,7 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

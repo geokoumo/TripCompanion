@@ -34,7 +34,20 @@
 
   --color-danger: #b4462a;
   --color-success: #1c7a6e;
+  /* Semantic alias, not a new hue — Trip Health and other non-destructive
+     alerts read as "warning" (rust) distinctly from destructive actions
+     (also rust today), so components can name the intent they mean without
+     the two ever visually diverging by accident later. */
+  --color-warning: #b4462a;
+  --color-warning-soft: #f9ece9;
+  --color-warning-on-soft: #b4462a;
   --color-scrim: rgba(28, 26, 23, 0.42);
+
+  /* Border-width scale — the 1 / 1.5 / 2px steps already in use everywhere,
+     named so new components reach for a token instead of a fresh guess. */
+  --border-width-hairline: 1px;
+  --border-width-default: 1.5px;
+  --border-width-emphasis: 2px;
 
   /* Avatar palette — fixed order, cycling */
   --avatar-1: #b4462a;
@@ -136,6 +149,9 @@
 
     --color-danger: #e07a56;
     --color-success: #4fb3a3;
+    --color-warning: #e07a56;
+    --color-warning-soft: #3d2721;
+    --color-warning-on-soft: #e07a56;
     --color-scrim: rgba(0, 0, 0, 0.6);
 
     color-scheme: dark;
@@ -169,6 +185,9 @@
 
   --color-danger: #e07a56;
   --color-success: #4fb3a3;
+  --color-warning: #e07a56;
+  --color-warning-soft: #3d2721;
+  --color-warning-on-soft: #e07a56;
   --color-scrim: rgba(0, 0, 0, 0.6);
 
   color-scheme: dark;

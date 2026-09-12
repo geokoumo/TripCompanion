@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { ITINERARY_STOP_TYPES } from '../../../config/constants';
+import { Card } from '../../../shared/components/Card';
 import type { Traveler } from '../../travelers/types';
 import type { ItineraryStop } from '../types';
 import styles from './StopCard.module.css';
@@ -16,7 +17,7 @@ function StopCardComponent({ stop, travelers, onOpen }: StopCardProps) {
   const durationLabel = stop.durationMinutes ? `${Math.round(stop.durationMinutes / 60) > 0 ? `${Math.floor(stop.durationMinutes / 60)}h ` : ''}${stop.durationMinutes % 60}m` : null;
 
   return (
-    <div className={styles.card} onClick={() => onOpen(stop)}>
+    <Card onClick={() => onOpen(stop)} aria-label={`Open ${stop.title}`}>
       <div className={styles.topRow}>
         <span className={styles.time}>{stop.allDay ? 'All day' : stop.time}</span>
         <span className={styles.badges}>
@@ -29,7 +30,7 @@ function StopCardComponent({ stop, travelers, onOpen }: StopCardProps) {
         {travelerLabel}
         {durationLabel && ` · ${durationLabel}`}
       </div>
-    </div>
+    </Card>
   );
 }
 

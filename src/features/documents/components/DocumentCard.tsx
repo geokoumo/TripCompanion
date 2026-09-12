@@ -1,3 +1,4 @@
+import { Card } from '../../../shared/components/Card';
 import { IconCircle } from '../../../shared/components/IconCircle';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { documentIconFor, DOCUMENT_CATEGORY_TONE } from '../lib/documentIcon';
@@ -14,7 +15,7 @@ export function DocumentCard({ doc, onOpen }: DocumentCardProps) {
   const meta = [doc.relatedTo, formatDateShort(doc.uploadedAt.slice(0, 10))].filter(Boolean).join(' · ');
 
   return (
-    <button type="button" className={styles.card} onClick={() => onOpen(doc)}>
+    <Card className={styles.card} onClick={() => onOpen(doc)} aria-label={`Open ${doc.title}`}>
       <IconCircle tone={DOCUMENT_CATEGORY_TONE[doc.category as keyof typeof DOCUMENT_CATEGORY_TONE]} size={40}>
         <Icon size={20} />
       </IconCircle>
@@ -22,6 +23,6 @@ export function DocumentCard({ doc, onOpen }: DocumentCardProps) {
         <div className={styles.title}>{doc.title}</div>
         {meta && <div className={styles.meta}>{meta}</div>}
       </div>
-    </button>
+    </Card>
   );
 }
