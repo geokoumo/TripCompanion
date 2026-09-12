@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { Button } from '../../../shared/components/Button';
+import { PageHeader } from '../../../shared/components/PageHeader';
+import { WarningCard } from '../../../shared/components/WarningCard';
 import { todayStr } from '../../../shared/lib/dateFormat';
 import { computeTripHealth } from '../lib/computeTripHealth';
 import type { TripHealthFixTarget } from '../types';
@@ -18,12 +19,7 @@ export function TripHealthScreen({ trip, onBack, onNavigate }: TripHealthScreenP
 
   return (
     <div>
-      <div className={styles.header}>
-        <button type="button" className={styles.backButton} onClick={onBack} aria-label="Back to Overview">
-          ‹
-        </button>
-        <span className={styles.title}>Trip Health</span>
-      </div>
+      <PageHeader title="Trip Health" onBack={onBack} backLabel="Back to Overview" />
 
       <div className={styles.content}>
         <div className={styles.summaryCard} data-tone={allClear ? 'teal' : 'rust'}>
@@ -39,18 +35,13 @@ export function TripHealthScreen({ trip, onBack, onNavigate }: TripHealthScreenP
             <div className={styles.eyebrow}>Active Warnings</div>
             <div className={styles.warningList}>
               {warnings.map((warning) => (
-                <div key={warning.id} className={styles.warningCard}>
-                  <div className={styles.warningTitleRow}>
-                    <span className={styles.warningIcon} role="img" aria-label="Warning">
-                      ⚠
-                    </span>
-                    <span>{warning.title}</span>
-                  </div>
-                  <p className={styles.warningDescription}>{warning.description}</p>
-                  <Button variant="primary" onClick={() => onNavigate(warning.fixTarget)}>
-                    {warning.fixLabel}
-                  </Button>
-                </div>
+                <WarningCard
+                  key={warning.id}
+                  title={warning.title}
+                  description={warning.description}
+                  actionLabel={warning.fixLabel}
+                  onAction={() => onNavigate(warning.fixTarget)}
+                />
               ))}
             </div>
           </>

@@ -1,32 +1,3 @@
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--screen-padding-top) var(--screen-padding-x) var(--space-4);
-}
-
-.backButton {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-pill);
-  border: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 1.3rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.title {
-  font-family: var(--font-display);
-  font-size: var(--fs-header-title);
-  font-weight: 600;
-}
-
 .content {
   max-width: 640px;
   margin: 0 auto;
@@ -87,34 +58,6 @@
   flex-direction: column;
   gap: var(--space-3);
   margin-bottom: var(--space-6);
-}
-
-.warningCard {
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  background: var(--color-rust-soft);
-  border: 1px solid var(--color-rust);
-}
-
-.warningTitleRow {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-2);
-}
-
-.warningIcon {
-  color: var(--color-rust-on-soft);
-  flex-shrink: 0;
-  line-height: 1.3;
-}
-
-.warningDescription {
-  color: var(--color-text-muted);
-  font-size: var(--fs-body);
-  margin: 0 0 var(--space-4);
 }
 
 .passedCard {

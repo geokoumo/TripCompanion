@@ -1,0 +1,16 @@
+.bar {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--screen-padding-x);
+  border-top: var(--border-width-hairline) solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+/* Full-screen (non-modal) usage needs to actually stick to the viewport
+   bottom while its screen scrolls — Modal's own flex-column sheet already
+   pins this as the last flex child, so it never needs position here. */
+.bar[data-pinned='true'] {
+  position: sticky;
+  bottom: 0;
+}

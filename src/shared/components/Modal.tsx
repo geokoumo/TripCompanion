@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { StickyActionBar } from './StickyActionBar';
 import styles from './Modal.module.css';
 
 interface ModalProps {
@@ -23,7 +24,7 @@ export function Modal({ title, onClose, children, footer }: ModalProps) {
           </button>
         </div>
         <div className={styles.body}>{children}</div>
-        {footer && <div className={styles.footer}>{footer}</div>}
+        {footer && <StickyActionBar>{footer}</StickyActionBar>}
       </div>
     </div>
   );
