@@ -4,6 +4,7 @@ import { CreateTripWizardLazy, ShareSheetLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import { StampToggle } from '../../../shared/components/StampToggle';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { useTrips } from '../hooks/useTrips';
 import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
@@ -87,17 +88,20 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
       </div>
 
       <div className={styles.segmented}>
-        <button type="button" className={styles.segment} data-active={filter === 'active'} onClick={() => setFilter('active')}>
-          Active
-        </button>
-        <button type="button" className={styles.segment} data-active={filter === 'archived'} onClick={() => setFilter('archived')}>
-          Archive
-        </button>
+        <StampToggle
+          options={[
+            { id: 'active', label: 'Active' },
+            { id: 'archived', label: 'Completed' },
+          ]}
+          value={filter}
+          onChange={setFilter}
+          variant="plain"
+        />
       </div>
 
       {!loading && visible.length === 0 && (
         <EmptyState
-          headline={filter === 'active' ? 'Nothing yet' : 'Nothing archived'}
+          headline={filter === 'active' ? 'Nothing yet' : 'Nothing completed'}
           body={
             filter === 'active'
               ? 'Start with a title and dates. Everything else can wait.'

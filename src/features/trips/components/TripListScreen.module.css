@@ -39,26 +39,5 @@
 }
 
 .segmented {
-  display: flex;
-  background: var(--color-gray-soft);
-  border-radius: var(--radius-pill);
-  padding: 4px;
   margin: var(--space-5) 0;
-}
-
-.segment {
-  flex: 1;
-  border: none;
-  background: none;
-  border-radius: var(--radius-pill);
-  padding: 11px 16px;
-  font-weight: 600;
-  font-size: var(--fs-body);
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.segment[data-active='true'] {
-  background: var(--color-text);
-  color: var(--color-text-on-accent);
 }
