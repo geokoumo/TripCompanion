@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
+import { StampToggle } from '../../../shared/components/StampToggle';
 import { dayNumber, weekdayShort, todayStr, formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { generateId } from '../../../shared/lib/id';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
@@ -10,12 +12,20 @@ import type { Trip } from '../../trips/types';
 import { getTripDateRange } from '../../trips/lib/dateRange';
 import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
 import { buildAutoPulledEntries } from '../lib/autoPulledEntries';
+import { describeActivityError, validateStopForSave } from '../lib/activityValidation';
 import type { Idea, ItineraryStop } from '../types';
 import { AutoPulledEntryCard } from './AutoPulledEntryCard';
 import { IdeasBacklog } from './IdeasBacklog';
 import { StopCard } from './StopCard';
 import { StopForm } from './StopForm';
+import { TodayView } from './TodayView';
 import styles from './ItineraryTab.module.css';
+
+type ItineraryView = 'plan' | 'today';
+const VIEW_OPTIONS: { id: ItineraryView; label: string }[] = [
+  { id: 'plan', label: 'Plan' },
+  { id: 'today', label: 'Today' },
+];
 
 interface ItineraryTabProps {
   trip: Trip;
@@ -36,10 +46,12 @@ function buildDayRange(startDate: string, endDate: string): string[] {
 
 export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const { showToast } = useToast();
+  const { getFullTrip } = useTripsContext();
   const range = getTripDateRange(trip.legs, trip.flights);
   const days = useMemo(() => (range ? buildDayRange(range.startDate, range.endDate) : []), [range?.startDate, range?.endDate]);
   const today = todayStr();
   const [selectedDate, setSelectedDate] = useState(() => (days.includes(today) ? today : days[0] ?? today));
+  const [view, setView] = useState<ItineraryView>('plan');
 
   const [editingStop, setEditingStop] = useState<ItineraryStop | null>(null);
   const [creatingStop, setCreatingStop] = useState(false);
@@ -59,7 +71,20 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
     .join(' → ')
     .toUpperCase();
 
+  // Final gate before writing: re-fetches the trip fresh (Supabase, not
+  // whatever's been sitting in this tab's memory) and revalidates against
+  // that, so a conflict introduced from another tab/device since this form
+  // was opened is still caught. The form itself already ran the same check
+  // against in-memory data for instant feedback (see StopForm.handleSave) —
+  // this is the authoritative repeat, not the only one.
   const saveStop = async (stop: ItineraryStop) => {
+    const freshTrip = (await getFullTrip(trip.id)) ?? trip;
+    const errors = validateStopForSave(stop, freshTrip, freshTrip.itineraryStops);
+    if (errors.length > 0) {
+      showToast(describeActivityError(errors[0]!, freshTrip.itineraryStops), { variant: 'error' });
+      return;
+    }
+
     await updateTrip((t) => {
       const withStop = upsertItineraryStop(t, stop);
       const rememberedLocations = stop.location ? addRememberedLocation(t.rememberedLocations, stop.location) : t.rememberedLocations;
@@ -105,49 +130,59 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
 
   return (
     <div style={{ paddingTop: 8 }}>
-      <div className={styles.dayTabs}>
-        {days.map((date) => (
-          <div key={date} className={styles.dayTab} data-active={date === selectedDate} onClick={() => setSelectedDate(date)}>
-            <div className={styles.dayTabWeekday}>{weekdayShort(date)}</div>
-            <div className={styles.dayTabNumber}>{dayNumber(date)}</div>
-          </div>
-        ))}
+      <div className={styles.viewSwitcher}>
+        <StampToggle options={VIEW_OPTIONS} value={view} onChange={setView} variant="plain" layout="fill" />
       </div>
 
-      {legsForDay.length > 0 && <div className={styles.legHeader}>{legHeaderLabel}</div>}
-
-      {allDayStopsForDay.length > 0 && (
+      {view === 'today' ? (
+        <TodayView trip={trip} onOpenStop={openStop} />
+      ) : (
         <>
-          <div className={styles.legHeader}>All day</div>
-          {allDayStopsForDay.map((stop) => (
+          <div className={styles.dayTabs}>
+            {days.map((date) => (
+              <div key={date} className={styles.dayTab} data-active={date === selectedDate} onClick={() => setSelectedDate(date)}>
+                <div className={styles.dayTabWeekday}>{weekdayShort(date)}</div>
+                <div className={styles.dayTabNumber}>{dayNumber(date)}</div>
+              </div>
+            ))}
+          </div>
+
+          {legsForDay.length > 0 && <div className={styles.legHeader}>{legHeaderLabel}</div>}
+
+          {allDayStopsForDay.length > 0 && (
+            <>
+              <div className={styles.legHeader}>All day</div>
+              {allDayStopsForDay.map((stop) => (
+                <StopCard key={stop.id} stop={stop} travelers={trip.travelers} onOpen={openStop} />
+              ))}
+            </>
+          )}
+
+          {autoPulledForDay.map((entry) => (
+            <AutoPulledEntryCard key={entry.id} entry={entry} />
+          ))}
+          {timedStopsForDay.map((stop) => (
             <StopCard key={stop.id} stop={stop} travelers={trip.travelers} onOpen={openStop} />
           ))}
+          {autoPulledForDay.length === 0 && stopsForDay.length === 0 && (
+            <div className={styles.emptyDay}>
+              Empty day
+              <br />
+              Add a stop, or pull one of your ideas up from below.
+            </div>
+          )}
+
+          <IdeasBacklog
+            ideas={trip.ideas}
+            defaultDate={selectedDate}
+            onAdd={(idea) => void addIdea(idea)}
+            onRemove={(id) => void removeIdea(id)}
+            onAssignToDay={assignIdeaToDay}
+          />
         </>
       )}
 
-      {autoPulledForDay.map((entry) => (
-        <AutoPulledEntryCard key={entry.id} entry={entry} />
-      ))}
-      {timedStopsForDay.map((stop) => (
-        <StopCard key={stop.id} stop={stop} travelers={trip.travelers} onOpen={openStop} />
-      ))}
-      {autoPulledForDay.length === 0 && stopsForDay.length === 0 && (
-        <div className={styles.emptyDay}>
-          Empty day
-          <br />
-          Add a stop, or pull one of your ideas up from below.
-        </div>
-      )}
-
       <Fab onClick={() => setCreatingStop(true)} aria-label="New stop" />
-
-      <IdeasBacklog
-        ideas={trip.ideas}
-        defaultDate={selectedDate}
-        onAdd={(idea) => void addIdea(idea)}
-        onRemove={(id) => void removeIdea(id)}
-        onAssignToDay={assignIdeaToDay}
-      />
 
       {(creatingStop || editingStop) && (
         <StopForm

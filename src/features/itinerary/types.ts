@@ -19,6 +19,8 @@ export const ItineraryStopSchema = z
     title: z.string().min(1, 'Title is required'),
     type: z.enum(stopTypeIds),
     location: nullableOptional(z.string()),
+    price: nullableOptional(z.number().nonnegative()),
+    currency: nullableOptional(z.string()),
     link: nullableOptional(z.string()),
     note: nullableOptional(z.string()),
     travelerIds: z.array(z.string()).default([]), // empty = all travelers

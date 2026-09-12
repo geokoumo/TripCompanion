@@ -1,0 +1,28 @@
+.wrapper {
+  padding-top: 8px;
+}
+
+.dateLabel {
+  font-weight: 600;
+  font-size: var(--fs-item-title);
+  color: var(--color-text);
+  margin-bottom: var(--space-4);
+}
+
+.section {
+  margin-bottom: var(--space-5);
+}
+
+.sectionHeader {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-2);
+}
+
+.completedGroup {
+  opacity: 0.6;
+}

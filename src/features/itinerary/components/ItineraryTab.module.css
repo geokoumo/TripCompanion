@@ -1,3 +1,7 @@
+.viewSwitcher {
+  margin: var(--space-2) 0 var(--space-4);
+}
+
 .dayTabs {
   display: flex;
   gap: var(--space-2);
