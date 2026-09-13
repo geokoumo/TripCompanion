@@ -1,0 +1,44 @@
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 4px;
+}
+
+.typeLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+}
+
+.title {
+  font-size: var(--fs-item-title);
+  font-weight: 600;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin-top: 4px;
+}
+
+.statusText {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  flex-shrink: 0;
+}
+
+.docBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-teal-on-soft);
+  font-weight: 600;
+}

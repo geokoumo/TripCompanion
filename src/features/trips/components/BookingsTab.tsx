@@ -2,10 +2,11 @@ import { Suspense, useState } from 'react';
 import { DocumentsListScreenLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { BOOKING_ITEM_TYPES, type BookingItemTypeId } from '../../../config/constants';
-import { BedIcon, FileIcon, PlaneIcon } from '../../../shared/components/icons';
+import { BedIcon, FileIcon, ListIcon, PlaneIcon } from '../../../shared/components/icons';
 import { StampToggle } from '../../../shared/components/StampToggle';
 import { AddToTripSheet } from '../../bookings/components/AddToTripSheet';
 import { BookingItemsListScreen } from '../../bookings/components/BookingItemsListScreen';
+import { BookingsHub } from '../../bookings/components/BookingsHub';
 import { BOOKING_TYPE_ICON, type AddToTripDestination } from '../../bookings/lib/bookingGridConfig';
 import { FlightsTab } from '../../flights/components/FlightsTab';
 import { StaysTab } from '../../stays/components/StaysTab';
@@ -13,7 +14,7 @@ import type { Trip, TripTab } from '../types';
 import type { useTrip } from '../hooks/useTrip';
 import styles from './BookingsTab.module.css';
 
-type SubView = AddToTripDestination;
+type SubView = 'all' | AddToTripDestination;
 
 interface BookingsTabProps {
   trip: Trip;
@@ -23,6 +24,7 @@ interface BookingsTabProps {
 }
 
 const SWITCHER_ITEMS: { id: SubView; label: string; Icon: typeof PlaneIcon }[] = [
+  { id: 'all', label: 'All', Icon: ListIcon },
   { id: 'flights', label: 'Flights', Icon: PlaneIcon },
   { id: 'stays', label: 'Stays', Icon: BedIcon },
   ...BOOKING_ITEM_TYPES.map((t) => ({ id: t.id, label: t.label, Icon: BOOKING_TYPE_ICON[t.id].Icon })),
@@ -39,9 +41,19 @@ const BOOKING_TYPE_IDS = new Set<string>(BOOKING_ITEM_TYPES.map((t) => t.id));
  * only ever tracks 'flights'/'stays' — every other sub-view is local UI
  * state, same reasoning as before: sharing and quick actions for those two
  * keep working unchanged, and the new types don't need deep-linking yet.
+ *
+ * "All" is the default landing view: a unified, chronological feed across
+ * flights/stays/booking items (BookingsHub) so the tab reads as one
+ * connected set of bookings instead of leading with a single type. The
+ * per-type pills still exist for focused management of just one type.
  */
 export function BookingsTab({ trip, activeTab, onTabChange, updateTrip }: BookingsTabProps) {
-  const [subView, setSubView] = useState<SubView>(activeTab);
+  // 'flights' is also the generic default the bottom nav's "Bookings" button
+  // always navigates to, so it can't signal real intent to land on Flights
+  // specifically — treat it as "just entered Bookings" and show the unified
+  // feed. 'stays' has no such generic path (only an explicit deep link, e.g.
+  // a Trip Health "add a stay" action or a shared/refreshed URL), so honor it.
+  const [subView, setSubView] = useState<SubView>(activeTab === 'stays' ? 'stays' : 'all');
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const select = (view: SubView) => {
@@ -60,6 +72,7 @@ export function BookingsTab({ trip, activeTab, onTabChange, updateTrip }: Bookin
         </button>
       </div>
 
+      {subView === 'all' && <BookingsHub trip={trip} updateTrip={updateTrip} />}
       {subView === 'flights' && <FlightsTab trip={trip} updateTrip={updateTrip} />}
       {subView === 'stays' && <StaysTab trip={trip} updateTrip={updateTrip} />}
       {subView === 'documents' && (
