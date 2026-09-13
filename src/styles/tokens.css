@@ -226,3 +226,30 @@ textarea {
 a {
   color: var(--color-teal);
 }
+
+/* One visible focus ring for every interactive element, for keyboard users —
+   :focus-visible already suppresses itself for a mouse/touch click, so this
+   never appears as an unwanted ring after a tap. Inputs/textareas/selects
+   keep their own border-color focus treatment (Field.module.css) on top of
+   this, which is fine — the two aren't mutually exclusive. */
+:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+}
+
+/* Respect the OS-level "reduce motion" preference: every animation/
+   transition in the app collapses to a near-instant, no-motion equivalent
+   rather than being removed outright (removing them would make e.g. a
+   sheet's appearance an abrupt, easy-to-miss pop rather than a controlled
+   one). Written as a universal override so a future animation doesn't need
+   its own opt-in. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

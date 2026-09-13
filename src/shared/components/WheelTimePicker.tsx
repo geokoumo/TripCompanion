@@ -10,9 +10,11 @@ interface WheelColumnProps {
   onSelect: (value: number) => void;
   pad?: number;
   disabled?: (value: number) => boolean;
+  /** e.g. "Hour" / "Minute" — gives each value's accessible name context beyond the bare number. */
+  unitLabel: string;
 }
 
-function WheelColumn({ values, selected, onSelect, pad = 2, disabled }: WheelColumnProps) {
+function WheelColumn({ values, selected, onSelect, pad = 2, disabled, unitLabel }: WheelColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
   const hasMounted = useRef(false);
   const scrollTimer = useRef<number | undefined>(undefined);
@@ -42,8 +44,9 @@ function WheelColumn({ values, selected, onSelect, pad = 2, disabled }: WheelCol
     const index = values.indexOf(selected);
     if (index < 0) return;
     const target = index * ITEM_HEIGHT;
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     if (Math.abs(el.scrollTop - target) > 1) {
-      el.scrollTo({ top: target, behavior: hasMounted.current ? 'smooth' : 'auto' });
+      el.scrollTo({ top: target, behavior: hasMounted.current && !prefersReducedMotion ? 'smooth' : 'auto' });
     }
     hasMounted.current = true;
   }, [selected, values]);
@@ -82,25 +85,29 @@ function WheelColumn({ values, selected, onSelect, pad = 2, disabled }: WheelCol
   }, []);
 
   return (
-    <div ref={ref} className={styles.column}>
-      <div className={styles.spacer} style={{ height: pad * ITEM_HEIGHT }} />
+    <div ref={ref} className={styles.column} role="listbox" aria-label={unitLabel}>
+      <div className={styles.spacer} style={{ height: pad * ITEM_HEIGHT }} aria-hidden="true" />
       {values.map((v) => {
         const isDisabled = disabled?.(v) ?? false;
+        const isActive = v === selected;
         return (
-          <div
+          <button
             key={v}
+            type="button"
             className={styles.item}
-            data-active={v === selected}
+            role="option"
+            aria-selected={isActive}
+            aria-label={`${unitLabel} ${String(v).padStart(2, '0')}`}
+            data-active={isActive}
             data-disabled={isDisabled}
-            onClick={() => {
-              if (!isDisabled) onSelect(v);
-            }}
+            disabled={isDisabled}
+            onClick={() => onSelect(v)}
           >
             {String(v).padStart(2, '0')}
-          </div>
+          </button>
         );
       })}
-      <div className={styles.spacer} style={{ height: pad * ITEM_HEIGHT }} />
+      <div className={styles.spacer} style={{ height: pad * ITEM_HEIGHT }} aria-hidden="true" />
     </div>
   );
 }
@@ -140,9 +147,11 @@ export function WheelTimePicker({ value, onChange, isTimeDisabled }: WheelTimePi
         ))}
       </div>
       <div className={styles.wrapper}>
-        <WheelColumn values={hours} selected={hour} onSelect={setHour} disabled={isHourDisabled} />
-        <span className={styles.separator}>:</span>
-        <WheelColumn values={minutes} selected={minute} onSelect={setMinute} disabled={isMinuteDisabled} />
+        <WheelColumn values={hours} selected={hour} onSelect={setHour} disabled={isHourDisabled} unitLabel="Hour" />
+        <span className={styles.separator} aria-hidden="true">
+          :
+        </span>
+        <WheelColumn values={minutes} selected={minute} onSelect={setMinute} disabled={isMinuteDisabled} unitLabel="Minute" />
       </div>
     </div>
   );

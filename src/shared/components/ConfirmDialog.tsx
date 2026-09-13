@@ -14,9 +14,14 @@ export function DeleteConfirmSheet({ itemName, onConfirm, onCancel }: DeleteConf
       title="Delete?"
       onClose={onCancel}
       footer={
-        <Button variant="primary" onClick={onConfirm}>
-          Yes, delete
-        </Button>
+        <>
+          <Button variant="secondary" style={{ flex: 1 }} onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button variant="danger" style={{ flex: 1 }} onClick={onConfirm}>
+            Yes, delete
+          </Button>
+        </>
       }
     >
       <p style={{ color: 'var(--color-text)', paddingTop: 4 }}>

@@ -28,7 +28,7 @@ export function DateField({ label, date, onChange, minDate, maxDate, error }: Da
   return (
     <FieldWrapper label={label} error={error}>
       <div className={styles.row}>
-        <button type="button" className={styles.pill} onClick={openPicker}>
+        <button type="button" className={styles.pill} onClick={openPicker} aria-haspopup="dialog" aria-label={`${label}: ${date ? formatDateShort(date) : 'not set'}`}>
           {date ? formatDateShort(date) : 'Select date'}
         </button>
       </div>

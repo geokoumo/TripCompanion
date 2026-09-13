@@ -15,12 +15,14 @@ export function CategorySection({ category, items, onToggle, onRemove }: Categor
 
   return (
     <div>
-      <div className={styles.categoryHeader} onClick={() => setOpen((v) => !v)}>
+      <button type="button" className={styles.categoryHeader} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
         <span className={styles.categoryTitle}>
           {category.toUpperCase()} {doneCount}/{items.length}
         </span>
-        <span style={{ color: 'var(--color-text-faint)' }}>{open ? '▾' : '▸'}</span>
-      </div>
+        <span style={{ color: 'var(--color-text-faint)' }} aria-hidden="true">
+          {open ? '▾' : '▸'}
+        </span>
+      </button>
       {open &&
         items.map((item) => (
           <div key={item.id} className={styles.item}>

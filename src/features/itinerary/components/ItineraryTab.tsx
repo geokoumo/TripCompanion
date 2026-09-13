@@ -138,12 +138,20 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
         <TodayView trip={trip} onOpenStop={openStop} />
       ) : (
         <>
-          <div className={styles.dayTabs}>
+          <div className={styles.dayTabs} role="tablist" aria-label="Days">
             {days.map((date) => (
-              <div key={date} className={styles.dayTab} data-active={date === selectedDate} onClick={() => setSelectedDate(date)}>
+              <button
+                key={date}
+                type="button"
+                role="tab"
+                aria-selected={date === selectedDate}
+                className={styles.dayTab}
+                data-active={date === selectedDate}
+                onClick={() => setSelectedDate(date)}
+              >
                 <div className={styles.dayTabWeekday}>{weekdayShort(date)}</div>
                 <div className={styles.dayTabNumber}>{dayNumber(date)}</div>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -193,7 +201,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
             setCreatingStop(false);
             setEditingStop(null);
           }}
-          onSave={(s) => void saveStop(s)}
+          onSave={(s) => saveStop(s)}
           onDelete={editingStop ? () => setPendingDelete(editingStop) : undefined}
         />
       )}

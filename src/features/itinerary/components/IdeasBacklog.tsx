@@ -26,10 +26,12 @@ export function IdeasBacklog({ ideas, defaultDate, onAdd, onAssignToDay, onRemov
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.header} onClick={() => setOpen((v) => !v)}>
+      <button type="button" className={styles.header} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
         <span className={styles.headerTitle}>Ideas ({ideas.length})</span>
-        <span className={styles.chevron}>{open ? '▾' : '▸'}</span>
-      </div>
+        <span className={styles.chevron} aria-hidden="true">
+          {open ? '▾' : '▸'}
+        </span>
+      </button>
       {open && (
         <>
           {ideas.map((idea) => {
@@ -37,11 +39,12 @@ export function IdeasBacklog({ ideas, defaultDate, onAdd, onAssignToDay, onRemov
             return (
               <div key={idea.id} className={styles.row}>
                 <span className={styles.badge}>{type?.letter}</span>
-                <span className={styles.rowTitle} onClick={() => onRemove(idea.id)} title="Tap to remove">
-                  {idea.title}
-                </span>
+                <span className={styles.rowTitle}>{idea.title}</span>
                 <button type="button" className={styles.dateChip} onClick={() => onAssignToDay(idea)}>
                   On {formatDateNoYear(idea.suggestedDate ?? defaultDate)}
+                </button>
+                <button type="button" className={styles.removeButton} onClick={() => onRemove(idea.id)} aria-label={`Remove idea: ${idea.title}`}>
+                  ✕
                 </button>
               </div>
             );

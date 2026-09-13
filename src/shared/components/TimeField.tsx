@@ -22,6 +22,8 @@ export function TimeField({ label, time, onChange, placeholder = '--:--' }: Time
         type="button"
         className={styles.pill}
         style={{ width: '100%' }}
+        aria-haspopup="dialog"
+        aria-label={`${label}: ${time || 'not set'}`}
         onClick={() => {
           (document.activeElement as HTMLElement | null)?.blur();
           setOpen(true);

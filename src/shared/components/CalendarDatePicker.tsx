@@ -77,17 +77,25 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
           const cellYear = cell.monthOffset === -1 && month === 0 ? year - 1 : cell.monthOffset === 1 && month === 11 ? year + 1 : year;
           const cellMonth = cell.monthOffset === -1 ? (month === 0 ? 11 : month - 1) : cell.monthOffset === 1 ? (month === 11 ? 0 : month + 1) : month;
           const dateStr = toDateStr(cellYear, cellMonth, cell.day);
-          const disabled = (minDate && dateStr < minDate) || (maxDate && dateStr > maxDate);
+          const isOutside = cell.monthOffset !== 0;
+          const isOutOfRange = Boolean((minDate && dateStr < minDate) || (maxDate && dateStr > maxDate));
+          const disabled = isOutside || isOutOfRange;
+          const isToday = dateStr === todayStr;
+          const isSelected = dateStr === value;
+          const fullDateLabel = `${MONTHS[cellMonth]} ${cell.day}, ${cellYear}`;
+          const label = [fullDateLabel, isToday && 'today', isSelected && 'selected'].filter(Boolean).join(', ');
           return (
             <button
               key={idx}
               type="button"
               className={styles.day}
-              data-outside={cell.monthOffset !== 0}
-              data-selected={dateStr === value}
-              data-today={dateStr === todayStr}
-              data-disabled={Boolean(disabled)}
-              disabled={Boolean(disabled)}
+              data-outside={isOutside}
+              data-selected={isSelected}
+              data-today={isToday}
+              data-disabled={disabled}
+              disabled={disabled}
+              aria-current={isToday ? 'date' : undefined}
+              aria-label={label}
               onClick={() => onChange(dateStr)}
             >
               {cell.day}

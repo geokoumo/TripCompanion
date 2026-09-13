@@ -59,7 +59,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
   padding: var(--space-3) 0;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
   cursor: pointer;
 }
 
@@ -100,6 +106,8 @@
   background: none;
   color: var(--color-text-faint);
   cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .addButton {

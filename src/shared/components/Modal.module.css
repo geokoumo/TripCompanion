@@ -63,7 +63,13 @@
   font-size: var(--fs-lg);
   color: var(--color-text-muted);
   cursor: pointer;
-  padding: 4px;
+  /* 44x44 minimum touch target (the glyph itself stays small) — padding alone hit ~28px. */
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: -10px;
 }
 
 .body {

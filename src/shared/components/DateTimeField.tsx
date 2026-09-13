@@ -47,10 +47,22 @@ export function DateTimeField({
   return (
     <FieldWrapper label={label} caption={caption} error={error} badge={badge}>
       <div className={styles.row}>
-        <button type="button" className={styles.pill} onClick={() => openPicker('date')}>
+        <button
+          type="button"
+          className={styles.pill}
+          onClick={() => openPicker('date')}
+          aria-haspopup="dialog"
+          aria-label={`Date: ${date ? formatDateShort(date) : 'not set'}`}
+        >
           {date ? formatDateShort(date) : 'Select date'}
         </button>
-        <button type="button" className={styles.pill} onClick={() => openPicker('time')}>
+        <button
+          type="button"
+          className={styles.pill}
+          onClick={() => openPicker('time')}
+          aria-haspopup="dialog"
+          aria-label={`Time: ${time || 'not set'}`}
+        >
           {time || '--:--'}
         </button>
       </div>
