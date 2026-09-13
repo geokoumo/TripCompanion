@@ -140,3 +140,42 @@ describe('BookingItemsListScreen — View Details', () => {
     expect(screen.getByText('New restaurant')).toBeInTheDocument();
   });
 });
+
+describe('BookingItemsListScreen — date must stay within the trip (domain-level, not just the picker)', () => {
+  const tripWithLegs = () =>
+    makeTrip({
+      bookingItems: [makeItem({ date: '2026-09-01' })], // outside the leg below — legacy/edit scenario
+      legs: [{ id: 'l1', city: 'Tokyo', country: 'Japan', startDate: '2026-09-10', endDate: '2026-09-15', currency: 'EUR' }],
+    });
+
+  it('blocks saving an existing item whose date already falls outside the trip range', async () => {
+    const user = userEvent.setup();
+    renderScreen(tripWithLegs());
+    await user.click(screen.getByRole('button', { name: OPEN_ITEM }));
+    await user.click(screen.getByRole('button', { name: 'Edit' }));
+
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    expect(screen.getByText(/outside the trip/i)).toBeInTheDocument();
+  });
+
+  it('allows saving once the date is corrected to fall inside the trip range', async () => {
+    const user = userEvent.setup();
+    const { updateTrip } = renderScreen(tripWithLegs());
+    await user.click(screen.getByRole('button', { name: OPEN_ITEM }));
+    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    await user.click(screen.getByRole('button', { name: /^Date: / }));
+    await user.click(screen.getByRole('button', { name: /September 12, 2026/ }));
+
+    expect(screen.getByRole('button', { name: 'Save' })).not.toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(updateTrip).toHaveBeenCalled();
+  });
+
+  it('never blocks saving when no date is set at all — a booking date is optional', async () => {
+    const user = userEvent.setup();
+    renderScreen(makeTrip({ legs: [{ id: 'l1', city: 'Tokyo', country: 'Japan', startDate: '2026-09-10', endDate: '2026-09-15', currency: 'EUR' }] }));
+    await user.click(screen.getByRole('button', { name: OPEN_ITEM }));
+    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(screen.getByRole('button', { name: 'Save' })).not.toBeDisabled();
+  });
+});

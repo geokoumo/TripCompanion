@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { CATEGORY_COLORS } from '../../../config/constants';
+import { validateActivityDate } from '../../../domain';
 import { Button } from '../../../shared/components/Button';
 import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { FieldWrapper, MoreToggle, TextField } from '../../../shared/components/Field';
+import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { Modal } from '../../../shared/components/Modal';
 import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
@@ -66,7 +68,12 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
   const { saving, run } = useSavingGuard();
   const needsRate = expense.currency !== trip.homeCurrency;
   const hasRate = !needsRate || (expense.exchangeRateToHome != null && expense.exchangeRateToHome > 0);
-  const canSave = expense.amount > 0 && expense.categoryId && expense.date && expense.paidBy && expense.splitAmong.length > 0 && hasRate;
+  // Re-checked here (not just via the DateField's own minDate/maxDate) so an
+  // already-saved expense whose date predates this constraint, or one from a
+  // trip whose range has since changed, can't be silently re-saved as-is —
+  // the same domain rule Add/Edit Activity uses.
+  const dateValid = !expense.date || validateActivityDate(expense.date, range).length === 0;
+  const canSave = expense.amount > 0 && expense.categoryId && expense.date && dateValid && expense.paidBy && expense.splitAmong.length > 0 && hasRate;
   const handleSave = () => void run(() => onSave(expense));
 
   return (
@@ -165,7 +172,14 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
 
       <TextField label="Description" value={expense.note ?? ''} onChange={(e) => update('note', e.target.value)} placeholder="e.g. Dinner" />
 
-      <DateField label="Date" date={expense.date} onChange={(d) => update('date', d)} minDate={range?.startDate} maxDate={range?.endDate} />
+      <DateField
+        label="Date"
+        date={expense.date}
+        onChange={(d) => update('date', d)}
+        minDate={range?.startDate}
+        maxDate={range?.endDate}
+        error={!dateValid && range ? `Outside the trip (${formatDateNoYear(range.startDate)} – ${formatDateNoYear(range.endDate)})` : undefined}
+      />
 
       {travelers.length > 0 && (
         <FieldWrapper label="Paid by">

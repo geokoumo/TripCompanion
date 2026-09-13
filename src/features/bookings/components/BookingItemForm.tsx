@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BOOKING_ITEM_TYPES, type BookingItemTypeId, type DocumentCategoryId } from '../../../config/constants';
+import { validateActivityDate } from '../../../domain';
 import { Button } from '../../../shared/components/Button';
 import { DateField } from '../../../shared/components/DateField';
 import { TimeField } from '../../../shared/components/TimeField';
@@ -8,6 +9,7 @@ import { Modal } from '../../../shared/components/Modal';
 import { Switch } from '../../../shared/components/Switch';
 import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
+import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../../trips/lib/dateRange';
 import type { Trip } from '../../trips/types';
 import { AttachmentsField } from '../../documents/components/AttachmentsField';
@@ -70,7 +72,12 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
 
   const { saving, run } = useSavingGuard();
   const timeOrderValid = !item.startTime || !item.endTime || item.endTime >= item.startTime;
-  const canSave = item.name.trim().length > 0 && timeOrderValid;
+  // A booking's date is optional, but when set it must still fall inside the
+  // trip — re-checked here (not just via the DateField's own minDate/maxDate)
+  // so an already-saved item whose date predates this constraint can't be
+  // silently re-saved as-is; the same domain rule Add/Edit Activity uses.
+  const dateValid = !item.date || validateActivityDate(item.date, range).length === 0;
+  const canSave = item.name.trim().length > 0 && timeOrderValid && dateValid;
   const handleSave = () => void run(() => onSave(item, addToItinerary));
 
   return (
@@ -140,6 +147,11 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
       <FieldRow>
         <DateField label="Date" date={item.date ?? ''} onChange={(d) => update('date', d)} minDate={range?.startDate} maxDate={range?.endDate} />
       </FieldRow>
+      {!dateValid && range && (
+        <p className={styles.conflictNote}>
+          This date falls outside the trip ({formatDateNoYear(range.startDate)} – {formatDateNoYear(range.endDate)}). Pick a date within the trip.
+        </p>
+      )}
       <FieldRow>
         <TimeField label="Start time" time={item.startTime ?? ''} onChange={(t) => update('startTime', t)} />
         <TimeField label="End time" time={item.endTime ?? ''} onChange={(t) => update('endTime', t)} />
