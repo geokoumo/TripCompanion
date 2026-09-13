@@ -1,15 +1,10 @@
-.topRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.time {
+.eyebrow {
   font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
   font-weight: 600;
-  color: var(--color-text-muted);
-  font-size: var(--fs-meta);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
 }
 
 .title {
@@ -22,24 +17,4 @@
   color: var(--color-text-muted);
   font-size: var(--fs-meta);
   margin-top: 2px;
-}
-
-.badges {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.typeBadge {
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  background: var(--color-gray-soft);
-  color: var(--color-text-muted);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 0.7rem;
 }

@@ -64,3 +64,22 @@ export function groupAutoPulledByDate(entries: AutoPulledEntry[]): Map<string, A
   }
   return map;
 }
+
+/** The confirmation-number metadata line shown on an auto-pulled entry's card, when the source flight/stay actually has one — never invented. */
+export function autoPulledEntryMeta(entry: AutoPulledEntry, flights: Flight[], stays: Stay[]): string | undefined {
+  const bookingRef =
+    entry.source === 'flight' ? flights.find((f) => f.id === entry.sourceId)?.bookingRef : stays.find((s) => s.id === entry.sourceId)?.bookingRef;
+  return bookingRef ? `Confirmation #${bookingRef}` : undefined;
+}
+
+export type AutoPulledSource = { kind: 'flight'; flight: Flight } | { kind: 'stay'; stay: Stay };
+
+/** Resolves an auto-pulled entry back to the actual Flight/Stay record it was projected from — the same entity its own tab edits, not a copy. */
+export function resolveAutoPulledSource(entry: AutoPulledEntry, flights: Flight[], stays: Stay[]): AutoPulledSource | null {
+  if (entry.source === 'flight') {
+    const flight = flights.find((f) => f.id === entry.sourceId);
+    return flight ? { kind: 'flight', flight } : null;
+  }
+  const stay = stays.find((s) => s.id === entry.sourceId);
+  return stay ? { kind: 'stay', stay } : null;
+}

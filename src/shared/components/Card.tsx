@@ -9,6 +9,8 @@ interface CardOwnProps {
   accent?: AccentTone;
   /** Dims the card (e.g. a cancelled flight) without hiding its content. */
   muted?: boolean;
+  /** Drops the background/border/radius in favor of a bottom hairline — for a timeline-style list (itinerary) where every row looking like a boxed card reads as too heavy. */
+  flat?: boolean;
   className?: string;
 }
 
@@ -42,7 +44,7 @@ type CardProps = CardAsButtonProps | CardAsStaticProps;
  * button — never a `<div onClick>`. Use `nestedInteractive` for the one
  * real exception: a card that also contains its own secondary button.
  */
-export function Card({ children, accent, muted = false, className, onClick, ...rest }: CardProps) {
+export function Card({ children, accent, muted = false, flat = false, className, onClick, ...rest }: CardProps) {
   const combinedClassName = className ? `${styles.card} ${className}` : styles.card;
 
   if (onClick && !('nestedInteractive' in rest && rest.nestedInteractive)) {
@@ -52,6 +54,7 @@ export function Card({ children, accent, muted = false, className, onClick, ...r
         className={combinedClassName}
         data-accent={accent}
         data-muted={muted}
+        data-flat={flat}
         data-interactive="true"
         onClick={onClick}
         {...(rest as ButtonHTMLAttributes<HTMLButtonElement>)}
@@ -68,6 +71,7 @@ export function Card({ children, accent, muted = false, className, onClick, ...r
         className={combinedClassName}
         data-accent={accent}
         data-muted={muted}
+        data-flat={flat}
         data-interactive="true"
         role="button"
         tabIndex={0}
@@ -87,7 +91,7 @@ export function Card({ children, accent, muted = false, className, onClick, ...r
   }
 
   return (
-    <div className={combinedClassName} data-accent={accent} data-muted={muted} {...(rest as HTMLAttributes<HTMLDivElement>)}>
+    <div className={combinedClassName} data-accent={accent} data-muted={muted} data-flat={flat} {...(rest as HTMLAttributes<HTMLDivElement>)}>
       {children}
     </div>
   );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildAutoPulledEntries, groupAutoPulledByDate } from './lib/autoPulledEntries';
+import { autoPulledEntryMeta, buildAutoPulledEntries, groupAutoPulledByDate, resolveAutoPulledSource } from './lib/autoPulledEntries';
 import type { Flight } from '../flights/types';
 import type { Stay } from '../stays/types';
 
@@ -70,5 +70,41 @@ describe('groupAutoPulledByDate', () => {
 
   it('returns an empty map for no entries', () => {
     expect(groupAutoPulledByDate([]).size).toBe(0);
+  });
+});
+
+describe('autoPulledEntryMeta', () => {
+  it('shows the confirmation number when the source flight has a booking reference', () => {
+    const entries = buildAutoPulledEntries([flight({ id: 'f1', bookingRef: 'AB123' })], []);
+    expect(autoPulledEntryMeta(entries[0]!, [flight({ id: 'f1', bookingRef: 'AB123' })], [])).toBe('Confirmation #AB123');
+  });
+
+  it('shows the confirmation number when the source stay has a booking reference', () => {
+    const entries = buildAutoPulledEntries([], [stay({ id: 's1', bookingRef: 'HB-9' })]);
+    expect(autoPulledEntryMeta(entries[0]!, [], [stay({ id: 's1', bookingRef: 'HB-9' })])).toBe('Confirmation #HB-9');
+  });
+
+  it('never invents a confirmation number when the source has none', () => {
+    const entries = buildAutoPulledEntries([flight({ id: 'f1' })], []);
+    expect(autoPulledEntryMeta(entries[0]!, [flight({ id: 'f1' })], [])).toBeUndefined();
+  });
+});
+
+describe('resolveAutoPulledSource', () => {
+  it('resolves a flight entry back to the exact same flight record its own tab edits', () => {
+    const f = flight({ id: 'f1' });
+    const entries = buildAutoPulledEntries([f], []);
+    expect(resolveAutoPulledSource(entries[0]!, [f], [])).toEqual({ kind: 'flight', flight: f });
+  });
+
+  it('resolves a stay entry back to the exact same stay record its own tab edits', () => {
+    const s = stay({ id: 's1' });
+    const entries = buildAutoPulledEntries([], [s]);
+    expect(resolveAutoPulledSource(entries[0]!, [], [s])).toEqual({ kind: 'stay', stay: s });
+  });
+
+  it('returns null when the source record no longer exists (deleted since)', () => {
+    const entries = buildAutoPulledEntries([flight({ id: 'f1' })], []);
+    expect(resolveAutoPulledSource(entries[0]!, [], [])).toBeNull();
   });
 });

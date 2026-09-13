@@ -17,12 +17,9 @@ function StopCardComponent({ stop, travelers, onOpen }: StopCardProps) {
   const durationLabel = stop.durationMinutes ? `${Math.round(stop.durationMinutes / 60) > 0 ? `${Math.floor(stop.durationMinutes / 60)}h ` : ''}${stop.durationMinutes % 60}m` : null;
 
   return (
-    <Card onClick={() => onOpen(stop)} aria-label={`Open ${stop.title}`}>
-      <div className={styles.topRow}>
-        <span className={styles.time}>{stop.allDay ? 'All day' : stop.time}</span>
-        <span className={styles.badges}>
-          <span className={styles.typeBadge}>{type?.letter}</span>
-        </span>
+    <Card flat onClick={() => onOpen(stop)} aria-label={`Open ${stop.title}`}>
+      <div className={styles.eyebrow}>
+        {stop.allDay ? 'All day' : stop.time} · {type?.label ?? stop.type}
       </div>
       <div className={styles.title}>{stop.title}</div>
       <div className={styles.meta}>

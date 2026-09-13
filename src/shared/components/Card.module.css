@@ -34,3 +34,17 @@
 .card[data-muted='true'] {
   opacity: 0.72;
 }
+
+.card[data-flat='true'] {
+  background: none;
+  border: none;
+  border-left: none;
+  border-radius: 0;
+  border-bottom: var(--border-width-hairline) solid var(--color-border);
+  padding: var(--space-3) 0;
+  margin-bottom: 0;
+}
+
+.card[data-flat='true']:last-child {
+  border-bottom: none;
+}

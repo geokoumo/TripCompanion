@@ -47,6 +47,13 @@
   margin-top: 2px;
 }
 
+.dayTabTripDay {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  opacity: 0.65;
+  margin-top: 1px;
+}
+
 .legHeader {
   font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);

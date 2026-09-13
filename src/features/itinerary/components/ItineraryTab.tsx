@@ -8,12 +8,19 @@ import { dayNumber, weekdayShort, todayStr, formatDateNoYear } from '../../../sh
 import { generateId } from '../../../shared/lib/id';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { upsertItineraryStop } from '../../../data/repository/activityRepository';
+import { FlightDetailView } from '../../flights/components/FlightDetailView';
+import { FlightForm } from '../../flights/components/FlightForm';
+import type { Flight } from '../../flights/types';
+import { StayDetailView } from '../../stays/components/StayDetailView';
+import { StayForm } from '../../stays/components/StayForm';
+import type { Stay } from '../../stays/types';
 import type { Trip } from '../../trips/types';
 import { getTripDateRange } from '../../trips/lib/dateRange';
 import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
-import { buildAutoPulledEntries } from '../lib/autoPulledEntries';
+import { autoPulledEntryMeta, buildAutoPulledEntries, resolveAutoPulledSource, type AutoPulledSource } from '../lib/autoPulledEntries';
 import { describeActivityError, validateStopForSave } from '../lib/activityValidation';
-import type { Idea, ItineraryStop } from '../types';
+import { computeDayProgress, legContextForDate } from '../lib/tripDayContext';
+import type { AutoPulledEntry, Idea, ItineraryStop } from '../types';
 import { AutoPulledEntryCard } from './AutoPulledEntryCard';
 import { IdeasBacklog } from './IdeasBacklog';
 import { StopCard } from './StopCard';
@@ -59,6 +66,14 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const [creatingStop, setCreatingStop] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<ItineraryStop | null>(null);
 
+  // A flight/stay reached by tapping its auto-pulled itinerary checkpoint —
+  // the exact same entity Flights/Stays edits, just a second entry point to
+  // it. Viewing is read-only (StopDetailView-style); Edit hands off to the
+  // same FlightForm/StayForm those tabs use, never a parallel edit path.
+  const [viewingAutoPulled, setViewingAutoPulled] = useState<AutoPulledSource | null>(null);
+  const [editingFlight, setEditingFlight] = useState<Flight | null>(null);
+  const [editingStay, setEditingStay] = useState<Stay | null>(null);
+
   const autoPulled = useMemo(() => buildAutoPulledEntries(trip.flights, trip.stays), [trip.flights, trip.stays]);
   const autoPulledForDay = autoPulled.filter((e) => e.date === selectedDate);
   const stopsForDay = trip.itineraryStops.filter((s) => s.date === selectedDate);
@@ -66,12 +81,45 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const timedStopsForDay = stopsForDay.filter((s) => !s.allDay).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
 
   const openStop = useCallback((stop: ItineraryStop) => setViewingStop(stop), []);
+  const openAutoPulledEntry = useCallback(
+    (entry: AutoPulledEntry) => {
+      const source = resolveAutoPulledSource(entry, trip.flights, trip.stays);
+      if (source) setViewingAutoPulled(source);
+    },
+    [trip.flights, trip.stays],
+  );
+
+  const saveFlight = async (flight: Flight) => {
+    await updateTrip((t) => ({
+      ...t,
+      flights: t.flights.some((f) => f.id === flight.id) ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight],
+    }));
+    showToast('Flight saved.');
+    setEditingFlight(null);
+  };
+
+  const saveStay = async (stay: Stay) => {
+    await updateTrip((t) => {
+      const exists = t.stays.some((s) => s.id === stay.id);
+      const stays = exists ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
+      const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
+      return { ...t, stays, rememberedLocations };
+    });
+    showToast('Stay saved.');
+    setEditingStay(null);
+  };
 
   const legsForDay = trip.legs.filter((leg) => selectedDate >= leg.startDate && selectedDate <= leg.endDate);
-  const legHeaderLabel = legsForDay
-    .map((l) => l.city || 'NO CITY')
-    .join(' → ')
-    .toUpperCase();
+  const primaryLegForDay = legsForDay[0];
+  const legContext = primaryLegForDay ? legContextForDate(primaryLegForDay, selectedDate) : null;
+  const dayProgress = computeDayProgress(days, selectedDate);
+  const legHeaderText = [
+    dayProgress && `DAY ${dayProgress.dayNumber} OF ${dayProgress.totalDays}`,
+    legsForDay.map((l) => l.city || 'NO CITY').join(' → ').toUpperCase(),
+    legContext === 'arrival' ? 'ARRIVAL' : legContext === 'departure' ? 'DEPARTURE' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   // Final gate before writing: re-fetches the trip fresh (Supabase, not
   // whatever's been sitting in this tab's memory) and revalidates against
@@ -139,7 +187,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       </div>
 
       {view === 'today' ? (
-        <TodayView trip={trip} onOpenStop={openStop} />
+        <TodayView trip={trip} onOpenStop={openStop} onOpenAutoPulledEntry={openAutoPulledEntry} />
       ) : (
         <>
           <div className={styles.dayTabs} role="tablist" aria-label="Days">
@@ -155,11 +203,15 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
               >
                 <div className={styles.dayTabWeekday}>{weekdayShort(date)}</div>
                 <div className={styles.dayTabNumber}>{dayNumber(date)}</div>
+                {(() => {
+                  const progress = computeDayProgress(days, date);
+                  return progress && <div className={styles.dayTabTripDay}>D{progress.dayNumber}</div>;
+                })()}
               </button>
             ))}
           </div>
 
-          {legsForDay.length > 0 && <div className={styles.legHeader}>{legHeaderLabel}</div>}
+          {legHeaderText && <div className={styles.legHeader}>{legHeaderText}</div>}
 
           {allDayStopsForDay.length > 0 && (
             <>
@@ -171,7 +223,12 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
           )}
 
           {autoPulledForDay.map((entry) => (
-            <AutoPulledEntryCard key={entry.id} entry={entry} />
+            <AutoPulledEntryCard
+              key={entry.id}
+              entry={entry}
+              meta={autoPulledEntryMeta(entry, trip.flights, trip.stays)}
+              onOpen={openAutoPulledEntry}
+            />
           ))}
           {timedStopsForDay.map((stop) => (
             <StopCard key={stop.id} stop={stop} travelers={trip.travelers} onOpen={openStop} />
@@ -227,6 +284,45 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
             setEditingStop(viewingStop);
             setViewingStop(null);
           }}
+        />
+      )}
+
+      {viewingAutoPulled?.kind === 'flight' && (
+        <FlightDetailView
+          flight={viewingAutoPulled.flight}
+          trip={trip}
+          updateTrip={updateTrip}
+          onClose={() => setViewingAutoPulled(null)}
+          onEdit={() => {
+            setEditingFlight(viewingAutoPulled.flight);
+            setViewingAutoPulled(null);
+          }}
+        />
+      )}
+      {viewingAutoPulled?.kind === 'stay' && (
+        <StayDetailView
+          stay={viewingAutoPulled.stay}
+          trip={trip}
+          updateTrip={updateTrip}
+          onClose={() => setViewingAutoPulled(null)}
+          onEdit={() => {
+            setEditingStay(viewingAutoPulled.stay);
+            setViewingAutoPulled(null);
+          }}
+        />
+      )}
+      {editingFlight && (
+        <FlightForm trip={trip} updateTrip={updateTrip} initial={editingFlight} onClose={() => setEditingFlight(null)} onSave={(f) => saveFlight(f)} />
+      )}
+      {editingStay && (
+        <StayForm
+          trip={trip}
+          updateTrip={updateTrip}
+          initial={editingStay}
+          existingStays={trip.stays}
+          recentLocations={trip.rememberedLocations}
+          onClose={() => setEditingStay(null)}
+          onSave={(s) => saveStay(s)}
         />
       )}
     </div>
