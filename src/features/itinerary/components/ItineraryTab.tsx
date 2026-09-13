@@ -129,7 +129,9 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   };
 
   return (
-    <div style={{ paddingTop: 8 }}>
+    // Bottom padding clears the floating "+" button so the last card (or the
+    // ideas backlog's own input row) never sits underneath it.
+    <div style={{ paddingTop: 8, paddingBottom: 90 }}>
       <div className={styles.viewSwitcher}>
         <StampToggle options={VIEW_OPTIONS} value={view} onChange={setView} variant="plain" layout="fill" />
       </div>

@@ -65,7 +65,9 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
   };
 
   return (
-    <div style={{ paddingTop: 8 }}>
+    // Bottom padding clears the floating "+" button so the last card in a
+    // long list never sits underneath it.
+    <div style={{ paddingTop: 8, paddingBottom: 90 }}>
       {items.length === 0 && (
         <EmptyState headline={`No ${config.label.toLowerCase()}`} body="Add your first one with the button at the bottom right." />
       )}

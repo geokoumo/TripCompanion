@@ -66,7 +66,9 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
   };
 
   return (
-    <div style={{ paddingTop: 8 }}>
+    // Bottom padding clears the floating "+" button so the last card in a
+    // long list never sits underneath it.
+    <div style={{ paddingTop: 8, paddingBottom: 90 }}>
       {sorted.length === 0 && (
         <EmptyState headline="No stays" body="Add your first stay with the button at the bottom right." />
       )}

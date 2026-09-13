@@ -44,7 +44,9 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
   };
 
   return (
-    <div style={{ paddingTop: 8 }}>
+    // Bottom padding clears the floating "+" button so the last card in a
+    // long list never sits underneath it.
+    <div style={{ paddingTop: 8, paddingBottom: 90 }}>
       {sorted.length === 0 && (
         <EmptyState headline="No flights" body="Add your first flight with the button at the bottom right." />
       )}
