@@ -26,6 +26,19 @@ Every table has RLS enabled with an "owner full access" policy (`using`/`with ch
 
 All RPCs (`get_full_trip`, `upsert_full_trip`, `search_trips`, `list_trips`) run as `SECURITY INVOKER` (the default — no `security definer` on any of them), so RLS still applies inside the function body; `upsert_full_trip` additionally stamps `_owner uuid := auth.uid()` server-side rather than trusting any client-submitted `user_id`/`trip.userId` field.
 
+### Manual auth-flow verification checklist (run against a real Supabase project)
+
+This repo's sandbox cannot reach `*.supabase.co`, so nothing below has been exercised live — the auth code was reviewed by inspection only (see "Auth" above) and no issue was found, but "reviewed" is not "verified." Run this checklist against a real project before calling Supabase Auth production-ready. Items 9–12 are covered by the RLS checklist further down instead of repeated here.
+
+1. **Signup** — Sign up with a new email/password (≥8 characters, per the form's own minimum). Confirm the account appears in Supabase's Auth users list, and the app shows "Check your email to confirm, then sign in." and returns to the sign-in form (`AuthForm.tsx`).
+2. **Email verification (if enabled)** — With "Confirm email" on in the Supabase Auth settings, try signing in before confirming: expect the "Check your email and confirm your address before signing in." message (`authErrorMessage`'s `email not confirmed` branch). Click the confirmation link, then sign in again and expect success. If "Confirm email" is off, confirm signup instead logs the user in directly.
+3. **Login** — Sign in with a confirmed account's correct credentials: lands in the app signed in. Retry with a wrong password: expect "Incorrect email or password." with no account detail leaked about which field was wrong.
+4. **Logout** — While signed in, sign out from Settings. Confirm the app returns to the sign-in/onboarding gate (not a stale guest bypass — see `useGuestGate.ts`), and that Supabase's session cookie/local-storage entry for this project is cleared.
+5. **Password reset** — From "Forgot your password?", submit a known email: expect "Check your email for a reset link." (shown even if the email doesn't exist, to avoid confirming which emails are registered — verify this is in fact the behavior). Follow the emailed link, set a new password, and confirm both that sign-in now works with the new password and that the old password no longer works.
+6. **Session persistence** — Sign in, then close and reopen the browser tab (not just refresh) without signing out. Confirm the app opens already signed in, without hitting the auth gate.
+7. **Session restoration** — Sign in, reload the page (hard refresh). Confirm the loading screen appears only briefly and the app resumes signed in on the correct account's data, not a flash of the signed-out shell or another account's data.
+8. **Expired session** — Revoke the current session from Supabase (Auth → Users → sign the test user out, or wait out the refresh-token expiry in a test project configured with a short one), then perform an action in the still-open tab. Confirm the app shows "Your session expired. Please sign in again." (`AuthProvider`'s `SIGNED_OUT` handling) and returns to the sign-in gate, rather than silently failing or showing stale data.
+
 ### Manual RLS verification checklist (run in Supabase SQL editor / two test accounts)
 
 1. Create two users, A and B. Sign in as A, create a trip, note its id.
