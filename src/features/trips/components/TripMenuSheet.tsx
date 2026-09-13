@@ -9,11 +9,12 @@ interface TripMenuSheetProps {
   onDuplicate: () => void;
   onExport: () => void;
   onEditDescription: () => void;
+  onAddTraveler: () => void;
   onArchiveToggle: () => void;
   onDelete: () => void;
 }
 
-export function TripMenuSheet({ trip, onClose, onShare, onDuplicate, onExport, onEditDescription, onArchiveToggle, onDelete }: TripMenuSheetProps) {
+export function TripMenuSheet({ trip, onClose, onShare, onDuplicate, onExport, onEditDescription, onAddTraveler, onArchiveToggle, onDelete }: TripMenuSheetProps) {
   const run = (fn: () => void) => {
     onClose();
     fn();
@@ -33,6 +34,9 @@ export function TripMenuSheet({ trip, onClose, onShare, onDuplicate, onExport, o
         </button>
         <button type="button" className={styles.row} onClick={() => run(onEditDescription)}>
           {trip.description ? 'Edit description' : 'Add description'}
+        </button>
+        <button type="button" className={styles.row} onClick={() => run(onAddTraveler)}>
+          Add traveler
         </button>
         <button type="button" className={styles.row} onClick={() => run(onArchiveToggle)}>
           {trip.archived ? 'Restore from archive' : 'Archive trip'}

@@ -5,6 +5,7 @@ import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { downloadTripAsJson } from '../lib/tripFile';
 import type { Trip } from '../types';
+import { AddTravelerSheet } from '../../travelers/components/AddTravelerSheet';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
 import { TripMenuSheet } from './TripMenuSheet';
 import styles from './TripHeader.module.css';
@@ -27,6 +28,7 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
+  const [addTravelerOpen, setAddTravelerOpen] = useState(false);
   const range = getTripDateRange(trip.legs, trip.flights);
 
   return (
@@ -63,12 +65,16 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
           onDuplicate={onDuplicate}
           onExport={() => downloadTripAsJson(trip)}
           onEditDescription={() => setEditDescriptionOpen(true)}
+          onAddTraveler={() => setAddTravelerOpen(true)}
           onArchiveToggle={onArchiveToggle}
           onDelete={onDeleteRequest}
         />
       )}
       {editDescriptionOpen && (
         <EditDescriptionSheet trip={trip} onClose={() => setEditDescriptionOpen(false)} onSave={onSaveTrip} />
+      )}
+      {addTravelerOpen && (
+        <AddTravelerSheet trip={trip} onClose={() => setAddTravelerOpen(false)} onSave={onSaveTrip} />
       )}
     </div>
   );
