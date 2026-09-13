@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { destinationLabel, statusStampLabel } from './lib/summary';
 
 describe('destinationLabel', () => {
-  it('shows a placeholder when there are no cities', () => {
-    expect(destinationLabel([])).toBe('No cities');
+  it('is empty (never a "No cities" placeholder) when there are no cities', () => {
+    expect(destinationLabel([])).toBe('');
   });
 
   it('shows the single city name as-is', () => {

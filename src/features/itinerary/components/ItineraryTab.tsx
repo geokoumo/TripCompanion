@@ -113,9 +113,10 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const primaryLegForDay = legsForDay[0];
   const legContext = primaryLegForDay ? legContextForDate(primaryLegForDay, selectedDate) : null;
   const dayProgress = computeDayProgress(days, selectedDate);
+  const legCities = legsForDay.map((l) => l.city).filter(Boolean);
   const legHeaderText = [
     dayProgress && `DAY ${dayProgress.dayNumber} OF ${dayProgress.totalDays}`,
-    legsForDay.map((l) => l.city || 'Unknown').join(' → ').toUpperCase(),
+    legCities.length > 0 ? legCities.join(' → ').toUpperCase() : null,
     legContext === 'arrival' ? 'ARRIVAL' : legContext === 'departure' ? 'DEPARTURE' : null,
   ]
     .filter(Boolean)

@@ -129,3 +129,13 @@ describe('OverviewTab — Booking Summary', () => {
     vi.useRealTimers();
   });
 });
+
+describe('OverviewTab — leg summary never shows a trust-damaging placeholder', () => {
+  it('omits the city name (never "Unknown") for a leg with no city yet, keeping its real dates', () => {
+    vi.setSystemTime(new Date(`${TODAY}T12:00:00Z`));
+    renderOverview(trip({ legs: [{ id: 'l1', city: '', country: '', startDate: '2026-10-06', endDate: '2026-10-11', currency: 'EUR' }] }));
+    expect(screen.getByText('6 Oct-11 Oct')).toBeInTheDocument();
+    expect(screen.queryByText(/Unknown/)).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
+});

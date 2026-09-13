@@ -2,8 +2,9 @@ import { daysBetween, todayStr } from '../../../shared/lib/dateFormat';
 import { getTripStatus } from '../types';
 import type { DateRange } from './dateRange';
 
+/** Empty when the trip has no cities yet — never a "No cities" placeholder; callers already omit a falsy destination. */
 export function destinationLabel(cities: string[]): string {
-  if (cities.length === 0) return 'No cities';
+  if (cities.length === 0) return '';
   if (cities.length === 1) return cities[0]!;
   return cities.join(' → ');
 }

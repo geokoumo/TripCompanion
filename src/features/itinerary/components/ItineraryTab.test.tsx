@@ -216,6 +216,13 @@ describe('ItineraryTab — trip-relative day framing', () => {
     expect(screen.queryByText(/ARRIVAL/)).not.toBeInTheDocument();
     expect(screen.queryByText(/DEPARTURE/)).not.toBeInTheDocument();
   });
+
+  it('omits the city segment entirely (never a "NO CITY"/"Unknown" placeholder) when a leg has no city yet', () => {
+    renderTab(makeTrip({ legs: [{ id: 'l1', city: '', country: '', startDate: DATE, endDate: '2026-09-20', currency: 'EUR' }] }));
+    expect(screen.getByText('DAY 1 OF 6 · ARRIVAL')).toBeInTheDocument();
+    expect(screen.queryByText(/NO CITY/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/UNKNOWN/i)).not.toBeInTheDocument();
+  });
 });
 
 describe('ItineraryTab — auto-pulled entries stay read-only projections', () => {

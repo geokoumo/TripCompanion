@@ -91,7 +91,12 @@ export function OverviewTab({ trip, updateTrip, onOpenTripHealth }: OverviewTabP
 
   const legSummary =
     trip.legs.length > 0
-      ? trip.legs.map((leg) => `${leg.city || 'Unknown'} (${formatDateNoYear(leg.startDate)}-${formatDateNoYear(leg.endDate)})`).join(' → ')
+      ? trip.legs
+          .map((leg) => {
+            const dates = `${formatDateNoYear(leg.startDate)}-${formatDateNoYear(leg.endDate)}`;
+            return leg.city ? `${leg.city} (${dates})` : dates;
+          })
+          .join(' → ')
       : null;
 
   const travelersLine = trip.travelers.length > 0 ? `Travelers: ${trip.travelers.map((t) => t.name).join(', ')}` : null;
