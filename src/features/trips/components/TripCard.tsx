@@ -1,6 +1,7 @@
 import { AvatarRow } from '../../../shared/components/AvatarChip';
 import { Card } from '../../../shared/components/Card';
 import { StampBadge } from '../../../shared/components/StampBadge';
+import { describeCard } from '../../../shared/lib/accessibleLabel';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { destinationLabel, statusStampLabel } from '../lib/summary';
 import { getTripStatus, type TripListItem } from '../types';
@@ -22,12 +23,13 @@ export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
 
   const dest = destinationLabel(trip.cities);
   const subtitle = range ? `${formatDateShort(range.startDate)} – ${formatDateShort(range.endDate)}${dest ? ` · ${dest}` : ''}` : dest;
+  const statusLabel = statusStampLabel({ archived: trip.archived, range });
 
   return (
-    <Card accent={borderTone} onClick={onOpen} nestedInteractive aria-label={`Open ${trip.title}`}>
+    <Card accent={borderTone} onClick={onOpen} nestedInteractive aria-label={describeCard(`Open ${trip.title}`, statusLabel)}>
       <div className={styles.topRow}>
         <span className={styles.title}>{trip.title}</span>
-        <StampBadge tone={pillTone}>{statusStampLabel({ archived: trip.archived, range })}</StampBadge>
+        <StampBadge tone={pillTone}>{statusLabel}</StampBadge>
       </div>
       {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
       <div className={styles.footerRow}>

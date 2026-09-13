@@ -5,6 +5,7 @@ import { StampBadge } from '../../../shared/components/StampBadge';
 import { FLIGHT_STATUS_TONE } from '../lib/statusTone';
 import type { Flight } from '../types';
 import { FlightJourneyHeader } from './FlightJourneyHeader';
+import { describeCard } from '../../../shared/lib/accessibleLabel';
 import styles from './FlightCard.module.css';
 
 function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flight: Flight) => void }) {
@@ -12,7 +13,7 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
   const isCancelled = flight.status === 'cancelled';
 
   return (
-    <Card muted={isCancelled} onClick={() => onOpen(flight)} aria-label={`Open ${flight.airline} ${flight.flightNumber}`}>
+    <Card muted={isCancelled} onClick={() => onOpen(flight)} aria-label={describeCard(`Open ${flight.airline} ${flight.flightNumber}`, statusLabel)}>
       <div className={styles.topRow}>
         <span className={styles.airlineLine}>
           {flight.airline} · {flight.flightNumber}

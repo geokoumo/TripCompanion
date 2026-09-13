@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Card } from '../../../shared/components/Card';
 import { daysBetween, formatDateNoYear } from '../../../shared/lib/dateFormat';
+import { describeCard } from '../../../shared/lib/accessibleLabel';
 import type { Stay } from '../types';
 import styles from './StayCard.module.css';
 
@@ -9,7 +10,11 @@ function StayCardComponent({ stay, onOpen, overlapping }: { stay: Stay; onOpen: 
   const nightsLabel = nights === 1 ? '1 night' : `${nights} nights`;
 
   return (
-    <Card accent="teal" onClick={() => onOpen(stay)} aria-label={`Open ${stay.name}`}>
+    <Card
+      accent="teal"
+      onClick={() => onOpen(stay)}
+      aria-label={describeCard(`Open ${stay.name}`, overlapping && 'overlaps with another stay')}
+    >
       <div className={styles.topRow}>
         <div>
           <div className={styles.name}>{stay.name}</div>

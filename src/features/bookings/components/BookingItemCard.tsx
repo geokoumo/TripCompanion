@@ -2,6 +2,7 @@ import { Card } from '../../../shared/components/Card';
 import { IconCircle } from '../../../shared/components/IconCircle';
 import { TicketIcon } from '../../../shared/components/icons';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
+import { describeCard } from '../../../shared/lib/accessibleLabel';
 import { BOOKING_TYPE_ICON } from '../lib/bookingGridConfig';
 import type { BookingItem } from '../types';
 import styles from './BookingItemCard.module.css';
@@ -28,7 +29,7 @@ export function BookingItemCard({ item, hasAttachment, onOpen }: BookingItemCard
   const meta = metaLine(item);
 
   return (
-    <Card className={styles.card} onClick={() => onOpen(item)} aria-label={`Open ${item.name}`}>
+    <Card className={styles.card} onClick={() => onOpen(item)} aria-label={describeCard(`Open ${item.name}`, hasAttachment && 'document attached')}>
       <div className={styles.main}>
         <div className={styles.name}>{item.name}</div>
         {meta && <div className={styles.meta}>{meta}</div>}

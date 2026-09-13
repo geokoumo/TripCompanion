@@ -90,7 +90,7 @@ describe('BookingsHub — unified feed', () => {
     const rows = screen.getAllByRole('button', { name: /^Open / });
     const titles = rows.map((r) => r.getAttribute('aria-label'));
     // flight (9/15) -> stay check-in (9/16) -> booking (9/17)
-    expect(titles).toEqual(['Open Delta DL123', 'Open Park Hyatt Tokyo', 'Open Sushi Dai']);
+    expect(titles).toEqual(['Open Delta DL123, Scheduled', 'Open Park Hyatt Tokyo, Check-in 15:00', 'Open Sushi Dai']);
   });
 
   it('shows a real, non-invented status pill for a flight and plain check-in text for a stay', () => {
@@ -165,5 +165,25 @@ describe('BookingsHub — unified feed', () => {
     const stayRow = screen.getByRole('button', { name: /Open Park Hyatt Tokyo/ });
     expect(within(flightRow).getByText('Doc attached')).toBeInTheDocument();
     expect(within(stayRow).queryByText('Doc attached')).not.toBeInTheDocument();
+  });
+
+  it('announces status and "document attached" in the accessible name, not just visually', () => {
+    renderHub(
+      makeTrip({
+        documents: [
+          {
+            id: 'd1',
+            category: 'boarding_pass',
+            title: 'Boarding pass',
+            relatedTo: 'JFK → LHR flight',
+            fileType: 'pdf',
+            storagePath: 'x',
+            uploadedAt: '2026-01-01T00:00:00Z',
+          },
+        ],
+      }),
+    );
+    const flightRow = screen.getByRole('button', { name: /Open Delta DL123/ });
+    expect(flightRow).toHaveAccessibleName('Open Delta DL123, Scheduled, document attached');
   });
 });

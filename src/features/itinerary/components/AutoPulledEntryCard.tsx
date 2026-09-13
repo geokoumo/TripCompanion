@@ -1,4 +1,5 @@
 import { LockIcon } from '../../../shared/components/icons';
+import { describeCard } from '../../../shared/lib/accessibleLabel';
 import type { AutoPulledEntry } from '../types';
 import styles from './AutoPulledEntryCard.module.css';
 
@@ -34,7 +35,7 @@ export function AutoPulledEntryCard({ entry, meta, onOpen }: AutoPulledEntryCard
 
   if (onOpen) {
     return (
-      <button type="button" className={styles.card} onClick={() => onOpen(entry)} aria-label={`Open ${entry.title}`}>
+      <button type="button" className={styles.card} onClick={() => onOpen(entry)} aria-label={describeCard(`Open ${entry.title}`, entry.time, meta)}>
         {content}
       </button>
     );

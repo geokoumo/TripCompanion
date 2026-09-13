@@ -7,6 +7,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { StampBadge } from '../../../shared/components/StampBadge';
 import { TicketIcon } from '../../../shared/components/icons';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { describeCard } from '../../../shared/lib/accessibleLabel';
 import { formatDateNoYear, formatDateShort } from '../../../shared/lib/dateFormat';
 import { upsertBookingItem } from '../../../data/repository/bookingRepository';
 import { flightRelatedTo, stayRelatedTo, bookingItemRelatedTo } from '../../documents/lib/relatedTo';
@@ -176,7 +177,12 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
       )}
 
       {rows.map((row) => (
-        <Card key={`${row.kind}-${row.id}`} accent={row.hasDoc ? 'teal' : undefined} onClick={() => openRow(row)} aria-label={`Open ${row.title}`}>
+        <Card
+          key={`${row.kind}-${row.id}`}
+          accent={row.hasDoc ? 'teal' : undefined}
+          onClick={() => openRow(row)}
+          aria-label={describeCard(`Open ${row.title}`, row.statusPill?.label, row.statusText, row.hasDoc && 'document attached')}
+        >
           <div className={styles.topRow}>
             <span className={styles.typeLabel}>{row.typeLabel}</span>
             {row.statusPill && <StampBadge tone={row.statusPill.tone}>{row.statusPill.label}</StampBadge>}
