@@ -53,8 +53,25 @@ export class SupabaseTripRepository implements TripRepository {
   }
 
   async deleteTrip(id: string): Promise<void> {
-    // RLS + the cascade chain in schema.sql handles removing every child row.
-    const { error } = await this.client().from('trips').delete().eq('id', id);
+    // RLS + the cascade chain in schema.sql handles removing every child
+    // row, including the `documents` table — but that's only the metadata.
+    // The uploaded files themselves live in the trip-files Storage bucket
+    // under {user_id}/{trip_id}/, which cascade never touches, so a deleted
+    // trip's boarding passes/confirmations/tickets would otherwise sit in
+    // Storage forever with nothing in the app able to reference or remove
+    // them again. Clean the whole folder up before the DB row goes.
+    const client = this.client();
+    const { data: userData } = await client.auth.getUser();
+    const userId = userData.user?.id;
+    if (userId) {
+      const folder = `${userId}/${id}`;
+      const { data: files } = await client.storage.from('trip-files').list(folder, { limit: 1000 });
+      if (files && files.length > 0) {
+        await client.storage.from('trip-files').remove(files.map((f) => `${folder}/${f.name}`));
+      }
+    }
+
+    const { error } = await client.from('trips').delete().eq('id', id);
     if (error) throw error;
   }
 

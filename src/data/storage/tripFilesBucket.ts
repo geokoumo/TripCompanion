@@ -2,6 +2,36 @@ import { supabase } from '../supabase/client';
 
 const BUCKET = 'trip-files';
 
+// Boarding passes, hotel confirmations, and ticket PDFs are all well under
+// this — generous enough for a real document, small enough to keep Storage
+// costs sane and to never blow past a signed-out user's ~5-10MB localStorage
+// quota (attachments there are inlined as base64 data: URLs, which run ~33%
+// larger than the original file).
+export const MAX_TRIP_FILE_BYTES = 10 * 1024 * 1024;
+const ACCEPTED_TYPE_PREFIXES = ['image/'];
+const ACCEPTED_TYPES = ['application/pdf'];
+
+/**
+ * Client-side gate before a file ever reaches uploadTripFile/readAsDataUrl.
+ * This is a UX guard, not a security boundary — the private bucket + signed
+ * URLs are what actually keep a file safe, and nothing here is re-checked
+ * server-side, so a user could still push an arbitrary file straight at the
+ * Storage API with their own credentials. What this DOES prevent is the
+ * ordinary case: an accidental huge attachment either eating Storage quota
+ * or overflowing localStorage in signed-out mode, and a wildly wrong file
+ * type getting attached at all.
+ */
+export function validateTripFile(file: File): string | null {
+  if (file.size > MAX_TRIP_FILE_BYTES) {
+    return `That file is too large (max ${Math.round(MAX_TRIP_FILE_BYTES / (1024 * 1024))}MB).`;
+  }
+  const okType = ACCEPTED_TYPES.includes(file.type) || ACCEPTED_TYPE_PREFIXES.some((p) => file.type.startsWith(p));
+  if (!okType) {
+    return 'Only PDF and image files can be attached.';
+  }
+  return null;
+}
+
 /**
  * The one shared private Storage bucket for every user-uploaded trip file —
  * documents today, and a future cover-photo feature belongs here too, not in

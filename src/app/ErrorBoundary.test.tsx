@@ -17,7 +17,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('All good')).toBeInTheDocument();
   });
 
-  it('renders a real ErrorState (not raw unstyled markup) when a child throws', () => {
+  it('renders a real ErrorState (not raw unstyled markup) when a child throws, without leaking the raw error message to the user', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     render(
       <ErrorBoundary>
@@ -25,7 +25,10 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>,
     );
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    expect(screen.getByText('Boom')).toBeInTheDocument();
+    // The real message ("Boom") is a stand-in for whatever a thrown error
+    // actually says in production — a raw Postgres/Zod message naming
+    // internal tables or fields — which must never reach the screen.
+    expect(screen.queryByText('Boom')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
     consoleSpy.mockRestore();
   });

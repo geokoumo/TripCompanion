@@ -7,7 +7,7 @@ import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { FieldWrapper, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { generateId } from '../../../shared/lib/id';
-import { readAsDataUrl, uploadTripFile } from '../../../data/storage/tripFilesBucket';
+import { readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { addDocument } from '../../../data/repository/documentRepository';
 import type { Trip } from '../../trips/types';
 import type { Document } from '../types';
@@ -35,6 +35,11 @@ export function AddDocumentForm({ trip, updateTrip, onClose, onSaved }: AddDocum
   const [saving, setSaving] = useState(false);
 
   const handlePickFile = (picked: File) => {
+    const validationError = validateTripFile(picked);
+    if (validationError) {
+      showToast(validationError, { variant: 'error' });
+      return;
+    }
     setFile(picked);
     setFileType(inferFileType(picked));
     if (!title) setTitle(picked.name.replace(/\.[^.]+$/, ''));

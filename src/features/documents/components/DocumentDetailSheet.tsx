@@ -6,7 +6,7 @@ import { DownloadIcon, FileIcon, QrIcon, ShareExternalIcon } from '../../../shar
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { Modal } from '../../../shared/components/Modal';
-import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile } from '../../../data/storage/tripFilesBucket';
+import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { removeDocument, replaceDocumentFile } from '../../../data/repository/documentRepository';
 import type { Trip } from '../../trips/types';
 import { useDocumentUrl } from '../lib/useDocumentUrl';
@@ -66,6 +66,11 @@ export function DocumentDetailSheet({ doc, trip, updateTrip, onClose }: Document
   };
 
   const handleReplace = async (file: File) => {
+    const validationError = validateTripFile(file);
+    if (validationError) {
+      showToast(validationError, { variant: 'error' });
+      return;
+    }
     setReplacing(true);
     try {
       const newPath = user ? await uploadTripFile(user.id, trip.id, file) : await readAsDataUrl(file);

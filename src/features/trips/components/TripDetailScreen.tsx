@@ -5,6 +5,7 @@ import { CreateTripWizardLazy } from '../../../app/lazyScreens';
 import { LoadingScreen } from '../../../app/LoadingScreen';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
+import { ErrorState } from '../../../shared/components/ErrorState';
 import { TripHealthScreen } from '../../tripHealth/components/TripHealthScreen';
 import { OverviewTab } from './OverviewTab';
 import { BookingsTab } from './BookingsTab';
@@ -36,7 +37,13 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
   }
 
   if (!trip) {
-    return <div style={{ padding: 32 }}>Trip not found.</div>;
+    // Same message whether the trip genuinely doesn't exist or it belongs to
+    // someone else — never confirm-or-deny another account's trip by id.
+    return (
+      <div style={{ padding: 32 }}>
+        <ErrorState headline="Trip not found" body="This trip doesn't exist, or isn't yours to view." onRetry={onBack} retryLabel="Back to trips" />
+      </div>
+    );
   }
 
   const confirmDeleteTrip = () => {

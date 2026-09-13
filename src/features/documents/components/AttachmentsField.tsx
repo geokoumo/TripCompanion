@@ -3,7 +3,7 @@ import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { FileIcon } from '../../../shared/components/icons';
 import { generateId } from '../../../shared/lib/id';
-import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile } from '../../../data/storage/tripFilesBucket';
+import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import type { DocumentCategoryId } from '../../../config/constants';
 import type { Trip } from '../../trips/types';
 import type { Document } from '../types';
@@ -31,6 +31,11 @@ export function AttachmentsField({ trip, updateTrip, relatedTo, defaultCategory 
   const attached = trip.documents.filter((d) => d.relatedTo === relatedTo);
 
   const handleFile = async (file: File) => {
+    const validationError = validateTripFile(file);
+    if (validationError) {
+      showToast(validationError, { variant: 'error' });
+      return;
+    }
     setUploading(true);
     try {
       const storagePath = user ? await uploadTripFile(user.id, trip.id, file) : await readAsDataUrl(file);
