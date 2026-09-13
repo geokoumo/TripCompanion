@@ -1,4 +1,5 @@
 import { Suspense, useState } from 'react';
+import { useGuestGate } from '../features/auth/lib/useGuestGate';
 import { useLocalTripsImportPrompt } from '../features/auth/lib/localImportPrompt';
 import { LocalTripsImportPrompt } from '../features/auth/components/LocalTripsImportPrompt';
 import { OnboardingFlow } from '../features/auth/components/OnboardingFlow';
@@ -46,11 +47,7 @@ function AuthGatedApp() {
   const [route, navigate] = useHashRoute();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  // Deliberately in-memory only, not persisted — "continue without an
-  // account" is a per-session choice now, not a permanent opt-out. Every
-  // fresh load re-checks the real login state instead of remembering a
-  // device ever dismissed sign-in.
-  const [continuingLocally, setContinuingLocally] = useState(false);
+  const { continuingLocally, setContinuingLocally } = useGuestGate(user);
   const { localTrips, dismiss: dismissLocalTripsPrompt } = useLocalTripsImportPrompt(!!user);
 
   if (loading) return <LoadingScreen />;
