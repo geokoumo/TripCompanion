@@ -66,7 +66,6 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
   // valid selection here — fall back rather than pointing at a day that
   // doesn't exist for this trip.
   const selectedDate = selectedDateProp && days.includes(selectedDateProp) ? selectedDateProp : defaultDate;
-  const setSelectedDate = onSelectedDateChange;
   const [view, setView] = useState<ItineraryView>('plan');
 
   const [editingStop, setEditingStop] = useState<ItineraryStop | null>(null);
@@ -207,7 +206,7 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
                 aria-selected={date === selectedDate}
                 className={styles.dayTab}
                 data-active={date === selectedDate}
-                onClick={() => setSelectedDate(date)}
+                onClick={() => onSelectedDateChange(date)}
               >
                 <div className={styles.dayTabWeekday}>{weekdayShort(date)}</div>
                 <div className={styles.dayTabNumber}>{dayNumber(date)}</div>
