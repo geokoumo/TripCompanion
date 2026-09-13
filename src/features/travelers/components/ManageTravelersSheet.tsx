@@ -90,7 +90,12 @@ export function ManageTravelersSheet({ trip, onClose, onSave }: ManageTravelersS
     const original = trip.travelers.find((o) => o.id === t.id);
     return original !== undefined && original.name !== t.name;
   });
-  const canSave = travelers.length !== trip.travelers.length || nameChanged;
+  // A plain length check breaks when one traveler is removed and another
+  // added in the same session (the counts happen to cancel out) — compare
+  // membership by id instead of by count.
+  const membershipChanged =
+    travelers.some((t) => !originalIds.has(t.id)) || trip.travelers.some((t) => !travelers.some((w) => w.id === t.id));
+  const canSave = membershipChanged || nameChanged;
 
   const save = () =>
     void run(async () => {

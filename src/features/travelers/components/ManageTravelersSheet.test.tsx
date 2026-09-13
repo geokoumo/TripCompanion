@@ -62,6 +62,27 @@ describe('ManageTravelersSheet', () => {
     await vi.waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   });
 
+  it('save stays enabled when a removal and an addition cancel out in count', async () => {
+    // Regression: canSave must compare membership by id, not list length —
+    // removing one existing traveler and adding one new one leaves the
+    // count unchanged but is still a real, savable change.
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<ManageTravelersSheet trip={makeTrip()} onClose={() => {}} onSave={onSave} />);
+
+    await user.click(screen.getByRole('button', { name: 'Remove Sam' }));
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+    await user.type(screen.getByLabelText('Name'), 'Maria');
+    await user.click(screen.getByRole('button', { name: '+ Add traveler' }));
+
+    expect(screen.getByRole('button', { name: 'Save' })).not.toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    const saved = onSave.mock.calls[0]![0] as Trip;
+    expect(saved.travelers.map((t) => t.name)).toEqual(['Alex', 'Maria']);
+  });
+
   it('a newly added (unsaved) traveler can be removed instantly, no confirmation needed', async () => {
     const user = userEvent.setup();
     render(<ManageTravelersSheet trip={makeTrip()} onClose={() => {}} onSave={() => {}} />);
