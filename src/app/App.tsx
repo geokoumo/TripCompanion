@@ -19,10 +19,6 @@ import { TripsProvider } from './providers/TripsProvider';
 const TOP_LEVEL_ROUTES = new Set(['home', 'search']);
 
 function Router({ route, navigate }: { route: Route; navigate: (route: Route) => void }) {
-  if (route.name === 'shared') {
-    return <SharedTripViewLazy tripId={route.tripId} onExit={() => navigate({ name: 'home' })} />;
-  }
-
   if (route.name === 'trip') {
     return (
       <TripDetailScreen
@@ -59,6 +55,19 @@ function AuthGatedApp() {
 
   if (loading) return <LoadingScreen />;
   if (recoveryMode) return <ResetPasswordScreen />;
+  // A shared link is meant for anyone who has it, signed in or not — it
+  // must never sit behind the sign-in/"continue without an account" wall
+  // below, which is a real barrier for a recipient with no interest in
+  // creating an account. Resolved via the anonymous get_shared_trip RPC
+  // (see data/repository/sharedTrip.ts), not the signed-in trip repository,
+  // so it needs neither TripsProvider nor a sign-in decision to render.
+  if (route.name === 'shared') {
+    return (
+      <Suspense fallback={<ScreenLoadingFallback />}>
+        <SharedTripViewLazy token={route.token} onExit={() => navigate({ name: 'home' })} />
+      </Suspense>
+    );
+  }
   // Accounts are configured and nobody's signed in — always show sign-in
   // first. "Continue without an account" only bypasses it for the current
   // session; reloading the app checks the login state again from scratch.

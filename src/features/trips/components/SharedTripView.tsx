@@ -1,10 +1,11 @@
+import { useEffect, useState } from 'react';
 import { LoadingScreen } from '../../../app/LoadingScreen';
-import { useTrip } from '../hooks/useTrip';
+import { getSharedTrip } from '../../../data/repository/sharedTrip';
 import { expenseAmountInHome } from '../../budget/lib/currency';
 import { computeFlightDuration } from '../../flights/lib/duration';
 import { formatDateNoYear, formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
-import { TRIP_TABS, type Trip, type TripTab } from '../types';
+import { TRIP_TABS, type SharedTrip, type TripTab } from '../types';
 import styles from './SharedTripView.module.css';
 
 const TAB_LABELS: Record<TripTab, string> = {
@@ -16,7 +17,7 @@ const TAB_LABELS: Record<TripTab, string> = {
   checklist: 'Packing',
 };
 
-function BudgetReadOnly({ trip }: { trip: Trip }) {
+function BudgetReadOnly({ trip }: { trip: SharedTrip }) {
   const spentByCategory = new Map<string, number>();
   let total = 0;
   for (const expense of trip.expenses) {
@@ -51,7 +52,7 @@ function BudgetReadOnly({ trip }: { trip: Trip }) {
   );
 }
 
-function ChecklistReadOnly({ trip }: { trip: Trip }) {
+function ChecklistReadOnly({ trip }: { trip: SharedTrip }) {
   return (
     <>
       {trip.travelers.map((traveler) => {
@@ -85,7 +86,7 @@ interface TimelineRow {
 // A single chronological rollup — flights, stays and itinerary stops
 // interleaved by date/time — rather than the owner's own tabbed views. A
 // recipient reads one continuous feed, not three separate lists.
-function buildTimeline(trip: Trip, includedTabs: Set<TripTab>): TimelineRow[] {
+function buildTimeline(trip: SharedTrip, includedTabs: Set<TripTab>): TimelineRow[] {
   const rows: TimelineRow[] = [];
 
   if (includedTabs.has('flights')) {
@@ -131,14 +132,33 @@ function buildTimeline(trip: Trip, includedTabs: Set<TripTab>): TimelineRow[] {
   return rows.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 }
 
-export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () => void }) {
-  const { trip, loading } = useTrip(tripId);
+export function SharedTripView({ token, onExit }: { token: string; onExit: () => void }) {
+  const [trip, setTrip] = useState<SharedTrip | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    void getSharedTrip(token).then((loaded) => {
+      if (!cancelled) {
+        setTrip(loaded);
+        setLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   if (loading) {
     return <LoadingScreen />;
   }
 
-  if (!trip || !trip.shareSettings.enabled) {
+  // get_shared_trip returns null both when the token doesn't exist at all
+  // and when the owner has since turned sharing off — same message either
+  // way, since there's nothing a visitor could do differently for one vs.
+  // the other, and no reason to confirm a token was ever valid.
+  if (!trip) {
     return (
       <div className={styles.screen}>
         <div className={styles.header}>
@@ -152,7 +172,7 @@ export function SharedTripView({ tripId, onExit }: { tripId: string; onExit: () 
   }
 
   const range = getTripDateRange(trip.legs, trip.flights);
-  const included = new Set(trip.shareSettings.includedTabs);
+  const included = new Set(trip.includedTabs);
   const timeline = buildTimeline(trip, included);
 
   return (

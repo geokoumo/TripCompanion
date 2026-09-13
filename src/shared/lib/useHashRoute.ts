@@ -7,7 +7,7 @@ export type Route =
   | { name: 'home' }
   | { name: 'search' }
   | { name: 'trip'; tripId: string; tab: TripTab }
-  | { name: 'shared'; tripId: string };
+  | { name: 'shared'; token: string };
 
 function parseHash(hash: string): Route {
   const clean = hash.replace(/^#\/?/, '');
@@ -17,7 +17,7 @@ function parseHash(hash: string): Route {
     return { name: 'trip', tripId: parts[1], tab };
   }
   if (parts[0] === 'shared' && parts[1]) {
-    return { name: 'shared', tripId: parts[1] };
+    return { name: 'shared', token: parts[1] };
   }
   if (parts[0] === 'search') {
     return { name: 'search' };
@@ -41,7 +41,7 @@ export function useHashRoute(): [Route, (route: Route) => void] {
         : next.name === 'search'
           ? '#/search'
           : next.name === 'shared'
-            ? `#/shared/${next.tripId}`
+            ? `#/shared/${next.token}`
             : `#/trip/${next.tripId}/${next.tab}`;
     window.location.hash = hash;
   };

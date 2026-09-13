@@ -87,6 +87,32 @@ export const TripListItemSchema = z.object({
 
 export type TripListItem = z.infer<typeof TripListItemSchema>;
 
+// What the anonymous get_shared_trip(token) RPC actually returns — a
+// deliberately narrower shape than Trip, not a partial Trip: no archived,
+// budget, description, rememberedLocations, schemaVersion, createdAt,
+// shareSettings, bookingItems, documents, or ideas, because that function
+// never selects them (documents in particular are never shared, regardless
+// of which tabs are included — see the migration). Every field here is
+// optional-with-default because the RPC only includes flights/stays/
+// itineraryStops/budgetCategories+expenses/checklistItems when the owner
+// actually included that tab.
+export const SharedTripSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  homeCurrency: z.string(),
+  includedTabs: z.array(z.enum(TRIP_TABS)).default([]),
+  legs: z.array(LegSchema).default([]),
+  travelers: z.array(TravelerSchema).default([]),
+  flights: z.array(FlightSchema).default([]),
+  stays: z.array(StaySchema).default([]),
+  itineraryStops: z.array(ItineraryStopSchema).default([]),
+  budgetCategories: z.array(BudgetCategorySchema).default([]),
+  expenses: z.array(ExpenseSchema).default([]),
+  checklistItems: z.array(ChecklistItemSchema).default([]),
+});
+
+export type SharedTrip = z.infer<typeof SharedTripSchema>;
+
 export type TripStatus = 'upcoming' | 'today' | 'ongoing' | 'completed';
 
 export function getTripStatus(range: { startDate: string; endDate: string } | null, today: Date = new Date()): TripStatus {

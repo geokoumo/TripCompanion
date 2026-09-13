@@ -54,7 +54,11 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
       }
     });
 
-  const shareUrl = shareToken ? `${window.location.origin}${window.location.pathname}#/shared/${trip.id}` : null;
+  // Must be the token, not the trip's own id — a recipient viewing this link
+  // is never signed in as the trip's owner (that's the whole point of
+  // sharing), and the anonymous get_shared_trip RPC only ever accepts the
+  // unguessable token, never a trip id.
+  const shareUrl = shareToken ? `${window.location.origin}${window.location.pathname}#/shared/${shareToken}` : null;
 
   return (
     <Modal title="Share" onClose={onClose}>
@@ -84,7 +88,7 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
             <Button
               variant="primary"
               onClick={() => {
-                window.location.hash = `#/shared/${trip.id}`;
+                window.location.hash = `#/shared/${shareToken}`;
               }}
             >
               Preview
