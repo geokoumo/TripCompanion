@@ -76,10 +76,48 @@ describe('detectActivityOverlap', () => {
     expect(detectActivityOverlap(candidate, [preEditSelf])).toEqual([]);
   });
 
-  it('an activity with no duration set never conflicts (matches product behavior: an undurated stop occupies nothing)', () => {
-    const candidate = makeActivity({ id: 'a1', time: '15:00', durationMinutes: undefined });
-    const other = makeActivity({ id: 'a2', time: '15:00', durationMinutes: 120 });
-    expect(detectActivityOverlap(candidate, [other])).toEqual([]);
+  // A durationless timed activity is a point in time, not skipped — see
+  // activitySpan()'s docstring for why (this is the fix for the QA finding
+  // that an undurated activity was never checked for overlap at all).
+  describe('point-in-time activities (no duration set)', () => {
+    it('flags a conflict when the point falls inside another activity\'s span', () => {
+      const candidate = makeActivity({ id: 'a1', time: '15:00', durationMinutes: undefined }); // a moment at 15:00
+      const other = makeActivity({ id: 'a2', time: '14:00', durationMinutes: 120 }); // 14:00-16:00
+      const errors = detectActivityOverlap(candidate, [other]);
+      expect(errors).toEqual([{ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'a2' }]);
+    });
+
+    it('flags a conflict when the point lands exactly on another span\'s start', () => {
+      const candidate = makeActivity({ id: 'a1', time: '15:00', durationMinutes: undefined });
+      const other = makeActivity({ id: 'a2', time: '15:00', durationMinutes: 60 }); // 15:00-16:00
+      const errors = detectActivityOverlap(candidate, [other]);
+      expect(errors).toEqual([{ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'a2' }]);
+    });
+
+    it('does not conflict when the point lands exactly on another span\'s end (back-to-back is fine)', () => {
+      const candidate = makeActivity({ id: 'a1', time: '16:00', durationMinutes: undefined });
+      const other = makeActivity({ id: 'a2', time: '15:00', durationMinutes: 60 }); // 15:00-16:00
+      expect(detectActivityOverlap(candidate, [other])).toEqual([]);
+    });
+
+    it('does not conflict when the point falls outside another span entirely', () => {
+      const candidate = makeActivity({ id: 'a1', time: '20:00', durationMinutes: undefined });
+      const other = makeActivity({ id: 'a2', time: '15:00', durationMinutes: 60 });
+      expect(detectActivityOverlap(candidate, [other])).toEqual([]);
+    });
+
+    it('flags a conflict between two durationless activities at the exact same instant', () => {
+      const candidate = makeActivity({ id: 'a1', time: '15:00', durationMinutes: undefined });
+      const other = makeActivity({ id: 'a2', time: '15:00', durationMinutes: undefined });
+      const errors = detectActivityOverlap(candidate, [other]);
+      expect(errors).toEqual([{ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'a2' }]);
+    });
+
+    it('does not conflict between two durationless activities at different times', () => {
+      const candidate = makeActivity({ id: 'a1', time: '15:00', durationMinutes: undefined });
+      const other = makeActivity({ id: 'a2', time: '15:01', durationMinutes: undefined });
+      expect(detectActivityOverlap(candidate, [other])).toEqual([]);
+    });
   });
 
   it('reports one TIME_OVERLAP error per conflicting activity', () => {
@@ -91,10 +129,11 @@ describe('detectActivityOverlap', () => {
     expect(errors.map((e) => (e.code === 'TIME_OVERLAP' ? e.conflictingId : null)).sort()).toEqual(['a2', 'a4']);
   });
 
-  it('treats a negative duration as not occupying any span rather than crashing', () => {
-    const candidate = makeActivity({ id: 'a1', time: '15:00', durationMinutes: 60 });
-    const other = makeActivity({ id: 'a2', time: '15:00', durationMinutes: -60 });
-    expect(detectActivityOverlap(candidate, [other])).toEqual([]);
+  it('treats an invalid (negative) duration as a point in time rather than crashing', () => {
+    const candidate = makeActivity({ id: 'a1', time: '15:00', durationMinutes: 60 }); // 15:00-16:00
+    const other = makeActivity({ id: 'a2', time: '15:00', durationMinutes: -60 }); // falls back to a point at 15:00, inside candidate's span
+    const errors = detectActivityOverlap(candidate, [other]);
+    expect(errors).toEqual([{ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'a2' }]);
   });
 
   it('handles a candidate that spans midnight-adjacent minutes correctly within the same day', () => {

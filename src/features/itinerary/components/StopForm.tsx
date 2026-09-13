@@ -141,7 +141,10 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
             isTimeDisabled={isTimeDisabled}
             error={formError ?? undefined}
           />
-          <FieldWrapper label={stop.durationMinutes ? `Duration — ${stop.durationMinutes}′` : 'Duration (optional)'}>
+          <FieldWrapper
+            label={stop.durationMinutes ? `Duration — ${stop.durationMinutes}′` : 'Duration (optional)'}
+            caption={stop.durationMinutes ? undefined : 'Leave blank to treat this as a specific moment, not a span of time'}
+          >
             <PresetChips presets={DURATION_PRESETS} onSelect={applyDurationPreset} hideInput />
           </FieldWrapper>
         </>
