@@ -12,7 +12,7 @@ interface DocumentCardProps {
 
 export function DocumentCard({ doc, onOpen }: DocumentCardProps) {
   const Icon = documentIconFor(doc);
-  const meta = [doc.relatedTo, formatDateShort(doc.uploadedAt.slice(0, 10))].filter(Boolean).join(' · ');
+  const meta = [doc.relatedTo, formatDateShort(doc.uploadedAt.slice(0, 10)), doc.fileType.toUpperCase()].filter(Boolean).join(' · ');
 
   return (
     <Card className={styles.card} onClick={() => onOpen(doc)} aria-label={`Open ${doc.title}`}>
