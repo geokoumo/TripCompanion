@@ -115,7 +115,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const dayProgress = computeDayProgress(days, selectedDate);
   const legHeaderText = [
     dayProgress && `DAY ${dayProgress.dayNumber} OF ${dayProgress.totalDays}`,
-    legsForDay.map((l) => l.city || 'NO CITY').join(' → ').toUpperCase(),
+    legsForDay.map((l) => l.city || 'Unknown').join(' → ').toUpperCase(),
     legContext === 'arrival' ? 'ARRIVAL' : legContext === 'departure' ? 'DEPARTURE' : null,
   ]
     .filter(Boolean)
