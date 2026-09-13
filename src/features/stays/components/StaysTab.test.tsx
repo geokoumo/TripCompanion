@@ -56,6 +56,7 @@ describe('StaysTab — View Details', () => {
 
     expect(dialog.getByText('Check-in')).toBeInTheDocument();
     expect(dialog.getByText('Check-out')).toBeInTheDocument();
+    expect(dialog.getByText('3-7-1-2 Nishi-Shinjuku')).toBeInTheDocument();
     expect(screen.queryByLabelText('Name')).not.toBeInTheDocument();
     expect(screen.queryByText('Edit stay')).not.toBeInTheDocument();
   });

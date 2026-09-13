@@ -219,7 +219,7 @@ describe('ItineraryTab — auto-pulled entries stay read-only projections', () =
     await user.click(screen.getByRole('button', { name: /Departure — ANA NH1 — HND/ }));
 
     const dialog = within(screen.getByRole('dialog'));
-    expect(dialog.getByText('Departure')).toBeInTheDocument();
+    expect(dialog.getByText('HND')).toBeInTheDocument();
     expect(screen.queryByLabelText('Airline')).not.toBeInTheDocument();
   });
 

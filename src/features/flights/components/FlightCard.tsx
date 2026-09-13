@@ -1,17 +1,14 @@
 import { memo } from 'react';
-import { AIRPORT_CITY_NAMES, FLIGHT_STATUSES } from '../../../config/constants';
+import { FLIGHT_STATUSES } from '../../../config/constants';
 import { Card } from '../../../shared/components/Card';
 import { StampBadge } from '../../../shared/components/StampBadge';
-import { formatDateNoYear } from '../../../shared/lib/dateFormat';
-import { computeFlightDuration } from '../lib/duration';
 import { FLIGHT_STATUS_TONE } from '../lib/statusTone';
 import type { Flight } from '../types';
+import { FlightJourneyHeader } from './FlightJourneyHeader';
 import styles from './FlightCard.module.css';
 
 function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flight: Flight) => void }) {
-  const duration = computeFlightDuration(flight);
   const statusLabel = FLIGHT_STATUSES.find((s) => s.id === flight.status)?.label ?? flight.status;
-  const nextDay = flight.arrDate > flight.depDate;
   const isCancelled = flight.status === 'cancelled';
 
   return (
@@ -22,26 +19,7 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
         </span>
         <StampBadge tone={FLIGHT_STATUS_TONE[flight.status] ?? 'gray'}>{statusLabel}</StampBadge>
       </div>
-      <div className={styles.routeRow}>
-        <div>
-          <div className={styles.airportCode}>{flight.depAirport}</div>
-          <div className={styles.time}>{flight.depTime}</div>
-          <div className={styles.dateCity}>
-            {formatDateNoYear(flight.depDate)} · {AIRPORT_CITY_NAMES[flight.depAirport] ?? flight.depAirport}
-          </div>
-        </div>
-        <div className={styles.middle}>
-          {duration && <div className={styles.duration}>{duration.label}</div>}
-          {nextDay && <div className={styles.nextDay}>+1 day</div>}
-        </div>
-        <div className={styles.alignRight}>
-          <div className={styles.airportCode}>{flight.arrAirport}</div>
-          <div className={styles.time}>{flight.arrTime}</div>
-          <div className={styles.dateCity}>
-            {formatDateNoYear(flight.arrDate)} · {AIRPORT_CITY_NAMES[flight.arrAirport] ?? flight.arrAirport}
-          </div>
-        </div>
-      </div>
+      <FlightJourneyHeader flight={flight} />
       {(flight.terminal || flight.gate || flight.bookingRef) && (
         <div className={styles.footer}>
           {flight.terminal && (

@@ -1,0 +1,59 @@
+.hero {
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-teal-on-soft);
+  margin-bottom: 4px;
+}
+
+.address {
+  color: var(--color-text);
+  font-size: var(--fs-body);
+}
+
+.phone {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin-top: 4px;
+}
+
+.stayGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.gridColRight {
+  padding-left: var(--space-3);
+  border-left: var(--border-width-hairline) solid var(--color-border);
+}
+
+.gridLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.gridValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-data);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.gridSub {
+  color: var(--color-text-muted);
+  font-size: var(--fs-meta);
+  margin-top: 2px;
+}

@@ -11,56 +11,6 @@
   font-size: var(--fs-meta);
 }
 
-.routeRow {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.airportCode {
-  font-family: var(--font-display);
-  font-size: var(--fs-airport-code);
-  font-weight: 600;
-  line-height: 1;
-}
-
-.alignRight {
-  text-align: right;
-}
-
-.time {
-  font-family: var(--font-mono);
-  font-size: var(--fs-data);
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.dateCity {
-  font-family: var(--font-body);
-  color: var(--color-text-muted);
-  font-size: var(--fs-field-label);
-  margin-top: 2px;
-}
-
-.middle {
-  text-align: center;
-}
-
-.duration {
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  color: var(--color-text-faint);
-  white-space: nowrap;
-}
-
-.nextDay {
-  font-family: var(--font-body);
-  font-size: var(--fs-field-label);
-  color: var(--color-rust);
-  margin-top: 2px;
-}
-
 .footer {
   margin-top: var(--space-3);
   padding-top: var(--space-3);

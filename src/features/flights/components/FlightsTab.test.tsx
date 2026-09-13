@@ -55,10 +55,25 @@ describe('FlightsTab — View Details', () => {
     renderTab(makeTrip());
     await user.click(screen.getByRole('button', { name: OPEN_FLIGHT }));
 
-    expect(screen.getByText('Departure')).toBeInTheDocument();
-    expect(screen.getByText('Arrival')).toBeInTheDocument();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText('JFK')).toBeInTheDocument();
+    expect(dialog.getByText('LHR')).toBeInTheDocument();
     expect(screen.queryByLabelText('Airline')).not.toBeInTheDocument();
     expect(screen.queryByText('Edit flight')).not.toBeInTheDocument();
+  });
+
+  it('the View leads with the same journey layout the Flights list card uses for this flight — one visual system, not two', async () => {
+    const user = userEvent.setup();
+    renderTab(makeTrip());
+    const listDeparture = screen.getByRole('button', { name: OPEN_FLIGHT }).textContent;
+
+    await user.click(screen.getByRole('button', { name: OPEN_FLIGHT }));
+    const dialog = within(screen.getByRole('dialog'));
+
+    // Same airports, times, and dates rendered by the shared FlightJourneyHeader in both places.
+    expect(listDeparture).toContain('JFK');
+    expect(dialog.getByText('10:00')).toBeInTheDocument();
+    expect(dialog.getByText('22:00')).toBeInTheDocument();
   });
 
   it('Edit from the View transitions to FlightForm prefilled with the same flight', async () => {
