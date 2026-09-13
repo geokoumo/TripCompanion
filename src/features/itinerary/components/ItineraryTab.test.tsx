@@ -169,6 +169,24 @@ describe('ItineraryTab — View Details', () => {
   });
 });
 
+describe('ItineraryTab — a stop\'s location never contaminates stay-address suggestions', () => {
+  it('saving a new stop with a location leaves trip.rememberedLocations untouched', async () => {
+    const user = userEvent.setup();
+    const { updateTrip } = renderTab(makeTrip({ itineraryStops: [] }));
+    await user.click(screen.getByRole('button', { name: 'New stop' }));
+    await user.type(screen.getByLabelText('What'), 'Coffee break');
+    await user.type(screen.getByLabelText('Location'), 'rue');
+    await user.click(screen.getByRole('button', { name: 'All day' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(updateTrip).toHaveBeenCalled();
+    const updater = updateTrip.mock.calls[0]![0] as (t: Trip) => Trip;
+    const result = updater(makeTrip({ itineraryStops: [] }));
+    expect(result.itineraryStops.some((s) => s.location === 'rue')).toBe(true);
+    expect(result.rememberedLocations).toEqual([]);
+  });
+});
+
 describe('ItineraryTab — trip-relative day framing', () => {
   it('shows each day\'s trip-relative position, computed from the actual trip range, not hardcoded', () => {
     // Trip spans 15-20 Sep (6 days); the 3rd day chip (17 Sep) should read D3.

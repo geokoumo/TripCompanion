@@ -12,6 +12,7 @@ import { generateId } from '../../../shared/lib/id';
 import type { Trip } from '../../trips/types';
 import { computeOccupiedRanges } from '../lib/occupiedRanges';
 import { describeActivityError, tripActivityRange, validateStopForSave } from '../lib/activityValidation';
+import { recentStopLocations } from '../lib/recentStopLocations';
 import { StopTypeGrid } from './StopTypeGrid';
 import type { ItineraryStop } from '../types';
 import styles from './StopForm.module.css';
@@ -43,6 +44,7 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
   const [formError, setFormError] = useState<string | null>(null);
   const { saving, run } = useSavingGuard();
   const range = tripActivityRange(trip);
+  const locationSuggestions = useMemo(() => recentStopLocations(trip.itineraryStops), [trip.itineraryStops]);
 
   const update = <K extends keyof ItineraryStop>(key: K, value: ItineraryStop[K]) => {
     setStop((prev) => ({ ...prev, [key]: value }));
@@ -150,9 +152,7 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
         </>
       )}
 
-      {trip.rememberedLocations.length > 0 && (
-        <PresetChips presets={trip.rememberedLocations} onSelect={(v) => update('location', v)} hideInput />
-      )}
+      {locationSuggestions.length > 0 && <PresetChips presets={locationSuggestions} onSelect={(v) => update('location', v)} hideInput />}
       <TextField label="Location" value={stop.location ?? ''} onChange={(e) => update('location', e.target.value)} />
 
       <FieldRow>

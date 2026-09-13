@@ -135,11 +135,10 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
       return;
     }
 
-    await updateTrip((t) => {
-      const withStop = upsertItineraryStop(t, stop);
-      const rememberedLocations = stop.location ? addRememberedLocation(t.rememberedLocations, stop.location) : t.rememberedLocations;
-      return { ...withStop, rememberedLocations };
-    });
+    // Deliberately NOT feeding stop.location into rememberedLocations — see
+    // recentStopLocations.ts: that pool backs StayForm's address suggestions,
+    // and a casual activity location doesn't belong there.
+    await updateTrip((t) => upsertItineraryStop(t, stop));
     showToast('Stop saved.');
     setEditingStop(null);
     setCreatingStop(false);
