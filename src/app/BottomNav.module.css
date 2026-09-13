@@ -12,10 +12,21 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--color-surface-raised);
   border-top: 1px solid var(--color-border);
+  z-index: 40;
+}
+
+/* The bar's background/border stays full-bleed (it still reads as a bar
+   anchored to the window) but the items themselves stay grouped within the
+   same 640px column the page content above uses — full width they'd end
+   up spread edge-to-edge on a wide screen, exactly the "stretched mobile
+   layout" tablet/desktop complaint. */
+.inner {
+  max-width: 640px;
+  height: 100%;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-around;
-  z-index: 40;
 }
 
 .item {

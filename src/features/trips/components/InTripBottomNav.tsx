@@ -24,18 +24,20 @@ interface InTripBottomNavProps {
 export function InTripBottomNav({ activeTab, onTabChange }: InTripBottomNavProps) {
   return (
     <nav className={styles.bar}>
-      {NAV_ITEMS.map(({ key, label, Icon, navigateTab }) => (
-        <button
-          key={key}
-          type="button"
-          className={styles.item}
-          data-active={isActive(key, activeTab)}
-          onClick={() => onTabChange(navigateTab)}
-        >
-          <Icon size={20} />
-          {label}
-        </button>
-      ))}
+      <div className={styles.inner}>
+        {NAV_ITEMS.map(({ key, label, Icon, navigateTab }) => (
+          <button
+            key={key}
+            type="button"
+            className={styles.item}
+            data-active={isActive(key, activeTab)}
+            onClick={() => onTabChange(navigateTab)}
+          >
+            <Icon size={20} />
+            {label}
+          </button>
+        ))}
+      </div>
     </nav>
   );
 }

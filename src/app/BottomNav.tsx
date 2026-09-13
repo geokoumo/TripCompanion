@@ -15,21 +15,23 @@ interface BottomNavProps {
 export function BottomNav({ active, onNavigate, onCreateTrip, settingsActive, onSettingsTap }: BottomNavProps) {
   return (
     <nav className={styles.bar}>
-      <button type="button" className={styles.item} data-active={active === 'home'} onClick={() => onNavigate('home')}>
-        <HomeIcon size={20} />
-        Home
-      </button>
-      <button type="button" className={styles.item} data-active={active === 'search'} onClick={() => onNavigate('search')}>
-        <SearchIcon size={20} />
-        Search
-      </button>
-      <button type="button" className={styles.createButton} onClick={onCreateTrip} aria-label="New trip">
-        +
-      </button>
-      <button type="button" className={styles.item} data-active={settingsActive} onClick={onSettingsTap}>
-        <GearIcon size={20} />
-        Settings
-      </button>
+      <div className={styles.inner}>
+        <button type="button" className={styles.item} data-active={active === 'home'} onClick={() => onNavigate('home')}>
+          <HomeIcon size={20} />
+          Home
+        </button>
+        <button type="button" className={styles.item} data-active={active === 'search'} onClick={() => onNavigate('search')}>
+          <SearchIcon size={20} />
+          Search
+        </button>
+        <button type="button" className={styles.createButton} onClick={onCreateTrip} aria-label="New trip">
+          +
+        </button>
+        <button type="button" className={styles.item} data-active={settingsActive} onClick={onSettingsTap}>
+          <GearIcon size={20} />
+          Settings
+        </button>
+      </div>
     </nav>
   );
 }

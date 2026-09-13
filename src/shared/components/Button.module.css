@@ -59,3 +59,13 @@
   cursor: pointer;
   z-index: 50;
 }
+
+/* Past the page content's own 640px column (see e.g. TripListScreen's
+   .screen), pinning this to the viewport's right edge leaves it floating
+   far from the content it acts on. Follow the column's right edge instead
+   — max() keeps it from ever landing closer than the normal 18px inset. */
+@media (min-width: 680px) {
+  .fab {
+    right: max(18px, calc((100vw - 640px) / 2 + 18px));
+  }
+}
