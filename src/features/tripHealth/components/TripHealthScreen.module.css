@@ -15,10 +15,6 @@
   margin-bottom: var(--space-6);
 }
 
-.summaryCard[data-tone='rust'] {
-  border-color: var(--color-rust);
-}
-
 .summaryDot {
   width: 10px;
   height: 10px;

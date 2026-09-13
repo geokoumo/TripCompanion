@@ -1,11 +1,10 @@
 import { Suspense, useState } from 'react';
 import { ShareSheetLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
-import { CompassIcon } from '../../../shared/components/icons';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { downloadTripAsJson } from '../lib/tripFile';
-import { getTripStatus, type Trip } from '../types';
+import type { Trip } from '../types';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
 import { TripMenuSheet } from './TripMenuSheet';
 import styles from './TripHeader.module.css';
@@ -29,8 +28,6 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
   const [menuOpen, setMenuOpen] = useState(false);
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
   const range = getTripDateRange(trip.legs, trip.flights);
-  const status = trip.archived ? 'completed' : getTripStatus(range);
-  const heroTone = status === 'completed' ? 'gray' : status === 'ongoing' || status === 'today' ? 'teal' : 'rust';
 
   return (
     <div className={styles.header}>
@@ -46,9 +43,6 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
             ···
           </button>
         </div>
-      </div>
-      <div className={styles.heroCircle} data-tone={heroTone}>
-        <CompassIcon size={24} />
       </div>
       <div className={styles.title}>{trip.title}</div>
       {range && !hideDates && (

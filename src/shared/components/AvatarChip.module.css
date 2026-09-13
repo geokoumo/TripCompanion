@@ -5,7 +5,11 @@
   border-radius: 999px;
   font-family: var(--font-mono);
   font-weight: 600;
-  color: var(--color-text-on-accent);
+  /* Deliberately not --color-text-on-accent: the avatar palette keeps its
+     original saturated hues in dark mode (unlike the semantic accent colors,
+     which get lightened there), so it needs white specifically, in both
+     themes, rather than whatever that token resolves to. */
+  color: #ffffff;
   flex-shrink: 0;
 }
 

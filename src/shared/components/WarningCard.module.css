@@ -1,8 +1,8 @@
 .card {
   padding: var(--space-4);
   border-radius: var(--radius-lg);
-  background: var(--color-warning-soft);
-  border: var(--border-width-hairline) solid var(--color-warning);
+  background: var(--color-surface);
+  border: var(--border-width-hairline) solid var(--color-border);
 }
 
 .titleRow {
@@ -15,7 +15,10 @@
 }
 
 .icon {
-  color: var(--color-warning-on-soft);
+  /* The only color in this card — a whole tinted card per warning reads as
+     an alarm the moment the list has more than one, which is exactly what a
+     deterministic, calm health check should avoid. */
+  color: var(--color-warning);
   flex-shrink: 0;
   line-height: 1.3;
 }

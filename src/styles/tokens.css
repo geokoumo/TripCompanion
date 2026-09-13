@@ -62,10 +62,13 @@
   --shadow-md: none;
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.18);
 
-  /* Radii */
-  --radius-sm: 11px;
-  --radius-md: 14px;
-  --radius-lg: 17px;
+  /* Radii — matched to the Figma spec's own scale (buttons 8 / fields 10 /
+     cards 12), which reads distinctly crisper than an all-purpose ~14-17px
+     rounding. Keeping three distinct steps rather than one soft default is
+     what makes rounding look chosen instead of automatic. */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
   --radius-sheet-top: 24px;
   --radius-pill: 999px;
 
@@ -132,7 +135,13 @@
     --color-text: #f2ede4;
     --color-text-muted: #9d9488;
     --color-text-faint: #9d9488;
-    --color-text-on-accent: #ffffff;
+    /* Every accent hue below is lightened for legibility on a dark surface,
+       which makes it a mid-tone — dark text reads far better on a mid-tone
+       fill than white does (verified: white ~2.2-3:1, dark ~6-8.4:1 against
+       each of these). AvatarChip is the one exception (it keeps the original,
+       more saturated palette rather than this lightened one) and sets its
+       own text color rather than using this token. */
+    --color-text-on-accent: var(--color-bg);
 
     --color-rust: #e07a56;
     --color-rust-soft: #3d2721;
@@ -141,7 +150,7 @@
     --color-brass-soft: #33291a;
     --color-teal: #4fb3a3;
     --color-teal-soft: #1f423c;
-    --color-teal-on-soft: #4fb3a3;
+    --color-teal-on-soft: #72d3c3;
     --color-purple: #a596d6;
     --color-purple-soft: #2c2740;
     --color-gray: #9d9488;
@@ -168,7 +177,7 @@
   --color-text: #f2ede4;
   --color-text-muted: #9d9488;
   --color-text-faint: #9d9488;
-  --color-text-on-accent: #ffffff;
+  --color-text-on-accent: var(--color-bg);
 
   --color-rust: #e07a56;
   --color-rust-soft: #3d2721;
@@ -177,7 +186,7 @@
   --color-brass-soft: #33291a;
   --color-teal: #4fb3a3;
   --color-teal-soft: #1f423c;
-  --color-teal-on-soft: #4fb3a3;
+  --color-teal-on-soft: #72d3c3;
   --color-purple: #a596d6;
   --color-purple-soft: #2c2740;
   --color-gray: #9d9488;
