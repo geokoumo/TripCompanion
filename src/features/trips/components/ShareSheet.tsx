@@ -63,9 +63,16 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
   return (
     <Modal title="Share" onClose={onClose}>
       <p className={styles.intro}>Choose what the recipient can see. The link is read-only.</p>
-      <div className={styles.chips}>
+      <div className={styles.chips} role="group" aria-label="Tabs to include in the shared link">
         {TRIP_TABS.map((tab) => (
-          <button key={tab} type="button" className={styles.chip} data-active={selected.has(tab)} onClick={() => toggle(tab)}>
+          <button
+            key={tab}
+            type="button"
+            className={styles.chip}
+            data-active={selected.has(tab)}
+            aria-pressed={selected.has(tab)}
+            onClick={() => toggle(tab)}
+          >
             {TAB_LABELS[tab]}
           </button>
         ))}
