@@ -7,6 +7,7 @@ import { useToast } from '../../../app/providers/ToastProvider';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import type { Flight } from '../types';
 import { FlightCard } from './FlightCard';
+import { FlightDetailView } from './FlightDetailView';
 import { FlightForm } from './FlightForm';
 
 interface FlightsTabProps {
@@ -17,11 +18,12 @@ interface FlightsTabProps {
 export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
   const { showToast } = useToast();
   const [editing, setEditing] = useState<Flight | null>(null);
+  const [viewing, setViewing] = useState<Flight | null>(null);
   const [creating, setCreating] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Flight | null>(null);
 
   const sorted = [...trip.flights].sort((a, b) => (a.depDate + a.depTime).localeCompare(b.depDate + b.depTime));
-  const openFlight = useCallback((flight: Flight) => setEditing(flight), []);
+  const openFlight = useCallback((flight: Flight) => setViewing(flight), []);
 
   const save = async (flight: Flight) => {
     try {
@@ -75,6 +77,19 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
           itemName={`${pendingDelete.airline} ${pendingDelete.flightNumber}`}
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => remove(pendingDelete.id)}
+        />
+      )}
+
+      {viewing && (
+        <FlightDetailView
+          flight={viewing}
+          trip={trip}
+          updateTrip={updateTrip}
+          onClose={() => setViewing(null)}
+          onEdit={() => {
+            setEditing(viewing);
+            setViewing(null);
+          }}
         />
       )}
     </div>

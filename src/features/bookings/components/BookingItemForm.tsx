@@ -11,6 +11,7 @@ import { generateId } from '../../../shared/lib/id';
 import { getTripDateRange } from '../../trips/lib/dateRange';
 import type { Trip } from '../../trips/types';
 import { AttachmentsField } from '../../documents/components/AttachmentsField';
+import { bookingItemRelatedTo } from '../../documents/lib/relatedTo';
 import { PRICE_RANGES, type BookingItem, type PriceRange } from '../types';
 import styles from './BookingItemForm.module.css';
 
@@ -199,7 +200,7 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
       </div>
 
       <div className={styles.attachmentsSection}>
-        <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={item.name || config.singular} defaultCategory={ATTACHMENT_CATEGORY[type]} />
+        <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={bookingItemRelatedTo(item)} defaultCategory={ATTACHMENT_CATEGORY[type]} />
       </div>
     </Modal>
   );

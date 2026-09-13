@@ -16,6 +16,7 @@ import { hasParsedFields, parseFlightText } from '../lib/parseFlightText';
 import { getRecentValues, rememberRecentValue } from '../lib/recentValues';
 import { lookupAirportTimezone, MANUAL_TIMEZONE_OPTIONS, rememberAirportTimezone, resolveTimezone, timezoneDisplayLabel } from '../lib/timezones';
 import { AttachmentsField } from '../../documents/components/AttachmentsField';
+import { flightRelatedTo } from '../../documents/lib/relatedTo';
 import type { Trip } from '../../trips/types';
 import type { FlightStatusId } from '../../../config/constants';
 import type { Flight } from '../types';
@@ -298,7 +299,7 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
       <AttachmentsField
         trip={trip}
         updateTrip={updateTrip}
-        relatedTo={flight.depAirport && flight.arrAirport ? `${flight.depAirport} → ${flight.arrAirport} flight` : 'Flight'}
+        relatedTo={flightRelatedTo(flight)}
         defaultCategory="boarding_pass"
       />
     </Modal>

@@ -6,10 +6,12 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { upsertBookingItem } from '../../../data/repository/bookingRepository';
+import { bookingItemRelatedTo } from '../../documents/lib/relatedTo';
 import type { Trip } from '../../trips/types';
 import { buildLinkedItineraryStop } from '../lib/addToItinerary';
 import type { BookingItem } from '../types';
 import { BookingItemCard } from './BookingItemCard';
+import { BookingItemDetailView } from './BookingItemDetailView';
 import { BookingItemForm } from './BookingItemForm';
 
 interface BookingItemsListScreenProps {
@@ -25,6 +27,7 @@ function sortKey(item: BookingItem): string {
 export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsListScreenProps) {
   const { showToast } = useToast();
   const [editing, setEditing] = useState<BookingItem | null>(null);
+  const [viewing, setViewing] = useState<BookingItem | null>(null);
   const [creating, setCreating] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<BookingItem | null>(null);
 
@@ -75,8 +78,8 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
         <BookingItemCard
           key={item.id}
           item={item}
-          hasAttachment={trip.documents.some((d) => d.relatedTo === item.name)}
-          onOpen={setEditing}
+          hasAttachment={trip.documents.some((d) => d.relatedTo === bookingItemRelatedTo(item))}
+          onOpen={setViewing}
         />
       ))}
 
@@ -99,6 +102,19 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
 
       {pendingDelete && (
         <DeleteConfirmSheet itemName={pendingDelete.name} onCancel={() => setPendingDelete(null)} onConfirm={() => remove(pendingDelete.id)} />
+      )}
+
+      {viewing && (
+        <BookingItemDetailView
+          item={viewing}
+          trip={trip}
+          updateTrip={updateTrip}
+          onClose={() => setViewing(null)}
+          onEdit={() => {
+            setEditing(viewing);
+            setViewing(null);
+          }}
+        />
       )}
     </div>
   );

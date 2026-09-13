@@ -9,6 +9,7 @@ import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
 import { dateTimeRangesOverlap } from '../lib/overlap';
 import type { Stay } from '../types';
 import { StayCard } from './StayCard';
+import { StayDetailView } from './StayDetailView';
 import { StayForm } from './StayForm';
 
 interface StaysTabProps {
@@ -26,6 +27,7 @@ function toRange(stay: Stay) {
 export function StaysTab({ trip, updateTrip }: StaysTabProps) {
   const { showToast } = useToast();
   const [editing, setEditing] = useState<Stay | null>(null);
+  const [viewing, setViewing] = useState<Stay | null>(null);
   const [creating, setCreating] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Stay | null>(null);
 
@@ -41,7 +43,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
     }
   }
 
-  const openStay = useCallback((stay: Stay) => setEditing(stay), []);
+  const openStay = useCallback((stay: Stay) => setViewing(stay), []);
 
   const save = async (stay: Stay) => {
     try {
@@ -99,6 +101,19 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
           itemName={pendingDelete.name}
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => remove(pendingDelete.id)}
+        />
+      )}
+
+      {viewing && (
+        <StayDetailView
+          stay={viewing}
+          trip={trip}
+          updateTrip={updateTrip}
+          onClose={() => setViewing(null)}
+          onEdit={() => {
+            setEditing(viewing);
+            setViewing(null);
+          }}
         />
       )}
     </div>

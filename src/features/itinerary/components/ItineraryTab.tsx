@@ -17,6 +17,7 @@ import type { Idea, ItineraryStop } from '../types';
 import { AutoPulledEntryCard } from './AutoPulledEntryCard';
 import { IdeasBacklog } from './IdeasBacklog';
 import { StopCard } from './StopCard';
+import { StopDetailView } from './StopDetailView';
 import { StopForm } from './StopForm';
 import { TodayView } from './TodayView';
 import styles from './ItineraryTab.module.css';
@@ -54,6 +55,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const [view, setView] = useState<ItineraryView>('plan');
 
   const [editingStop, setEditingStop] = useState<ItineraryStop | null>(null);
+  const [viewingStop, setViewingStop] = useState<ItineraryStop | null>(null);
   const [creatingStop, setCreatingStop] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<ItineraryStop | null>(null);
 
@@ -63,7 +65,7 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
   const allDayStopsForDay = stopsForDay.filter((s) => s.allDay);
   const timedStopsForDay = stopsForDay.filter((s) => !s.allDay).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
 
-  const openStop = useCallback((stop: ItineraryStop) => setEditingStop(stop), []);
+  const openStop = useCallback((stop: ItineraryStop) => setViewingStop(stop), []);
 
   const legsForDay = trip.legs.filter((leg) => selectedDate >= leg.startDate && selectedDate <= leg.endDate);
   const legHeaderLabel = legsForDay
@@ -213,6 +215,18 @@ export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
           itemName={pendingDelete.title}
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => removeStop(pendingDelete.id)}
+        />
+      )}
+
+      {viewingStop && (
+        <StopDetailView
+          stop={viewingStop}
+          travelers={trip.travelers}
+          onClose={() => setViewingStop(null)}
+          onEdit={() => {
+            setEditingStop(viewingStop);
+            setViewingStop(null);
+          }}
         />
       )}
     </div>

@@ -4,15 +4,9 @@ import { Card } from '../../../shared/components/Card';
 import { StampBadge } from '../../../shared/components/StampBadge';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { computeFlightDuration } from '../lib/duration';
+import { FLIGHT_STATUS_TONE } from '../lib/statusTone';
 import type { Flight } from '../types';
 import styles from './FlightCard.module.css';
-
-const STATUS_TONE: Record<string, 'teal' | 'rust' | 'gray' | 'brass'> = {
-  scheduled: 'teal',
-  delayed: 'brass',
-  cancelled: 'rust',
-  landed: 'gray',
-};
 
 function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flight: Flight) => void }) {
   const duration = computeFlightDuration(flight);
@@ -26,7 +20,7 @@ function FlightCardComponent({ flight, onOpen }: { flight: Flight; onOpen: (flig
         <span className={styles.airlineLine}>
           {flight.airline} · {flight.flightNumber}
         </span>
-        <StampBadge tone={STATUS_TONE[flight.status] ?? 'gray'}>{statusLabel}</StampBadge>
+        <StampBadge tone={FLIGHT_STATUS_TONE[flight.status] ?? 'gray'}>{statusLabel}</StampBadge>
       </div>
       <div className={styles.routeRow}>
         <div>

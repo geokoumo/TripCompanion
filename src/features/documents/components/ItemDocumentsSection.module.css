@@ -1,0 +1,18 @@
+.section {
+  margin-top: var(--space-4);
+}
+
+.header {
+  color: var(--color-text-muted);
+  font-size: var(--fs-field-label);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.empty {
+  color: var(--color-text-faint);
+  font-size: var(--fs-meta);
+  padding: var(--space-2) 0;
+}

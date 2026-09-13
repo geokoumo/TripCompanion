@@ -9,6 +9,7 @@ import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
 import { isEndOnOrAfterStart } from '../../trips/validation';
 import { AttachmentsField } from '../../documents/components/AttachmentsField';
+import { stayRelatedTo } from '../../documents/lib/relatedTo';
 import type { Trip } from '../../trips/types';
 import { dateTimeRangesOverlap } from '../lib/overlap';
 import type { Stay } from '../types';
@@ -140,7 +141,7 @@ export function StayForm({ trip, updateTrip, initial, existingStays, recentLocat
         </>
       )}
 
-      <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={stay.name || 'Stay'} defaultCategory="hotel_confirmation" />
+      <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={stayRelatedTo(stay)} defaultCategory="hotel_confirmation" />
     </Modal>
   );
 }
