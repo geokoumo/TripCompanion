@@ -135,3 +135,23 @@
   font-size: var(--fs-body);
   line-height: 1.6;
 }
+
+.staticHeading {
+  font-family: var(--font-display);
+  font-size: var(--fs-item-title);
+  font-weight: 600;
+  margin: var(--space-5) 0 var(--space-1);
+}
+
+.staticHeading:first-child {
+  margin-top: 0;
+}
+
+.staticNotice {
+  background: var(--color-warning-soft);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--fs-meta);
+  color: var(--color-text);
+}
