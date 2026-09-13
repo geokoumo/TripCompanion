@@ -42,6 +42,15 @@
   border-color: var(--color-teal);
 }
 
+.privacyNote {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-5);
+}
+
 .group {
   margin-bottom: var(--space-5);
 }
@@ -75,4 +84,19 @@
 .resultRow svg {
   flex-shrink: 0;
   color: var(--color-text-muted);
+}
+
+.resultMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.resultType {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
 }

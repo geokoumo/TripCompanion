@@ -14,6 +14,14 @@ const MATCH_ICON: Record<SearchMatchType, typeof PlaneIcon> = {
   booking: TicketIcon,
 };
 
+const MATCH_TYPE_LABEL: Record<SearchMatchType, string> = {
+  flight: 'Flight',
+  stay: 'Stay',
+  stop: 'Itinerary Stop',
+  expense: 'Expense Note',
+  booking: 'Booking',
+};
+
 interface SearchScreenProps {
   onOpenTrip: (tripId: string, tab: TripTab) => void;
 }
@@ -61,6 +69,8 @@ export function SearchScreen({ onOpenTrip }: SearchScreenProps) {
         />
       </div>
 
+      <div className={styles.privacyNote}>Searching your own private data only</div>
+
       {!trimmedQuery && (
         <EmptyState
           headline="Find something of yours"
@@ -86,7 +96,10 @@ export function SearchScreen({ onOpenTrip }: SearchScreenProps) {
                   onClick={() => onOpenTrip(group.tripId, match.tab)}
                 >
                   <Icon size={18} />
-                  <span>{match.label}</span>
+                  <span className={styles.resultMain}>
+                    <span className={styles.resultType}>{MATCH_TYPE_LABEL[match.type]}</span>
+                    <span>{match.label}</span>
+                  </span>
                 </button>
               );
             })}
