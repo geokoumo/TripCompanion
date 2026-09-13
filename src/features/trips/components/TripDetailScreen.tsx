@@ -69,7 +69,7 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
             onArchiveToggle={() => void saveTrip({ ...trip, archived: !trip.archived })}
             onDuplicate={() => setDuplicating(true)}
             onDeleteRequest={() => setConfirmDelete(true)}
-            onSaveTrip={(updated) => void saveTrip(updated)}
+            onSaveTrip={(updated) => saveTrip(updated)}
             hideDates={activeTab === 'overview'}
           />
           <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>

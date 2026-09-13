@@ -8,6 +8,7 @@ import fieldStyles from '../../../shared/components/Field.module.css';
 import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
 import { StampToggle } from '../../../shared/components/StampToggle';
+import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
 import { matchAirlineDomain } from '../lib/airlineDomains';
 import { checkFlightTimeOrder } from '../lib/flightTime';
@@ -25,7 +26,7 @@ interface FlightFormProps {
   updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
   initial?: Flight;
   onClose: () => void;
-  onSave: (flight: Flight) => void;
+  onSave: (flight: Flight) => void | Promise<void>;
   onDelete?: () => void;
 }
 
@@ -52,6 +53,7 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
   const [pasteText, setPasteText] = useState('');
   const [parseFailed, setParseFailed] = useState(false);
   const [autoFilledKeys, setAutoFilledKeys] = useState<Set<keyof Flight>>(new Set());
+  const { saving, run } = useSavingGuard();
 
   const update = <K extends keyof Flight>(key: K, value: Flight[K]) => {
     setFlight((prev) => ({ ...prev, [key]: value }));
@@ -108,7 +110,7 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
     rememberRecentValue('airline', flight.airline);
     rememberRecentValue('airport', flight.depAirport);
     rememberRecentValue('airport', flight.arrAirport);
-    onSave(flight);
+    void run(() => onSave(flight));
   };
 
   return (
@@ -122,8 +124,8 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
               Delete
             </Button>
           )}
-          <Button variant="primary" onClick={handleSave}>
-            Save
+          <Button variant="primary" disabled={saving} onClick={handleSave}>
+            {saving ? 'Saving…' : 'Save'}
           </Button>
         </>
       }

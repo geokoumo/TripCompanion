@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Button } from '../../../shared/components/Button';
 import { Modal } from '../../../shared/components/Modal';
+import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
 import { TRIP_TABS, type Trip, type TripTab } from '../types';
 import styles from './ShareSheet.module.css';
@@ -18,13 +19,14 @@ const TAB_LABELS: Record<TripTab, string> = {
 interface ShareSheetProps {
   trip: Trip;
   onClose: () => void;
-  onSave: (updated: Trip) => void;
+  onSave: (updated: Trip) => void | Promise<void>;
 }
 
 export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
   const { showToast } = useToast();
   const [selected, setSelected] = useState<Set<TripTab>>(new Set(trip.shareSettings.includedTabs.length ? trip.shareSettings.includedTabs : ['overview']));
   const [shareToken, setShareToken] = useState(trip.shareSettings.shareToken);
+  const { saving, run } = useSavingGuard();
 
   const toggle = (tab: TripTab) => {
     setSelected((prev) => {
@@ -35,14 +37,22 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
     });
   };
 
-  const generateLink = () => {
-    const token = generateId();
-    setShareToken(token);
-    onSave({
-      ...trip,
-      shareSettings: { enabled: true, includedTabs: [...selected], shareToken: token },
+  // Only reveals the "Link ready" panel once the share settings have
+  // actually persisted — generating the token locally first (the old
+  // behavior) could show a working link even if the save failed.
+  const generateLink = () =>
+    void run(async () => {
+      const token = generateId();
+      try {
+        await onSave({
+          ...trip,
+          shareSettings: { enabled: true, includedTabs: [...selected], shareToken: token },
+        });
+        setShareToken(token);
+      } catch {
+        showToast("Couldn't create the link. Try again.", { variant: 'error' });
+      }
     });
-  };
 
   const shareUrl = shareToken ? `${window.location.origin}${window.location.pathname}#/shared/${trip.id}` : null;
 
@@ -83,8 +93,8 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
         </div>
       )}
 
-      <Button variant="primary" onClick={generateLink} disabled={selected.size === 0}>
-        {shareUrl ? 'New link' : 'Create link'}
+      <Button variant="primary" onClick={generateLink} disabled={selected.size === 0 || saving}>
+        {saving ? 'Creating…' : shareUrl ? 'New link' : 'Create link'}
       </Button>
     </Modal>
   );

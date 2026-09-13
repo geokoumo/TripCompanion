@@ -87,7 +87,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
             setCreating(false);
             setEditing(null);
           }}
-          onSave={(s) => void save(s)}
+          onSave={(s) => save(s)}
           onDelete={editing ? () => setPendingDelete(editing) : undefined}
         />
       )}

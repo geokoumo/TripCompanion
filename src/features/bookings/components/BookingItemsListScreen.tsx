@@ -90,7 +90,7 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
             setCreating(false);
             setEditing(null);
           }}
-          onSave={(item, addToItinerary) => void save(item, addToItinerary)}
+          onSave={(item, addToItinerary) => save(item, addToItinerary)}
           onDelete={editing ? () => setPendingDelete(editing) : undefined}
         />
       )}

@@ -50,7 +50,13 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
         const differsCurrency = expense.currency !== trip.homeCurrency;
         const splitLabel = expense.splitAmong.length <= 1 ? 'personal' : `split ${expense.splitAmong.length} ways`;
         return (
-          <div key={expense.id} className={styles.row} onClick={() => setEditing(expense)}>
+          <button
+            type="button"
+            key={expense.id}
+            className={styles.row}
+            onClick={() => setEditing(expense)}
+            aria-label={`Edit expense: ${expense.note || category?.name || 'Expense'}, ${amountHome === null ? 'no rate' : `${amountHome.toFixed(2)} ${trip.homeCurrency}`}`}
+          >
             <div className={styles.left}>
               {payer && <AvatarChip name={payer.name} color={payer.avatarColor} size="sm" />}
               <div>
@@ -74,7 +80,7 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
                 </span>
               )}
             </div>
-          </div>
+          </button>
         );
       })}
 
@@ -93,7 +99,7 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
             setCreating(false);
             setEditing(null);
           }}
-          onSave={(e) => void save(e)}
+          onSave={(e) => save(e)}
           onDelete={editing ? () => setPendingDelete(editing) : undefined}
         />
       )}

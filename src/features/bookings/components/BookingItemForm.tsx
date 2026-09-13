@@ -6,6 +6,7 @@ import { TimeField } from '../../../shared/components/TimeField';
 import { FieldRow, FieldWrapper, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { Switch } from '../../../shared/components/Switch';
+import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
 import { getTripDateRange } from '../../trips/lib/dateRange';
 import type { Trip } from '../../trips/types';
@@ -20,7 +21,7 @@ interface BookingItemFormProps {
   initial?: BookingItem;
   addToItineraryDefault?: boolean;
   onClose: () => void;
-  onSave: (item: BookingItem, addToItinerary: boolean) => void;
+  onSave: (item: BookingItem, addToItinerary: boolean) => void | Promise<void>;
   onDelete?: () => void;
 }
 
@@ -66,8 +67,10 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
   const updateDetails = <K extends keyof BookingItem['details']>(key: K, value: BookingItem['details'][K]) =>
     setItem((prev) => ({ ...prev, details: { ...prev.details, [key]: value } }));
 
+  const { saving, run } = useSavingGuard();
   const timeOrderValid = !item.startTime || !item.endTime || item.endTime >= item.startTime;
   const canSave = item.name.trim().length > 0 && timeOrderValid;
+  const handleSave = () => void run(() => onSave(item, addToItinerary));
 
   return (
     <Modal
@@ -80,8 +83,8 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
               Delete
             </Button>
           )}
-          <Button variant="primary" disabled={!canSave} onClick={() => onSave(item, addToItinerary)}>
-            Save
+          <Button variant="primary" disabled={!canSave || saving} onClick={handleSave}>
+            {saving ? 'Saving…' : 'Save'}
           </Button>
         </>
       }

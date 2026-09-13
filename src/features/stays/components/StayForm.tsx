@@ -5,6 +5,7 @@ import { DateTimeField } from '../../../shared/components/DateTimeField';
 import { FieldRow, MoreToggle, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
+import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
 import { isEndOnOrAfterStart } from '../../trips/validation';
 import { AttachmentsField } from '../../documents/components/AttachmentsField';
@@ -19,7 +20,7 @@ interface StayFormProps {
   existingStays: Stay[];
   recentLocations: string[];
   onClose: () => void;
-  onSave: (stay: Stay) => void;
+  onSave: (stay: Stay) => void | Promise<void>;
   onDelete?: () => void;
 }
 
@@ -44,6 +45,7 @@ export function StayForm({ trip, updateTrip, initial, existingStays, recentLocat
   const { showToast } = useToast();
   const [stay, setStay] = useState<Stay>(initial ?? emptyStay());
   const [showMore, setShowMore] = useState(Boolean(initial?.phone || initial?.bookingRef || initial?.notes || initial?.link));
+  const { saving, run } = useSavingGuard();
 
   const update = <K extends keyof Stay>(key: K, value: Stay[K]) => setStay((prev) => ({ ...prev, [key]: value }));
 
@@ -61,7 +63,7 @@ export function StayForm({ trip, updateTrip, initial, existingStays, recentLocat
       showToast('Check-out must be after check-in.', { variant: 'error' });
       return;
     }
-    onSave(stay);
+    void run(() => onSave(stay));
   };
 
   return (
@@ -75,8 +77,8 @@ export function StayForm({ trip, updateTrip, initial, existingStays, recentLocat
               Delete
             </Button>
           )}
-          <Button variant="primary" onClick={handleSave}>
-            Save
+          <Button variant="primary" disabled={saving} onClick={handleSave}>
+            {saving ? 'Saving…' : 'Save'}
           </Button>
         </>
       }

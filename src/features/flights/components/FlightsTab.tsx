@@ -63,7 +63,7 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
             setCreating(false);
             setEditing(null);
           }}
-          onSave={(f) => void save(f)}
+          onSave={(f) => save(f)}
           onDelete={editing ? () => setPendingDelete(editing) : undefined}
         />
       )}

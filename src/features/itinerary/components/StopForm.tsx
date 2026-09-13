@@ -6,6 +6,7 @@ import { DateTimeField } from '../../../shared/components/DateTimeField';
 import { FieldRow, FieldWrapper, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
+import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { generateId } from '../../../shared/lib/id';
 import type { Trip } from '../../trips/types';
@@ -20,7 +21,7 @@ interface StopFormProps {
   defaultDate: string;
   trip: Trip;
   onClose: () => void;
-  onSave: (stop: ItineraryStop) => void;
+  onSave: (stop: ItineraryStop) => void | Promise<void>;
   onDelete?: () => void;
 }
 
@@ -40,6 +41,7 @@ const DURATION_PRESETS = ['30′', '60′', '90′', '120′', '180′'];
 export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete }: StopFormProps) {
   const [stop, setStop] = useState<ItineraryStop>(initial ?? emptyStop(defaultDate));
   const [formError, setFormError] = useState<string | null>(null);
+  const { saving, run } = useSavingGuard();
   const range = tripActivityRange(trip);
 
   const update = <K extends keyof ItineraryStop>(key: K, value: ItineraryStop[K]) => {
@@ -91,7 +93,7 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
       setFormError(describeActivityError(errors[0]!, trip.itineraryStops));
       return;
     }
-    onSave(stop);
+    void run(() => onSave(stop));
   };
 
   return (
@@ -105,8 +107,8 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
               Delete
             </Button>
           )}
-          <Button variant="primary" disabled={!canSave} onClick={handleSave}>
-            Save
+          <Button variant="primary" disabled={!canSave || saving} onClick={handleSave}>
+            {saving ? 'Saving…' : 'Save'}
           </Button>
         </>
       }

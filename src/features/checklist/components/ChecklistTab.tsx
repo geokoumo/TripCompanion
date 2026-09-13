@@ -45,9 +45,9 @@ export function ChecklistTab({ trip, updateTrip }: ChecklistTabProps) {
 
   const remove = (id: string) => deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'checklistItems', id });
 
-  const addItem = (values: Pick<ChecklistItem, 'text' | 'category' | 'quantity'>) => {
+  const addItem = async (values: Pick<ChecklistItem, 'text' | 'category' | 'quantity'>) => {
     const item: ChecklistItem = { id: generateId(), travelerId: activeTravelerId, done: false, ...values };
-    void updateTrip((t) => ({ ...t, checklistItems: [...t.checklistItems, item] }));
+    await updateTrip((t) => ({ ...t, checklistItems: [...t.checklistItems, item] }));
     setAdding(false);
   };
 

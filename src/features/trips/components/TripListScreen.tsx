@@ -134,7 +134,7 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
       )}
 
       {editDescriptionTrip && (
-        <EditDescriptionSheet trip={editDescriptionTrip} onClose={() => setEditDescriptionTrip(null)} onSave={(updated) => void saveTrip(updated)} />
+        <EditDescriptionSheet trip={editDescriptionTrip} onClose={() => setEditDescriptionTrip(null)} onSave={(updated) => saveTrip(updated)} />
       )}
 
       {duplicateSource && (

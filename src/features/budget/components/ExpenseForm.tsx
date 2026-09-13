@@ -5,6 +5,7 @@ import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { FieldWrapper, MoreToggle, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
+import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
 import type { Traveler } from '../../travelers/types';
 import { getTripDateRange } from '../../trips/lib/dateRange';
@@ -18,7 +19,7 @@ interface ExpenseFormProps {
   updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
   initial?: Expense;
   onClose: () => void;
-  onSave: (expense: Expense) => void;
+  onSave: (expense: Expense) => void | Promise<void>;
   onDelete?: () => void;
 }
 
@@ -62,9 +63,11 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
     setNewCategoryName('');
   };
 
+  const { saving, run } = useSavingGuard();
   const needsRate = expense.currency !== trip.homeCurrency;
   const hasRate = !needsRate || (expense.exchangeRateToHome != null && expense.exchangeRateToHome > 0);
   const canSave = expense.amount > 0 && expense.categoryId && expense.date && expense.paidBy && expense.splitAmong.length > 0 && hasRate;
+  const handleSave = () => void run(() => onSave(expense));
 
   return (
     <Modal
@@ -77,8 +80,8 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
               Delete
             </Button>
           )}
-          <Button variant="primary" disabled={!canSave} onClick={() => onSave(expense)}>
-            Save
+          <Button variant="primary" disabled={!canSave || saving} onClick={handleSave}>
+            {saving ? 'Saving…' : 'Save'}
           </Button>
         </>
       }

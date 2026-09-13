@@ -16,7 +16,7 @@ interface TripHeaderProps {
   onArchiveToggle: () => void;
   onDuplicate: () => void;
   onDeleteRequest: () => void;
-  onSaveTrip: (trip: Trip) => void;
+  onSaveTrip: (trip: Trip) => void | Promise<void>;
   /** Overview's own meta-block already shows the trip's date range — set this there so it isn't shown twice. */
   hideDates?: boolean;
 }
