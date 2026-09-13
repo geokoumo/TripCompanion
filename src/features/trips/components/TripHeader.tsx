@@ -5,7 +5,7 @@ import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { downloadTripAsJson } from '../lib/tripFile';
 import type { Trip } from '../types';
-import { AddTravelerSheet } from '../../travelers/components/AddTravelerSheet';
+import { ManageTravelersSheet } from '../../travelers/components/ManageTravelersSheet';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
 import { TripMenuSheet } from './TripMenuSheet';
 import styles from './TripHeader.module.css';
@@ -28,7 +28,7 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
-  const [addTravelerOpen, setAddTravelerOpen] = useState(false);
+  const [manageTravelersOpen, setManageTravelersOpen] = useState(false);
   const range = getTripDateRange(trip.legs, trip.flights);
 
   return (
@@ -65,7 +65,7 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
           onDuplicate={onDuplicate}
           onExport={() => downloadTripAsJson(trip)}
           onEditDescription={() => setEditDescriptionOpen(true)}
-          onAddTraveler={() => setAddTravelerOpen(true)}
+          onManageTravelers={() => setManageTravelersOpen(true)}
           onArchiveToggle={onArchiveToggle}
           onDelete={onDeleteRequest}
         />
@@ -73,8 +73,8 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
       {editDescriptionOpen && (
         <EditDescriptionSheet trip={trip} onClose={() => setEditDescriptionOpen(false)} onSave={onSaveTrip} />
       )}
-      {addTravelerOpen && (
-        <AddTravelerSheet trip={trip} onClose={() => setAddTravelerOpen(false)} onSave={onSaveTrip} />
+      {manageTravelersOpen && (
+        <ManageTravelersSheet trip={trip} onClose={() => setManageTravelersOpen(false)} onSave={onSaveTrip} />
       )}
     </div>
   );

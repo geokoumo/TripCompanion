@@ -9,7 +9,7 @@ import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { useTrips } from '../hooks/useTrips';
 import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
 import type { Trip, TripTab } from '../types';
-import { AddTravelerSheet } from '../../travelers/components/AddTravelerSheet';
+import { ManageTravelersSheet } from '../../travelers/components/ManageTravelersSheet';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
 import { HelpSheet } from './HelpSheet';
 import { TripCard } from './TripCard';
@@ -29,7 +29,7 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const [duplicateSource, setDuplicateSource] = useState<Trip | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Trip | null>(null);
   const [editDescriptionTrip, setEditDescriptionTrip] = useState<Trip | null>(null);
-  const [addTravelerTrip, setAddTravelerTrip] = useState<Trip | null>(null);
+  const [manageTravelersTrip, setManageTravelersTrip] = useState<Trip | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -124,14 +124,14 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
           onDuplicate={() => setDuplicateSource(menuTrip)}
           onExport={() => downloadTripAsJson(menuTrip)}
           onEditDescription={() => setEditDescriptionTrip(menuTrip)}
-          onAddTraveler={() => setAddTravelerTrip(menuTrip)}
+          onManageTravelers={() => setManageTravelersTrip(menuTrip)}
           onArchiveToggle={() => void saveTrip({ ...menuTrip, archived: !menuTrip.archived })}
           onDelete={() => setPendingDelete(menuTrip)}
         />
       )}
 
-      {addTravelerTrip && (
-        <AddTravelerSheet trip={addTravelerTrip} onClose={() => setAddTravelerTrip(null)} onSave={(updated) => saveTrip(updated)} />
+      {manageTravelersTrip && (
+        <ManageTravelersSheet trip={manageTravelersTrip} onClose={() => setManageTravelersTrip(null)} onSave={(updated) => saveTrip(updated)} />
       )}
 
       {shareTrip && (
