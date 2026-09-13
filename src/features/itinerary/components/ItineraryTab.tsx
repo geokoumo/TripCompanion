@@ -38,6 +38,9 @@ const VIEW_OPTIONS: { id: ItineraryView; label: string }[] = [
 interface ItineraryTabProps {
   trip: Trip;
   updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  /** Lifted to the parent so it survives this tab unmounting on tab switch — see TripDetailScreen. */
+  selectedDate: string | null;
+  onSelectedDateChange: (date: string) => void;
 }
 
 function buildDayRange(startDate: string, endDate: string): string[] {
@@ -52,13 +55,18 @@ function buildDayRange(startDate: string, endDate: string): string[] {
   return days;
 }
 
-export function ItineraryTab({ trip, updateTrip }: ItineraryTabProps) {
+export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp, onSelectedDateChange }: ItineraryTabProps) {
   const { showToast } = useToast();
   const { getFullTrip } = useTripsContext();
   const range = getTripDateRange(trip.legs, trip.flights);
   const days = useMemo(() => (range ? buildDayRange(range.startDate, range.endDate) : []), [range?.startDate, range?.endDate]);
   const today = todayStr();
-  const [selectedDate, setSelectedDate] = useState(() => (days.includes(today) ? today : days[0] ?? today));
+  const defaultDate = days.includes(today) ? today : (days[0] ?? today);
+  // A date carried over from another trip (or one no longer in range) isn't a
+  // valid selection here — fall back rather than pointing at a day that
+  // doesn't exist for this trip.
+  const selectedDate = selectedDateProp && days.includes(selectedDateProp) ? selectedDateProp : defaultDate;
+  const setSelectedDate = onSelectedDateChange;
   const [view, setView] = useState<ItineraryView>('plan');
 
   const [editingStop, setEditingStop] = useState<ItineraryStop | null>(null);

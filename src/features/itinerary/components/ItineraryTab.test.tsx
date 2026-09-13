@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../../../app/providers/AuthProvider';
 import type { Flight } from '../../flights/types';
@@ -78,10 +79,17 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
   } as Trip;
 }
 
+// Mirrors how TripDetailScreen owns selectedDate so ItineraryTab's real
+// (now-controlled) behavior is exercised the same way it runs in the app.
+function ItineraryTabHarness({ trip, updateTrip }: { trip: Trip; updateTrip: (updater: (t: Trip) => Trip) => Promise<void> }) {
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  return <ItineraryTab trip={trip} updateTrip={updateTrip} selectedDate={selectedDate} onSelectedDateChange={setSelectedDate} />;
+}
+
 function renderTab(trip: Trip, updateTrip = vi.fn().mockResolvedValue(undefined)) {
   render(
     <AuthProvider>
-      <ItineraryTab trip={trip} updateTrip={updateTrip} />
+      <ItineraryTabHarness trip={trip} updateTrip={updateTrip} />
     </AuthProvider>,
   );
   return { updateTrip };
@@ -222,6 +230,42 @@ describe('ItineraryTab — trip-relative day framing', () => {
     expect(screen.getByText('DAY 1 OF 6 · ARRIVAL')).toBeInTheDocument();
     expect(screen.queryByText(/NO CITY/)).not.toBeInTheDocument();
     expect(screen.queryByText(/UNKNOWN/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('ItineraryTab — selected day survives navigating away and back', () => {
+  // ItineraryTab unmounts whenever the user switches to another in-trip tab
+  // (TripDetailScreen only renders it while Itinerary is active). The parent
+  // owns selectedDate precisely so a round trip to another tab doesn't reset
+  // the picked day back to today/day one.
+  it('reports the picked day up via onSelectedDateChange instead of only tracking it internally', async () => {
+    const user = userEvent.setup();
+    const onSelectedDateChange = vi.fn();
+    render(
+      <AuthProvider>
+        <ItineraryTab trip={makeTrip()} updateTrip={vi.fn().mockResolvedValue(undefined)} selectedDate={null} onSelectedDateChange={onSelectedDateChange} />
+      </AuthProvider>,
+    );
+    await user.click(screen.getByRole('tab', { name: /17/ }));
+    expect(onSelectedDateChange).toHaveBeenCalledWith('2026-09-17');
+  });
+
+  it('restores a previously-selected day passed back in via the selectedDate prop', () => {
+    render(
+      <AuthProvider>
+        <ItineraryTab trip={makeTrip()} updateTrip={vi.fn().mockResolvedValue(undefined)} selectedDate="2026-09-17" onSelectedDateChange={vi.fn()} />
+      </AuthProvider>,
+    );
+    expect(screen.getByText('DAY 3 OF 6 · TOKYO')).toBeInTheDocument();
+  });
+
+  it('falls back to the default day when the given selectedDate no longer falls within this trip', () => {
+    render(
+      <AuthProvider>
+        <ItineraryTab trip={makeTrip()} updateTrip={vi.fn().mockResolvedValue(undefined)} selectedDate="2099-01-01" onSelectedDateChange={vi.fn()} />
+      </AuthProvider>,
+    );
+    expect(screen.getByText('DAY 1 OF 6 · TOKYO · ARRIVAL')).toBeInTheDocument();
   });
 });
 

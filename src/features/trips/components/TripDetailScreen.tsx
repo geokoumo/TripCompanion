@@ -31,6 +31,11 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [showTripHealth, setShowTripHealth] = useState(false);
+  // Lifted out of ItineraryTab so the selected day survives switching to
+  // another in-trip tab and back — ItineraryTab itself unmounts on every
+  // tab switch (see the conditional render below), which would otherwise
+  // reset it to today/day one each time.
+  const [itinerarySelectedDate, setItinerarySelectedDate] = useState<string | null>(null);
 
   if (loading) {
     return <LoadingScreen />;
@@ -84,7 +89,14 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
             {(activeTab === 'flights' || activeTab === 'stays') && (
               <BookingsTab trip={trip} activeTab={activeTab} onTabChange={onTabChange} updateTrip={updateTrip} />
             )}
-            {activeTab === 'itinerary' && <ItineraryTab trip={trip} updateTrip={updateTrip} />}
+            {activeTab === 'itinerary' && (
+              <ItineraryTab
+                trip={trip}
+                updateTrip={updateTrip}
+                selectedDate={itinerarySelectedDate}
+                onSelectedDateChange={setItinerarySelectedDate}
+              />
+            )}
             {activeTab === 'budget' && <BudgetTab trip={trip} updateTrip={updateTrip} />}
             {activeTab === 'checklist' && <ChecklistTab trip={trip} updateTrip={updateTrip} />}
           </div>

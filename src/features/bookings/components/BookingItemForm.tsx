@@ -4,7 +4,7 @@ import { validateActivityDate } from '../../../domain';
 import { Button } from '../../../shared/components/Button';
 import { DateField } from '../../../shared/components/DateField';
 import { TimeField } from '../../../shared/components/TimeField';
-import { FieldRow, FieldWrapper, TextAreaField, TextField } from '../../../shared/components/Field';
+import { FieldRow, FieldWrapper, MoreToggle, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { Switch } from '../../../shared/components/Switch';
 import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
@@ -63,6 +63,22 @@ const NAME_PLACEHOLDER: Partial<Record<BookingItemTypeId, string>> = {
 export function BookingItemForm({ type, trip, updateTrip, initial, addToItineraryDefault = false, onClose, onSave, onDelete }: BookingItemFormProps) {
   const [item, setItem] = useState<BookingItem>(initial ?? emptyItem(type));
   const [addToItinerary, setAddToItinerary] = useState(addToItineraryDefault);
+  const [showMore, setShowMore] = useState(
+    Boolean(
+      initial?.location ||
+        initial?.address ||
+        initial?.details.category ||
+        initial?.details.cuisineType ||
+        initial?.details.priceRange ||
+        initial?.details.car ||
+        initial?.details.seat ||
+        initial?.details.platform ||
+        initial?.partySize ||
+        initial?.price ||
+        initial?.bookingReference ||
+        initial?.notes,
+    ),
+  );
   const range = getTripDateRange(trip.legs, trip.flights);
   const config = BOOKING_ITEM_TYPES.find((t) => t.id === type)!;
 
@@ -105,43 +121,11 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
         placeholder={NAME_PLACEHOLDER[type]}
       />
 
-      {type === 'transport' ? (
+      {type === 'transport' && (
         <FieldRow>
           <TextField label="From" value={item.details.fromLocation ?? ''} onChange={(e) => updateDetails('fromLocation', e.target.value)} />
           <TextField label="To" value={item.details.toLocation ?? ''} onChange={(e) => updateDetails('toLocation', e.target.value)} />
         </FieldRow>
-      ) : (
-        <TextField label="Location" value={item.location ?? ''} onChange={(e) => update('location', e.target.value)} placeholder="Neighborhood, city" />
-      )}
-
-      {type !== 'transport' && (
-        <TextField label="Address" value={item.address ?? ''} onChange={(e) => update('address', e.target.value)} />
-      )}
-
-      {(type === 'sight' || type === 'ticket' || type === 'activity' || type === 'other') && (
-        <TextField label="Category" value={item.details.category ?? ''} onChange={(e) => updateDetails('category', e.target.value)} placeholder="e.g. Temple, Museum" />
-      )}
-
-      {type === 'restaurant' && (
-        <TextField label="Cuisine type" value={item.details.cuisineType ?? ''} onChange={(e) => updateDetails('cuisineType', e.target.value)} />
-      )}
-
-      {(type === 'restaurant' || type === 'bar') && (
-        <FieldWrapper label="Price range">
-          <div className={styles.priceRangeRow}>
-            {PRICE_RANGES.map((p) => (
-              <button
-                key={p}
-                type="button"
-                className={styles.priceRangeChip}
-                data-active={item.details.priceRange === p}
-                onClick={() => updateDetails('priceRange', item.details.priceRange === p ? undefined : (p as PriceRange))}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </FieldWrapper>
       )}
 
       <FieldRow>
@@ -158,49 +142,88 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
       </FieldRow>
       {!timeOrderValid && <p className={styles.conflictNote}>End time must be after start time.</p>}
 
-      {type === 'transport' && (
-        <FieldRow>
-          <TextField label="Car" value={item.details.car ?? ''} onChange={(e) => updateDetails('car', e.target.value)} />
-          <TextField label="Seat" value={item.details.seat ?? ''} onChange={(e) => updateDetails('seat', e.target.value)} />
-          <TextField label="Platform" value={item.details.platform ?? ''} onChange={(e) => updateDetails('platform', e.target.value)} />
-        </FieldRow>
+      <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
+      {showMore && (
+        <>
+          {type !== 'transport' && (
+            <TextField label="Location" value={item.location ?? ''} onChange={(e) => update('location', e.target.value)} placeholder="Neighborhood, city" />
+          )}
+
+          {type !== 'transport' && (
+            <TextField label="Address" value={item.address ?? ''} onChange={(e) => update('address', e.target.value)} />
+          )}
+
+          {(type === 'sight' || type === 'ticket' || type === 'activity' || type === 'other') && (
+            <TextField label="Category" value={item.details.category ?? ''} onChange={(e) => updateDetails('category', e.target.value)} placeholder="e.g. Temple, Museum" />
+          )}
+
+          {type === 'restaurant' && (
+            <TextField label="Cuisine type" value={item.details.cuisineType ?? ''} onChange={(e) => updateDetails('cuisineType', e.target.value)} />
+          )}
+
+          {(type === 'restaurant' || type === 'bar') && (
+            <FieldWrapper label="Price range">
+              <div className={styles.priceRangeRow}>
+                {PRICE_RANGES.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={styles.priceRangeChip}
+                    data-active={item.details.priceRange === p}
+                    onClick={() => updateDetails('priceRange', item.details.priceRange === p ? undefined : (p as PriceRange))}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </FieldWrapper>
+          )}
+
+          {type === 'transport' && (
+            <FieldRow>
+              <TextField label="Car" value={item.details.car ?? ''} onChange={(e) => updateDetails('car', e.target.value)} />
+              <TextField label="Seat" value={item.details.seat ?? ''} onChange={(e) => updateDetails('seat', e.target.value)} />
+              <TextField label="Platform" value={item.details.platform ?? ''} onChange={(e) => updateDetails('platform', e.target.value)} />
+            </FieldRow>
+          )}
+
+          {(type === 'restaurant' || type === 'bar') && (
+            <FieldWrapper label="Number of guests">
+              <div className={styles.stepperRow}>
+                <button
+                  type="button"
+                  className={styles.stepperButton}
+                  onClick={() => update('partySize', Math.max((item.partySize ?? 1) - 1, 1))}
+                  aria-label="Fewer guests"
+                >
+                  −
+                </button>
+                <span className={styles.stepperValue}>{item.partySize ?? 1}</span>
+                <button
+                  type="button"
+                  className={styles.stepperButton}
+                  onClick={() => update('partySize', (item.partySize ?? 1) + 1)}
+                  aria-label="More guests"
+                >
+                  +
+                </button>
+              </div>
+            </FieldWrapper>
+          )}
+
+          <FieldRow>
+            <TextField label="Price" type="number" min={0} step="0.01" placeholder="0" value={item.price ?? ''} onChange={(e) => update('price', e.target.value ? Number(e.target.value) : undefined)} />
+            <TextField
+              label="Currency"
+              value={item.currency ?? trip.homeCurrency}
+              onChange={(e) => update('currency', e.target.value.toUpperCase())}
+            />
+          </FieldRow>
+
+          <TextField label="Booking reference" value={item.bookingReference ?? ''} onChange={(e) => update('bookingReference', e.target.value)} />
+          <TextAreaField label="Notes" value={item.notes ?? ''} onChange={(e) => update('notes', e.target.value)} />
+        </>
       )}
-
-      {(type === 'restaurant' || type === 'bar') && (
-        <FieldWrapper label="Number of guests">
-          <div className={styles.stepperRow}>
-            <button
-              type="button"
-              className={styles.stepperButton}
-              onClick={() => update('partySize', Math.max((item.partySize ?? 1) - 1, 1))}
-              aria-label="Fewer guests"
-            >
-              −
-            </button>
-            <span className={styles.stepperValue}>{item.partySize ?? 1}</span>
-            <button
-              type="button"
-              className={styles.stepperButton}
-              onClick={() => update('partySize', (item.partySize ?? 1) + 1)}
-              aria-label="More guests"
-            >
-              +
-            </button>
-          </div>
-        </FieldWrapper>
-      )}
-
-      <FieldRow>
-        <TextField label="Price" type="number" min={0} step="0.01" placeholder="0" value={item.price ?? ''} onChange={(e) => update('price', e.target.value ? Number(e.target.value) : undefined)} />
-        <TextField
-          label="Currency"
-          value={item.currency ?? trip.homeCurrency}
-          onChange={(e) => update('currency', e.target.value.toUpperCase())}
-        />
-      </FieldRow>
-
-      <TextField label="Booking reference" value={item.bookingReference ?? ''} onChange={(e) => update('bookingReference', e.target.value)} />
-      <TextAreaField label="Notes" value={item.notes ?? ''} onChange={(e) => update('notes', e.target.value)} />
 
       <div className={styles.itineraryRow}>
         <Switch
