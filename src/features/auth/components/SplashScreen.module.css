@@ -43,7 +43,7 @@
 
 .tagline {
   font-family: var(--font-display);
-  font-size: var(--fs-header-title);
+  font-size: var(--fs-display);
   font-weight: 700;
   color: var(--color-text);
   margin: 0 0 var(--space-5);

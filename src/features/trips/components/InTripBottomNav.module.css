@@ -36,7 +36,7 @@
   border: none;
   background: none;
   color: var(--color-text-muted);
-  font-size: var(--fs-stamp);
+  font-size: var(--fs-navigation);
   font-weight: 500;
   cursor: pointer;
 }

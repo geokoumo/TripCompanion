@@ -1,46 +1,56 @@
 :root {
-  /* Base surfaces — warm off-white */
-  --color-bg: #faf7f2;
+  /* Base surfaces — locked TripCompanion V1 spec palette (design foundations
+     handoff). Every hex value below is copied verbatim from that spec, not
+     approximated by eye. */
+  --color-bg: #fbf9f6;
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
+  --color-surface-accent: #eaf4f2;
   --color-border: #e6dfd3;
   --color-border-strong: #e6dfd3;
 
-  /* Text */
+  /* Text — spec distinguishes secondary body copy from truly-muted/inactive
+     text; previously both collapsed onto one "muted" token. */
   --color-text: #1c1a17;
-  --color-text-muted: #7d766c;
-  --color-text-faint: #7d766c;
+  --color-text-secondary: #706a5f;
+  --color-text-muted: #a09a8f;
+  --color-text-faint: #a09a8f;
   --color-text-on-accent: #ffffff;
 
-  /* Accents — Round 10: teal is the brand primary (buttons, active states,
-     links); rust is now only the warm decorative tone + danger/negative
-     semantic. Brass/purple/gray and the avatar/budget-category rotations
-     are untouched. */
-  --color-rust: #b4462a;
+  /* Accents — teal is the brand primary (buttons, active states, links);
+     rust is the warm decorative tone + danger/negative semantic, now tied
+     to the spec's single "error" value. Brass/purple/gray and the
+     avatar/budget-category rotations are supplementary hues the spec
+     doesn't define and are untouched. */
+  --color-rust: #b3422e;
   --color-rust-soft: #f9ece9;
   /* Text sitting directly on a -soft tint (badges, pills, inline notes) uses
      this instead of --color-rust itself — the bolder accent is too vivid to
      read comfortably as small text on its own soft background. */
-  --color-rust-on-soft: #b4462a;
+  --color-rust-on-soft: #b3422e;
   --color-brass: #9a752a;
   --color-brass-soft: #f7efdb;
-  --color-teal: #1c7a6e;
-  --color-teal-soft: #e5f2f0;
-  --color-teal-on-soft: #1c7a6e;
+  --color-teal: #26796d;
+  --color-teal-strong: #255f55;
+  --color-teal-soft: #eaf4f2;
+  /* Text/borders on a soft teal tint use the stronger accent step — the
+     spec's own "Active text & borders" role — for contrast the base accent
+     doesn't quite reach at small sizes. */
+  --color-teal-on-soft: #255f55;
   --color-purple: #6b5b95;
   --color-purple-soft: #e8e4f0;
   --color-gray: #7d766c;
   --color-gray-soft: #ece8e0;
 
-  --color-danger: #b4462a;
-  --color-success: #1c7a6e;
+  --color-danger: #b3422e;
+  --color-success: #26796d;
   /* Semantic alias, not a new hue — Trip Health and other non-destructive
      alerts read as "warning" (rust) distinctly from destructive actions
      (also rust today), so components can name the intent they mean without
      the two ever visually diverging by accident later. */
-  --color-warning: #b4462a;
+  --color-warning: #b3422e;
   --color-warning-soft: #f9ece9;
-  --color-warning-on-soft: #b4462a;
+  --color-warning-on-soft: #b3422e;
   --color-scrim: rgba(28, 26, 23, 0.42);
 
   /* Border-width scale — the 1 / 1.5 / 2px steps already in use everywhere,
@@ -55,12 +65,12 @@
   --avatar-3: #9a752a;
   --avatar-4: #6b5b95;
 
-  /* Shadows — the ONE elevation in the system (FAB + toast only) */
-  --shadow-elevated: 0 8px 22px rgba(0, 0, 0, 0.22);
-  --shadow-toast: 0 10px 30px rgba(0, 0, 0, 0.18);
+  /* Shadows — the locked spec is flat UI with no exceptions: NONE. */
+  --shadow-elevated: none;
+  --shadow-toast: none;
   --shadow-sm: none;
   --shadow-md: none;
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.18);
+  --shadow-lg: none;
 
   /* Radii — matched to the Figma spec's own scale (buttons 8 / fields 10 /
      cards 12), which reads distinctly crisper than an all-purpose ~14-17px
@@ -72,7 +82,11 @@
   --radius-sheet-top: 24px;
   --radius-pill: 999px;
 
-  /* Spacing scale */
+  /* Spacing scale — semantic slots already tuned per-component throughout
+     the app; kept as-is rather than renumbered to the spec's literal scale
+     below, since several of these don't map 1:1 onto it (e.g. --space-4 is
+     a "medium" gap at 14px, not literally 4px) and renumbering would shift
+     the visual rhythm of every screen without a design reason to. */
   --space-1: 4px;
   --space-2: 7px;
   --space-3: 12px;
@@ -80,6 +94,18 @@
   --space-5: 18px;
   --space-6: 24px;
   --space-7: 32px;
+
+  /* Literal spec scale (space2…space24) — for new component work that
+     wants a raw step rather than one of the semantic slots above. */
+  --space2: 2px;
+  --space4: 4px;
+  --space6: 6px;
+  --space8: 8px;
+  --space10: 10px;
+  --space12: 12px;
+  --space16: 16px;
+  --space20: 20px;
+  --space24: 24px;
 
   --screen-padding-x: 18px;
   --screen-padding-top: 58px;
@@ -89,23 +115,29 @@
   --font-body: 'Work Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
 
-  /* Typography — named roles per spec */
-  --fs-screen-title: 1.9375rem; /* 31px */
-  --fs-header-title: 1.4375rem; /* 23px */
-  --fs-card-title: 1.25rem; /* 20px */
-  --fs-sheet-title: 1.25rem; /* 20px */
-  --fs-airport-code: 1.5625rem; /* 25px */
-  --fs-budget-total: 2.25rem; /* 36px */
-  --fs-countdown: 2.75rem; /* 44px */
-  --fs-body: 0.9375rem; /* 15px */
-  --fs-item-title: 0.90625rem; /* 14.5px */
-  --fs-meta: 0.8125rem; /* 13px */
-  --fs-chip: 0.8125rem; /* 13px */
-  --fs-button: 0.9375rem; /* 15px */
-  --fs-field-label: 0.6875rem; /* 11px */
-  --fs-eyebrow: 0.625rem; /* 10px */
-  --fs-data: 0.875rem; /* 14px */
-  --fs-stamp: 0.59375rem; /* 9.5px */
+  /* Typography — named roles per the locked V1 spec (Display/Screen
+     Title/Section Title/Entity Title/Body/Secondary/Label/Button/
+     Navigation/Metadata/Status). Sizes below are the spec's exact values;
+     see each token's usage sites for which role it plays. */
+  --fs-display: 1.625rem; /* 26px — welcome/hero screens (Space Grotesk Bold) */
+  --fs-screen-title: 1.375rem; /* 22px — top header nav title (Space Grotesk Bold) */
+  --fs-header-title: 1.375rem; /* 22px — same role, historical second token name */
+  --fs-card-title: 0.9375rem; /* 15px — entity title (Space Grotesk Bold) */
+  --fs-sheet-title: 1.125rem; /* 18px — section title (Space Grotesk Bold) */
+  --fs-airport-code: 1.5625rem; /* 25px — domain-specific hero number, not part of the 11-role scale */
+  --fs-budget-total: 2.25rem; /* 36px — domain-specific hero number, not part of the 11-role scale */
+  --fs-countdown: 2.75rem; /* 44px — domain-specific hero number, not part of the 11-role scale */
+  --fs-body: 0.875rem; /* 14px — body (Work Sans Regular) */
+  --fs-item-title: 0.9375rem; /* 15px — entity title (Space Grotesk Bold) */
+  --fs-meta: 0.8125rem; /* 13px — secondary (Work Sans Regular) */
+  --fs-chip: 0.8125rem; /* 13px — secondary (Work Sans Regular) */
+  --fs-button: 0.875rem; /* 14px — button (Work Sans SemiBold) */
+  --fs-field-label: 0.6875rem; /* 11px — label (Work Sans SemiBold, uppercase, 0.5px tracking) */
+  --fs-eyebrow: 0.6875rem; /* 11px — label (Work Sans SemiBold, uppercase, 0.5px tracking) */
+  --fs-navigation: 0.6875rem; /* 11px — navigation (Work Sans Medium) */
+  --fs-data: 0.6875rem; /* 11px — metadata (IBM Plex Mono Regular) */
+  --fs-status: 0.625rem; /* 10px — status (IBM Plex Mono Bold) */
+  --fs-stamp: 0.59375rem; /* 9.5px — component-specific micro-label (StampToggle segments), outside the 11-role scale */
 
   /* Back-compat generic scale used by early components */
   --fs-xs: 0.75rem;
@@ -133,6 +165,11 @@
     --color-border-strong: #332d25;
 
     --color-text: #f2ede4;
+    /* Interpolated between primary and muted below at roughly the same
+       relative position the light-mode spec's secondary (#706A5F) sits
+       between its primary (#1C1A17) and muted (#A09A8F) — re-derived from
+       the corrected light tokens rather than left at the old two-tone split. */
+    --color-text-secondary: #b8ad9e;
     --color-text-muted: #9d9488;
     --color-text-faint: #9d9488;
     /* Every accent hue below is lightened for legibility on a dark surface,
@@ -149,8 +186,10 @@
     --color-brass: #d4a851;
     --color-brass-soft: #33291a;
     --color-teal: #4fb3a3;
+    --color-teal-strong: #72d3c3;
     --color-teal-soft: #1f423c;
     --color-teal-on-soft: #72d3c3;
+    --color-surface-accent: #1f423c;
     --color-purple: #a596d6;
     --color-purple-soft: #2c2740;
     --color-gray: #9d9488;
@@ -175,6 +214,7 @@
   --color-border-strong: #332d25;
 
   --color-text: #f2ede4;
+  --color-text-secondary: #b8ad9e;
   --color-text-muted: #9d9488;
   --color-text-faint: #9d9488;
   --color-text-on-accent: var(--color-bg);
@@ -185,8 +225,10 @@
   --color-brass: #d4a851;
   --color-brass-soft: #33291a;
   --color-teal: #4fb3a3;
+  --color-teal-strong: #72d3c3;
   --color-teal-soft: #1f423c;
   --color-teal-on-soft: #72d3c3;
+  --color-surface-accent: #1f423c;
   --color-purple: #a596d6;
   --color-purple-soft: #2c2740;
   --color-gray: #9d9488;
