@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { Button } from '../../../shared/components/Button';
-import { TriangleIcon } from '../../../shared/components/icons';
 import { TextField } from '../../../shared/components/Field';
 import styles from './AuthForm.module.css';
 
@@ -110,16 +109,28 @@ export function AuthForm({ initialMode = 'signIn', onBack, onContinueLocally }: 
           ‹
         </button>
       )}
-      <div className={styles.iconBadge}>
-        <TriangleIcon size={22} />
-      </div>
       <div className={styles.title}>{TITLES[mode]}</div>
       <p className={styles.subtitle}>{SUBTITLES[mode]}</p>
 
       {mode === 'signUp' && (
-        <TextField label="Name" autoComplete="name" placeholder="What should we call you?" value={name} onChange={(e) => setName(e.target.value)} />
+        <TextField
+          label="Name"
+          autoComplete="name"
+          placeholder="What should we call you?"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          disabled={submitting}
+        />
       )}
-      <TextField label="Email" type="email" autoComplete="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <TextField
+        label="Email"
+        type="email"
+        autoComplete="email"
+        placeholder="email@example.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        disabled={submitting}
+      />
       {mode !== 'forgot' && (
         <TextField
           label="Password"
@@ -129,14 +140,19 @@ export function AuthForm({ initialMode = 'signIn', onBack, onContinueLocally }: 
           onChange={(e) => setPassword(e.target.value)}
           caption={mode === 'signUp' ? `At least ${MIN_PASSWORD_LENGTH} characters.` : undefined}
           error={error}
+          disabled={submitting}
         />
       )}
       {mode === 'forgot' && error && <p className={styles.error}>{error}</p>}
       {info && <p className={styles.info}>{info}</p>}
 
       <Button type="submit" variant="primary" disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
-        {SUBMIT_LABELS[mode]}
+        {submitting ? `${SUBMIT_LABELS[mode]}…` : SUBMIT_LABELS[mode]}
       </Button>
+
+      {mode === 'forgot' && (
+        <p className={styles.caption}>We'll send a link to your inbox. If you don't see it, check your spam folder.</p>
+      )}
 
       {mode === 'signIn' && (
         <button type="button" className={styles.link} onClick={() => changeMode('forgot')}>

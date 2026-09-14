@@ -6,34 +6,39 @@ interface SplashScreenProps {
   onSignIn: () => void;
 }
 
-/**
- * First screen a signed-out visitor sees. The mockup uses a real destination
- * photo here — this project has no image asset pipeline, so the hero is a
- * decorative gradient + skyline silhouette instead of a fabricated/downloaded
- * photo, keeping the same full-bleed hero-then-tagline structure.
- */
+const PILLARS = [
+  { number: '01', title: 'Plan', body: 'Plan dates and itinerary' },
+  { number: '02', title: 'Organize', body: 'Organize bookings and budget' },
+  { number: '03', title: 'Store', body: 'Store documents and packing' },
+  { number: '04', title: 'Share', body: 'Share a read-only trip link' },
+];
+
+/** First screen a signed-out visitor sees — a plain, text-led pitch (no illustration), matching the approved warm-light V1 spec. */
 export function SplashScreen({ onGetStarted, onSignIn }: SplashScreenProps) {
   return (
     <div className={styles.screen}>
-      <div className={styles.hero}>
-        <svg className={styles.heroDecoration} viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice" fill="none">
-          <path d="M0 220 L60 150 L110 200 L170 110 L230 190 L280 140 L340 210 L400 170 L400 300 L0 300 Z" fill="#0d2521" />
-          <path d="M0 250 L80 200 L150 240 L220 180 L300 230 L400 200 L400 300 L0 300 Z" fill="#0a1c19" opacity="0.8" />
-          <circle cx="320" cy="60" r="34" fill="#f2ede4" opacity="0.9" />
-        </svg>
-        <div className={styles.wordmark}>TripCompanion</div>
+      <h1 className={styles.wordmark}>TripCompanion</h1>
+      <p className={styles.tagline}>Everything for your trip, organized in one elegant place. No clutter, just the essentials.</p>
+
+      <div className={styles.pillars}>
+        {PILLARS.map(({ number, title, body }) => (
+          <div key={number} className={styles.pillar}>
+            <span className={styles.pillarNumber}>{number}</span>
+            <div>
+              <div className={styles.pillarTitle}>{title.toUpperCase()}</div>
+              <div className={styles.pillarBody}>{body}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className={styles.content}>
-        <p className={styles.tagline}>Everything for your trip, in one place.</p>
-        <div className={styles.actions}>
-          <Button variant="primary" onClick={onGetStarted} style={{ flex: 'none', width: '100%' }}>
-            Plan a trip
-          </Button>
-          <Button variant="ghost" onClick={onSignIn} style={{ flex: 'none', width: '100%' }}>
-            I already have an account
-          </Button>
-        </div>
+      <div className={styles.actions}>
+        <Button variant="primary" onClick={onGetStarted} style={{ flex: 'none', width: '100%' }}>
+          Get started
+        </Button>
+        <Button variant="secondary" onClick={onSignIn} style={{ flex: 'none', width: '100%' }}>
+          Sign in
+        </Button>
       </div>
     </div>
   );

@@ -36,19 +36,28 @@ export function ResetPasswordScreen() {
         void submit();
       }}
     >
-      <h1 className={styles.title}>New password</h1>
-      <p className={styles.subtitle}>Set a new password for your account.</p>
+      <h1 className={styles.title}>Choose new password</h1>
+      <p className={styles.subtitle}>Create a secure, private password.</p>
       {error && <div className={styles.error}>{error}</div>}
-      <TextField label="New password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <TextField
+        label="New password"
+        type="password"
+        autoComplete="new-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        disabled={submitting}
+      />
       <TextField
         label="Confirm password"
         type="password"
         autoComplete="new-password"
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
+        disabled={submitting}
       />
+      <p className={styles.caption}>Password requirements: at least 8 characters long.</p>
       <Button type="submit" variant="primary" disabled={submitting} style={{ flex: 'none', width: '100%', marginTop: 8 }}>
-        Save password
+        {submitting ? 'Saving…' : 'Save new password'}
       </Button>
     </form>
   );
