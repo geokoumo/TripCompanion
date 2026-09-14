@@ -1,6 +1,7 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { supabase } from '../../data/supabase/client';
+import { getSiteUrl } from '../../shared/lib/siteUrl';
 import { useToast } from './ToastProvider';
 
 interface AuthContextValue {
@@ -90,7 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: name?.trim() ? { data: { name: name.trim() } } : undefined,
+      options: {
+        // Without this, Supabase falls back to whatever "Site URL" is set in
+        // the dashboard for the confirmation link — which is how a
+        // production signup email ends up pointing at localhost.
+        emailRedirectTo: `${getSiteUrl()}${window.location.pathname}`,
+        ...(name?.trim() ? { data: { name: name.trim() } } : {}),
+      },
     });
     return error ? authErrorMessage(error.message) : null;
   };
@@ -111,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (email: string) => {
     if (!supabase) return 'Account sign-in is not configured.';
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}${window.location.pathname}`,
+      redirectTo: `${getSiteUrl()}${window.location.pathname}`,
     });
     return error ? authErrorMessage(error.message) : null;
   };
