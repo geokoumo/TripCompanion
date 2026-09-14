@@ -1,4 +1,3 @@
-import { LockIcon } from '../../../shared/components/icons';
 import { describeCard } from '../../../shared/lib/accessibleLabel';
 import type { AutoPulledEntry } from '../types';
 import styles from './AutoPulledEntryCard.module.css';
@@ -14,17 +13,14 @@ interface AutoPulledEntryCardProps {
 /**
  * A flight/stay projected onto the itinerary timeline — always a read-only
  * checkpoint, never an editable itinerary item in its own right. Visually
- * distinct from a manually-planned StopCard (teal outline + "AUTO ·
+ * distinct from a manually-planned StopCard (teal outline + "FROM YOUR
  * BOOKING" eyebrow) so the timeline reads at a glance which entries are
  * sourced elsewhere versus planned directly.
  */
 export function AutoPulledEntryCard({ entry, meta, onOpen }: AutoPulledEntryCardProps) {
   const content = (
     <>
-      <div className={styles.eyebrow}>
-        <LockIcon size={13} />
-        AUTO · BOOKING
-      </div>
+      <div className={styles.eyebrow}>FROM YOUR BOOKING</div>
       <div className={styles.title}>{entry.title}</div>
       <div className={styles.metaRow}>
         <span>{entry.time}</span>

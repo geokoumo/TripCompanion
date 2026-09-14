@@ -1,4 +1,4 @@
-import { formatDateShort, nowTimeStr, todayStr } from '../../../shared/lib/dateFormat';
+import { formatDateLong, nowTimeStr, todayStr } from '../../../shared/lib/dateFormat';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { autoPulledEntryMeta } from '../lib/autoPulledEntries';
 import { computeToday, type TodayItem } from '../lib/computeToday';
@@ -56,17 +56,12 @@ export function TodayView({ trip, onOpenStop, onOpenAutoPulledEntry }: TodayView
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.dateLabel}>{formatDateLong(today)}</div>
       {currentLeg && (
-        <div className={styles.legBanner}>
-          <span className={styles.legEyebrow}>Current leg</span>
-          <span className={styles.legName}>
-            <span className={styles.legPill}>{currentLeg.city.toUpperCase() || 'TRIP'}</span>
-            {currentLeg.city}
-            {currentLeg.country && `, ${currentLeg.country}`}
-          </span>
-        </div>
+        <h1 className={styles.legHeading}>
+          {currentLeg.city ? `${currentLeg.city} Leg` : 'Trip'}
+        </h1>
       )}
-      <div className={styles.dateLabel}>{formatDateShort(today)}</div>
 
       {isEmpty && <EmptyState headline="Nothing today" body="Add a stop from the Plan tab and it'll show up here." />}
 

@@ -19,10 +19,10 @@ button.card {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
+  font-family: var(--font-body);
+  font-size: var(--fs-field-label);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--color-teal-on-soft);
 }

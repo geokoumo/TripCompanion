@@ -20,7 +20,7 @@ function StopCardComponent({ stop, travelers, onOpen }: StopCardProps) {
   return (
     <Card flat onClick={() => onOpen(stop)} aria-label={describeCard(`Open ${stop.title}`, stop.allDay ? 'all day' : stop.time)}>
       <div className={styles.eyebrow}>
-        {stop.allDay ? 'All day' : stop.time} · {type?.label ?? stop.type}
+        Your plan · {stop.allDay ? 'All day' : stop.time} · {type?.label ?? stop.type}
       </div>
       <div className={styles.title}>{stop.title}</div>
       <div className={styles.meta}>

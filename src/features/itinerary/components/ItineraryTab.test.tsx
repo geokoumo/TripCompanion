@@ -270,10 +270,10 @@ describe('ItineraryTab — selected day survives navigating away and back', () =
 });
 
 describe('ItineraryTab — auto-pulled entries stay read-only projections', () => {
-  it('restyles an auto-pulled entry with an AUTO · BOOKING label and its confirmation number, when the source has one', () => {
+  it('restyles an auto-pulled entry with a FROM YOUR BOOKING label and its confirmation number, when the source has one', () => {
     // A single flight contributes both a departure and an arrival checkpoint.
     renderTab(makeTrip({ flights: [makeFlight({ bookingRef: 'AB-9' })] }));
-    expect(screen.getAllByText('AUTO · BOOKING')).toHaveLength(2);
+    expect(screen.getAllByText('FROM YOUR BOOKING')).toHaveLength(2);
     expect(screen.getAllByText('Confirmation #AB-9')).toHaveLength(2);
   });
 

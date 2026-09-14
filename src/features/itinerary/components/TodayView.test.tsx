@@ -29,12 +29,10 @@ describe('TodayView — current leg banner', () => {
         onOpenAutoPulledEntry={vi.fn()}
       />,
     );
-    expect(screen.getByText('Current leg')).toBeInTheDocument();
-    expect(screen.getByText('KYOTO')).toBeInTheDocument();
-    expect(screen.getByText(/Kyoto, Japan/)).toBeInTheDocument();
+    expect(screen.getByText('Kyoto Leg')).toBeInTheDocument();
   });
 
-  it('shows no banner when today falls outside every leg — never guesses a default', () => {
+  it('shows no leg heading when today falls outside every leg — never guesses a default', () => {
     render(
       <TodayView
         trip={makeTrip({ legs: [{ id: 'l1', city: 'Kyoto', country: 'Japan', startDate: '2020-01-01', endDate: '2020-01-05', currency: 'EUR' }] })}
@@ -42,11 +40,11 @@ describe('TodayView — current leg banner', () => {
         onOpenAutoPulledEntry={vi.fn()}
       />,
     );
-    expect(screen.queryByText('Current leg')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Leg$/)).not.toBeInTheDocument();
   });
 
-  it('shows no banner when the trip has no legs at all', () => {
+  it('shows no leg heading when the trip has no legs at all', () => {
     render(<TodayView trip={makeTrip()} onOpenStop={vi.fn()} onOpenAutoPulledEntry={vi.fn()} />);
-    expect(screen.queryByText('Current leg')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Leg$/)).not.toBeInTheDocument();
   });
 });

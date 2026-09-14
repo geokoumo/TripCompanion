@@ -2,45 +2,21 @@
   padding-top: 8px;
 }
 
-.legBanner {
-  margin-bottom: var(--space-3);
-}
-
-.legEyebrow {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: var(--fs-eyebrow);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-faint);
-  margin-bottom: 4px;
-}
-
-.legName {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-item-title);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.legPill {
-  font-family: var(--font-mono);
-  font-size: var(--fs-stamp);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--color-teal-on-soft);
-  background: var(--color-teal-soft);
-  border-radius: var(--radius-pill);
-  padding: 3px 8px;
-}
-
 .dateLabel {
-  font-weight: 600;
-  font-size: var(--fs-item-title);
+  font-family: var(--font-mono);
+  font-size: var(--fs-data);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-teal);
+  margin-bottom: var(--space-2);
+}
+
+.legHeading {
+  font-family: var(--font-display);
+  font-size: var(--fs-screen-title);
+  font-weight: 700;
   color: var(--color-text);
-  margin-bottom: var(--space-4);
+  margin: 0 0 var(--space-4);
 }
 
 .section {
