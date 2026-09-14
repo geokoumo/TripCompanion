@@ -8,7 +8,7 @@ import { StampBadge } from '../../../shared/components/StampBadge';
 import { TicketIcon } from '../../../shared/components/icons';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { describeCard } from '../../../shared/lib/accessibleLabel';
-import { formatDateNoYear, formatDateShort } from '../../../shared/lib/dateFormat';
+import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { upsertBookingItem } from '../../../data/repository/bookingRepository';
 import { flightRelatedTo, stayRelatedTo, bookingItemRelatedTo } from '../../documents/lib/relatedTo';
 import { FlightDetailView } from '../../flights/components/FlightDetailView';
@@ -74,7 +74,7 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
       sortKey: `${f.depDate}${f.depTime}`,
       title: `${f.airline} ${f.flightNumber}`,
       typeLabel: 'Flight',
-      dateLabel: `${formatDateShort(f.depDate)} · ${f.depTime}`,
+      dateLabel: `${formatDateNoYear(f.depDate)} · ${f.depAirport} → ${f.arrAirport}`,
       statusPill: {
         label: FLIGHT_STATUSES.find((s) => s.id === f.status)?.label ?? f.status,
         tone: FLIGHT_STATUS_TONE[f.status] ?? 'gray',
@@ -104,7 +104,7 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
         sortKey: `${b.date ?? '9999-99-99'}${b.startTime ?? '99:99'}`,
         title: b.name,
         typeLabel: config?.singular ?? b.type,
-        dateLabel: b.date ? `${formatDateShort(b.date)}${b.startTime ? ` · ${b.startTime}` : ''}` : null,
+        dateLabel: b.date ? `${formatDateNoYear(b.date)}${b.startTime ? ` · ${b.startTime}` : ''}` : null,
         statusPill: null,
         // BookingItem has no status field — never inventing one (Figma's
         // "Ticket Ready"/"Booked"/"Planned" labels have no backing data).
