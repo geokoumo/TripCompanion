@@ -3,7 +3,7 @@ import { Button } from '../../../shared/components/Button';
 import { ChipSelect } from '../../../shared/components/ChipSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { DateTimeField } from '../../../shared/components/DateTimeField';
-import { FieldRow, FieldWrapper, TextAreaField, TextField } from '../../../shared/components/Field';
+import { FieldRow, FieldWrapper, MoreToggle, TextAreaField, TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { PresetChips } from '../../../shared/components/PresetChips';
 import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
@@ -42,6 +42,9 @@ const DURATION_PRESETS = ['30′', '60′', '90′', '120′', '180′'];
 export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete }: StopFormProps) {
   const [stop, setStop] = useState<ItineraryStop>(initial ?? emptyStop(defaultDate));
   const [formError, setFormError] = useState<string | null>(null);
+  const [showMore, setShowMore] = useState(
+    Boolean(initial?.price != null || initial?.travelerIds.length || initial?.link || initial?.note),
+  );
   const { saving, run } = useSavingGuard();
   const range = tripActivityRange(trip);
   const locationSuggestions = useMemo(() => recentStopLocations(trip.itineraryStops), [trip.itineraryStops]);
@@ -155,36 +158,41 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
       {locationSuggestions.length > 0 && <PresetChips presets={locationSuggestions} onSelect={(v) => update('location', v)} hideInput />}
       <TextField label="Location" value={stop.location ?? ''} onChange={(e) => update('location', e.target.value)} />
 
-      <FieldRow>
-        <TextField
-          label="Price (optional)"
-          type="number"
-          min={0}
-          step="0.01"
-          placeholder="0"
-          value={stop.price ?? ''}
-          onChange={(e) => update('price', e.target.value ? Number(e.target.value) : undefined)}
-        />
-        <TextField
-          label="Currency"
-          value={stop.currency ?? (stop.price != null ? trip.homeCurrency : '')}
-          onChange={(e) => update('currency', e.target.value.toUpperCase() || undefined)}
-        />
-      </FieldRow>
+      <MoreToggle open={showMore} onToggle={() => setShowMore((v) => !v)} />
+      {showMore && (
+        <>
+          <FieldRow>
+            <TextField
+              label="Price (optional)"
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder="0"
+              value={stop.price ?? ''}
+              onChange={(e) => update('price', e.target.value ? Number(e.target.value) : undefined)}
+            />
+            <TextField
+              label="Currency"
+              value={stop.currency ?? (stop.price != null ? trip.homeCurrency : '')}
+              onChange={(e) => update('currency', e.target.value.toUpperCase() || undefined)}
+            />
+          </FieldRow>
 
-      {trip.travelers.length > 0 && (
-        <FieldWrapper label="Travellers (blank = everyone)">
-          <ChipSelect
-            options={trip.travelers.map((t) => ({ id: t.id, label: t.name }))}
-            value={stop.travelerIds}
-            onChange={toggleTraveler}
-            multi
-          />
-        </FieldWrapper>
+          {trip.travelers.length > 0 && (
+            <FieldWrapper label="Travellers (blank = everyone)">
+              <ChipSelect
+                options={trip.travelers.map((t) => ({ id: t.id, label: t.name }))}
+                value={stop.travelerIds}
+                onChange={toggleTraveler}
+                multi
+              />
+            </FieldWrapper>
+          )}
+
+          <TextField label="Link" value={stop.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
+          <TextAreaField label="Note" value={stop.note ?? ''} onChange={(e) => update('note', e.target.value)} />
+        </>
       )}
-
-      <TextField label="Link" value={stop.link ?? ''} onChange={(e) => update('link', e.target.value)} placeholder="https://…" />
-      <TextAreaField label="Note" value={stop.note ?? ''} onChange={(e) => update('note', e.target.value)} />
 
       {stop.allDay && formError && <div className={styles.allDayError}>{formError}</div>}
     </Modal>

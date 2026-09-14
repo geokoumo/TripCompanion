@@ -1,25 +1,63 @@
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-  padding-bottom: var(--space-4);
+.group {
+  margin-bottom: var(--space-5);
 }
 
-.tile {
+.group:last-child {
+  margin-bottom: var(--space-3);
+}
+
+.groupLabel {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-field-label);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.row {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  width: 100%;
+  padding: var(--space-3) 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  background: none;
   cursor: pointer;
   text-align: left;
+  color: var(--color-text);
 }
 
-.label {
-  font-weight: 600;
+.group > .row:first-of-type {
+  border-top: none;
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rowTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: var(--fs-item-title);
   color: var(--color-text);
+}
+
+.rowDescription {
+  font-size: var(--fs-meta);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.addLabel {
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-button);
+  color: var(--color-teal);
 }
