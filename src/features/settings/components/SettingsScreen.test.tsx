@@ -137,6 +137,31 @@ describe('SettingsScreen — auth modal state', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it('supports signing out and back in again in the same session — the close-on-sign-in effect is not a one-shot', async () => {
+    // Guards against a subtly wrong fix that only reacts to the *first*
+    // null->truthy transition (e.g. a ref that never resets, or a "have we
+    // ever closed" flag) — signing in a second time after signing out must
+    // close Settings again, not silently leave it open on the menu.
+    mockAuth.user = REAL_USER;
+    mockAuth.signOut.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    const { rerender } = render(<SettingsScreen onClose={onClose} />);
+
+    await user.click(screen.getByRole('button', { name: 'Log out' }));
+    mockAuth.user = null;
+    rerender(<SettingsScreen onClose={onClose} />);
+    expect(onClose).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+
+    signInSuccessfully();
+    rerender(<SettingsScreen onClose={onClose} />);
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('resolves the sign-in transition synchronously — no setTimeout involved', async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
