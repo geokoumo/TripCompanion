@@ -5,8 +5,19 @@ import { CalendarDatePicker } from './CalendarDatePicker';
 
 describe('CalendarDatePicker', () => {
   it('labels a day with its full date so a screen reader announces more than a bare number', () => {
-    render(<CalendarDatePicker value="2026-09-15" onChange={() => {}} />);
-    expect(screen.getByRole('button', { name: 'September 15, 2026, selected' })).toBeInTheDocument();
+    // The component computes "today" from the real clock with no way to
+    // inject a fixed one, so a hardcoded fixture date will eventually BE
+    // "today" and gain an extra label segment — pick one 10 years out
+    // instead of a fixed calendar date, so this can't flake from clock
+    // drift the way a fixed "2026-09-15" did once the sandbox's clock
+    // actually reached that date.
+    const farFuture = new Date();
+    farFuture.setFullYear(farFuture.getFullYear() + 10);
+    const iso = farFuture.toISOString().slice(0, 10);
+    const [, , day] = iso.split('-').map(Number);
+    const monthName = farFuture.toLocaleString('en-US', { month: 'long' });
+    render(<CalendarDatePicker value={iso} onChange={() => {}} />);
+    expect(screen.getByRole('button', { name: `${monthName} ${day}, ${farFuture.getFullYear()}, selected` })).toBeInTheDocument();
   });
 
   it('marks today with aria-current="date"', () => {

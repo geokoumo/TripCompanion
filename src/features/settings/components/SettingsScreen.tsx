@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { AuthForm } from '../../auth/components/AuthForm';
@@ -65,6 +65,25 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
     }
     void getOwnProfile().then((profile) => setProfileName(profile?.displayName ?? null));
   }, [user]);
+
+  // AuthForm has no idea it's being hosted inside Settings — by design, it
+  // just calls signIn()/signUp() and trusts whoever is showing it to react
+  // once `user` actually changes (see AuthForm.tsx's own comment on this).
+  // Without this, a guest who signs in from Settings' own "Sign in" row
+  // stays stuck looking at the now-pointless auth form forever: `view` never
+  // moves off 'signIn'/'signUp' on its own, so the sheet neither closes nor
+  // returns to the menu. The fix is to close Settings entirely rather than
+  // fall back to the menu — the user asked to sign in, not to browse
+  // Settings, so a successful sign-in should land them back on Home like
+  // the primary onboarding flow already does.
+  const prevUserRef = useRef(user);
+  useEffect(() => {
+    const justSignedIn = !prevUserRef.current && !!user;
+    prevUserRef.current = user;
+    if (justSignedIn && (view === 'signIn' || view === 'signUp')) {
+      onClose();
+    }
+  }, [user, view, onClose]);
 
   const toggleNotif = (key: NotificationPrefKey, value: boolean) => {
     setNotificationPref(key, value);
