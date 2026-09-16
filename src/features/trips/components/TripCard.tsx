@@ -4,6 +4,7 @@ import { StampBadge } from '../../../shared/components/StampBadge';
 import { describeCard } from '../../../shared/lib/accessibleLabel';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { destinationLabel, statusStampLabel } from '../lib/summary';
+import { useCoverPhotoUrl } from '../lib/useCoverPhotoUrl';
 import { getTripStatus, type TripListItem } from '../types';
 import styles from './TripCard.module.css';
 
@@ -14,6 +15,7 @@ interface TripCardProps {
 }
 
 export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
+  const photoUrl = useCoverPhotoUrl(trip.coverPhotoPath);
   const range = trip.startDate && trip.endDate ? { startDate: trip.startDate, endDate: trip.endDate } : null;
   const status = trip.archived ? 'completed' : getTripStatus(range);
   const pillTone = trip.archived ? 'gray' : status === 'ongoing' || status === 'today' ? 'teal' : status === 'completed' ? 'gray' : 'rust';
@@ -24,9 +26,70 @@ export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
   const dest = destinationLabel(trip.cities);
   const subtitle = range ? `${formatDateShort(range.startDate)} – ${formatDateShort(range.endDate)}${dest ? ` · ${dest}` : ''}` : dest;
   const statusLabel = statusStampLabel({ archived: trip.archived, range });
+  const ariaLabel = describeCard(`Open ${trip.title}`, statusLabel);
+
+  const menuButton = (
+    <button
+      type="button"
+      className={styles.menuButton}
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpenMenu();
+      }}
+      aria-label="More"
+    >
+      ···
+    </button>
+  );
+
+  // Trips with a real cover photo get the editorial photo treatment; those
+  // without one keep the original flat layout rather than showing a
+  // fabricated or placeholder photo. A real <button> can't contain the
+  // menu's own nested button, so this follows Card's nestedInteractive
+  // pattern: a role="button" div as the outer interactive element.
+  if (photoUrl) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        className={styles.photoCard}
+        onClick={onOpen}
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onOpen();
+          }
+        }}
+        aria-label={ariaLabel}
+        style={{ backgroundImage: `url(${photoUrl})` }}
+      >
+        <div className={styles.photoOverlay} />
+        <div className={styles.photoTopRow}>
+          <StampBadge tone={pillTone}>{statusLabel}</StampBadge>
+          <button
+            type="button"
+            className={styles.photoMenuButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenMenu();
+            }}
+            aria-label="More"
+          >
+            ···
+          </button>
+        </div>
+        <div className={styles.photoContent}>
+          <span className={styles.photoTitle}>{trip.title}</span>
+          {subtitle && <div className={styles.photoSubtitle}>{subtitle}</div>}
+          <AvatarRow travelers={trip.travelers} />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Card accent={borderTone} onClick={onOpen} nestedInteractive aria-label={describeCard(`Open ${trip.title}`, statusLabel)}>
+    <Card accent={borderTone} onClick={onOpen} nestedInteractive aria-label={ariaLabel}>
       <div className={styles.topRow}>
         <span className={styles.title}>{trip.title}</span>
         <StampBadge tone={pillTone}>{statusLabel}</StampBadge>
@@ -34,17 +97,7 @@ export function TripCard({ trip, onOpen, onOpenMenu }: TripCardProps) {
       {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
       <div className={styles.footerRow}>
         <AvatarRow travelers={trip.travelers} />
-        <button
-          type="button"
-          className={styles.menuButton}
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenMenu();
-          }}
-          aria-label="More"
-        >
-          ···
-        </button>
+        {menuButton}
       </div>
     </Card>
   );

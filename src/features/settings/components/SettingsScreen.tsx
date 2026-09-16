@@ -212,7 +212,7 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
         </>
       )}
 
-      <div className={styles.sectionHeader}>Preferences</div>
+      <div className={styles.sectionHeader}>Preferences &amp; Accessibility</div>
       <div className={styles.group}>
         <div className={styles.row} style={{ cursor: 'default' }}>
           Home Currency
@@ -236,6 +236,10 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
           Appearance
           <span className={styles.rowValue}>Follows system ({appearance})</span>
         </div>
+        <div className={styles.row} style={{ cursor: 'default' }}>
+          Motion
+          <span className={styles.rowValue}>Reduced when your device requests it</span>
+        </div>
       </div>
 
       <div className={styles.sectionHeader}>Notifications</div>
@@ -253,7 +257,7 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
 
       {user && (
         <>
-          <div className={styles.sectionHeader}>Storage</div>
+          <div className={styles.sectionHeader}>Data Ownership</div>
           <div className={styles.storageBox}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
               <span style={{ color: 'var(--color-text-muted)' }}>Used space</span>
@@ -266,10 +270,15 @@ export function SettingsScreen({ onClose }: SettingsScreenProps) {
               />
             </div>
           </div>
+          <p style={{ color: 'var(--color-text-faint)', fontSize: 12, marginTop: 6, marginBottom: 0 }}>
+            Export any trip as a file from its own menu (Trip → ⋯ → Export).
+          </p>
         </>
       )}
 
-      <div className={styles.sectionHeader} style={{ marginTop: 24 }} />
+      <div className={styles.sectionHeader} style={{ marginTop: 24 }}>
+        Sharing, Privacy &amp; Terms
+      </div>
       <div className={styles.staticRows}>
         <button type="button" className={styles.row} onClick={() => setView('help')}>
           Help & Support <span className={styles.rowValue}>›</span>

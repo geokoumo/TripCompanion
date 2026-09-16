@@ -37,3 +37,74 @@
   justify-content: space-between;
   margin-top: var(--space-3);
 }
+
+/* Editorial cover-photo variant — used only when the trip has a real uploaded cover photo. */
+.photoCard {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: none;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+  text-align: left;
+}
+
+.photoOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0) 68%);
+}
+
+.photoTopRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.photoMenuButton {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text-on-image);
+  font-size: var(--fs-md);
+  cursor: pointer;
+}
+
+.photoContent {
+  position: absolute;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-3);
+}
+
+.photoTitle {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--fs-card-title);
+  font-weight: 600;
+  color: var(--text-on-image);
+}
+
+.photoSubtitle {
+  font-family: var(--font-mono);
+  font-size: 0.71875rem; /* 11.5px */
+  color: var(--text-on-image);
+  opacity: 0.9;
+  margin-top: 2px;
+  margin-bottom: var(--space-2);
+}
