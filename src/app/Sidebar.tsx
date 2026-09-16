@@ -1,44 +1,55 @@
 import { useAuth } from './providers/AuthProvider';
-import { GearIcon, HomeIcon, SearchIcon } from '../shared/components/icons';
-import { IN_TRIP_NAV_ITEMS, isInTripNavActive } from '../features/trips/components/InTripBottomNav';
-import type { TripTab } from '../features/trips/types';
-import type { TopLevelTab } from '../shared/lib/useHashRoute';
+import { useTripsContext } from './providers/TripsProvider';
+import { GearIcon, HomeIcon, ListIcon, SearchIcon, SuitcaseIcon, TicketIcon } from '../shared/components/icons';
+import { getActiveOrNextTrip } from '../features/trips/lib/activeTrip';
+import type { Route, TopLevelTab } from '../shared/lib/useHashRoute';
 import styles from './Sidebar.module.css';
-
-interface SidebarTripContext {
-  activeTab: TripTab;
-  onTabChange: (tab: TripTab) => void;
-}
 
 interface SidebarProps {
   active: TopLevelTab;
-  onNavigate: (tab: TopLevelTab) => void;
+  onNavigate: (route: Route) => void;
   onCreateTrip: () => void;
-  settingsActive: boolean;
-  onSettingsTap: () => void;
-  /** Present only while route.name === 'trip' — adds the same 5 in-trip destinations InTripBottomNav shows on mobile, so desktop never loses that navigation, just relocates it. */
-  trip?: SidebarTripContext | null;
+  onOpenSettings: () => void;
 }
 
 /**
- * Desktop-only left navigation (see the @media min-width: 1024px rules in
- * BottomNav.module.css / InTripBottomNav.module.css that hide their mobile
- * bar counterparts at this width). Deliberately mirrors the *existing*
- * global routes — Home / Search / Settings — rather than the standalone
- * "Trips"/"Itinerary" items sometimes sketched in wide-screen mockups: this
- * app has no global "current trip" concept outside of actually being on a
- * trip's own route, so a trip's sections only ever appear here once you're
- * on that trip (mirroring InTripBottomNav below).
+ * Desktop-only left navigation (see the @media min-width: 1024px rule in
+ * BottomNav.module.css that hides the mobile bar at this width). Approved
+ * Design 2.0 desktop nav: Home / Trips / Itinerary / Organizer. Itinerary
+ * and Organizer have no trip of their own outside an actual trip route, so
+ * both jump into whichever trip is active right now or soonest upcoming
+ * (falling back to Trips if there's none) — the same resolution BottomNav's
+ * mobile "Itinerary" button uses. "Organizer" isn't a new merged screen:
+ * it's the existing Bookings tab, which already unifies flights/stays/
+ * booking items and documents behind one switcher (BookingsTab.tsx) — a
+ * new screen wasn't needed to make that destination real. Search and
+ * Settings remain reachable (search icon, profile row) but aren't primary
+ * items, per the approved nav.
  */
-export function Sidebar({ active, onNavigate, onCreateTrip, settingsActive, onSettingsTap, trip }: SidebarProps) {
+export function Sidebar({ active, onNavigate, onCreateTrip, onOpenSettings }: SidebarProps) {
   const { user, enabled } = useAuth();
+  const { trips } = useTripsContext();
+  // Settings has real content in every one of these states (account rows
+  // when signed out but accounts are configured, preferences/help always) —
+  // so the footer must always offer a way in, not just when there's an
+  // identity to display next to it.
   const identity = user?.email ?? (enabled ? null : 'This device');
+
+  const goToActiveTrip = (tab: 'itinerary' | 'flights') => {
+    const trip = getActiveOrNextTrip(trips);
+    onNavigate(trip ? { name: 'trip', tripId: trip.id, tab } : { name: 'trips' });
+  };
 
   return (
     <nav className={styles.sidebar} aria-label="Primary">
-      <div className={styles.brand}>
-        <span className={styles.mark}>T</span>
-        TripCompanion
+      <div className={styles.brandRow}>
+        <div className={styles.brand}>
+          <span className={styles.mark}>T</span>
+          TripCompanion
+        </div>
+        <button type="button" className={styles.iconButton} onClick={() => onNavigate({ name: 'search' })} aria-label="Search">
+          <SearchIcon size={16} />
+        </button>
       </div>
 
       <button type="button" className={styles.newTrip} onClick={onCreateTrip}>
@@ -46,46 +57,35 @@ export function Sidebar({ active, onNavigate, onCreateTrip, settingsActive, onSe
       </button>
 
       <div className={styles.section}>
-        <button type="button" className={styles.item} data-active={active === 'home' && !trip} onClick={() => onNavigate('home')}>
+        <button type="button" className={styles.item} data-active={active === 'home'} onClick={() => onNavigate({ name: 'home' })}>
           <HomeIcon size={18} />
           Home
         </button>
-        <button type="button" className={styles.item} data-active={active === 'search'} onClick={() => onNavigate('search')}>
-          <SearchIcon size={18} />
-          Search
+        <button type="button" className={styles.item} data-active={active === 'trips'} onClick={() => onNavigate({ name: 'trips' })}>
+          <SuitcaseIcon size={18} />
+          Trips
         </button>
-        <button type="button" className={styles.item} data-active={settingsActive} onClick={onSettingsTap}>
-          <GearIcon size={18} />
-          Settings
+        <button type="button" className={styles.item} onClick={() => goToActiveTrip('itinerary')}>
+          <ListIcon size={18} />
+          Itinerary
+        </button>
+        <button type="button" className={styles.item} onClick={() => goToActiveTrip('flights')}>
+          <TicketIcon size={18} />
+          Organizer
         </button>
       </div>
 
-      {trip && (
-        <>
-          <div className={styles.sectionLabel}>This trip</div>
-          <div className={styles.section}>
-            {IN_TRIP_NAV_ITEMS.map(({ key, label, Icon, navigateTab }) => (
-              <button
-                key={key}
-                type="button"
-                className={styles.item}
-                data-active={isInTripNavActive(key, trip.activeTab)}
-                onClick={() => trip.onTabChange(navigateTab)}
-              >
-                <Icon size={18} />
-                {label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-
-      {identity && (
-        <div className={styles.footer}>
-          <span className={styles.footerAvatar}>{identity.charAt(0).toUpperCase()}</span>
-          <span className={styles.footerLabel}>{identity}</span>
-        </div>
-      )}
+      <button type="button" className={styles.footer} onClick={onOpenSettings}>
+        {identity ? (
+          <>
+            <span className={styles.footerAvatar}>{identity.charAt(0).toUpperCase()}</span>
+            <span className={styles.footerLabel}>{identity}</span>
+          </>
+        ) : (
+          <span className={styles.footerLabel}>Settings</span>
+        )}
+        <GearIcon size={16} />
+      </button>
     </nav>
   );
 }

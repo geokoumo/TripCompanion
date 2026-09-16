@@ -24,3 +24,20 @@
   color: var(--color-text-muted);
   font-size: var(--fs-meta);
 }
+
+.action {
+  margin-top: var(--space-4);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-teal);
+  color: var(--color-text-on-accent);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-button);
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: var(--color-teal-strong);
+}

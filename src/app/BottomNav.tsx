@@ -1,35 +1,52 @@
-import { GearIcon, HomeIcon, SearchIcon } from '../shared/components/icons';
-import type { TopLevelTab } from '../shared/lib/useHashRoute';
+import { DotsCircleIcon, HomeIcon, ListIcon, SuitcaseIcon } from '../shared/components/icons';
+import { getActiveOrNextTrip } from '../features/trips/lib/activeTrip';
+import { useTripsContext } from './providers/TripsProvider';
+import type { Route, TopLevelTab } from '../shared/lib/useHashRoute';
 import styles from './BottomNav.module.css';
 
 interface BottomNavProps {
   active: TopLevelTab;
-  onNavigate: (tab: TopLevelTab) => void;
+  onNavigate: (route: Route) => void;
   onCreateTrip: () => void;
-  /** Settings is a full-screen overlay, not a routed screen — highlighted while it's open. */
-  settingsActive: boolean;
-  onSettingsTap: () => void;
 }
 
-/** App-shell-level primary navigation — unrelated to the in-trip tab bar (Overview/Flights/…). */
-export function BottomNav({ active, onNavigate, onCreateTrip, settingsActive, onSettingsTap }: BottomNavProps) {
+/**
+ * App-shell-level primary navigation: Home / Trips / Add / Itinerary / More
+ * (the approved Design 2.0 mobile nav) — unrelated to the in-trip tab bar
+ * (Overview/Itinerary/Bookings/…) InTripBottomNav renders once you're
+ * actually on a trip. "Itinerary" here has no trip of its own to show
+ * outside that context, so it jumps into whichever trip is active right
+ * now or soonest upcoming, the same resolution Sidebar's desktop nav uses.
+ */
+export function BottomNav({ active, onNavigate, onCreateTrip }: BottomNavProps) {
+  const { trips } = useTripsContext();
+
+  const openItinerary = () => {
+    const trip = getActiveOrNextTrip(trips);
+    onNavigate(trip ? { name: 'trip', tripId: trip.id, tab: 'itinerary' } : { name: 'trips' });
+  };
+
   return (
     <nav className={styles.bar}>
       <div className={styles.inner}>
-        <button type="button" className={styles.item} data-active={active === 'home'} onClick={() => onNavigate('home')}>
+        <button type="button" className={styles.item} data-active={active === 'home'} onClick={() => onNavigate({ name: 'home' })}>
           <HomeIcon size={20} />
           Home
         </button>
-        <button type="button" className={styles.item} data-active={active === 'search'} onClick={() => onNavigate('search')}>
-          <SearchIcon size={20} />
-          Search
+        <button type="button" className={styles.item} data-active={active === 'trips'} onClick={() => onNavigate({ name: 'trips' })}>
+          <SuitcaseIcon size={20} />
+          Trips
         </button>
         <button type="button" className={styles.createButton} onClick={onCreateTrip} aria-label="New trip">
           +
         </button>
-        <button type="button" className={styles.item} data-active={settingsActive} onClick={onSettingsTap}>
-          <GearIcon size={20} />
-          Settings
+        <button type="button" className={styles.item} onClick={openItinerary}>
+          <ListIcon size={20} />
+          Itinerary
+        </button>
+        <button type="button" className={styles.item} data-active={active === 'more' || active === 'search'} onClick={() => onNavigate({ name: 'more' })}>
+          <DotsCircleIcon size={20} />
+          More
         </button>
       </div>
     </nav>

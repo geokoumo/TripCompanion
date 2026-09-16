@@ -93,6 +93,17 @@ export function HomeIcon(props: IconProps) {
   );
 }
 
+/** Global "Trips" nav destination — a suitcase. */
+export function SuitcaseIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="3" y="7.5" width="18" height="12" rx="2.5" />
+      <path d="M9 7.5V5.5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+      <path d="M3 13h18" />
+    </svg>
+  );
+}
+
 /** Onboarding pillars' "Plan" row — a location pin. */
 export function PinIcon(props: IconProps) {
   return (

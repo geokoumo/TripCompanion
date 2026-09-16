@@ -64,7 +64,7 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
   };
 
   return (
-    <div style={{ paddingBottom: 'var(--bottom-nav-clearance)' }}>
+    <div style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
       {showTripHealth ? (
         <TripHealthScreen
           trip={trip}

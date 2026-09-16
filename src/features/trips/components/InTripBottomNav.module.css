@@ -12,6 +12,16 @@
   z-index: 40;
 }
 
+/* Unlike BottomNav (hidden entirely at this width), this bar stays visible
+   inside a trip at desktop too — "trip-specific navigation should remain
+   available inside the trip" — so it needs to clear Sidebar's fixed left
+   column instead of running full-bleed underneath it. */
+@media (min-width: 1024px) {
+  .bar {
+    left: var(--sidebar-width);
+  }
+}
+
 /* Same reasoning as app/BottomNav.module.css's .inner: keep the bar's
    background full-bleed, but group the 5 items within the same 640px
    column the trip content above uses instead of spreading them
@@ -43,13 +53,4 @@
 
 .item[data-active='true'] {
   color: var(--color-teal);
-}
-
-/* The desktop Sidebar (app/Sidebar.tsx) shows this same set of destinations
-   as its trip-scoped section above this width — showing both would just be
-   the same nav twice. */
-@media (min-width: 1024px) {
-  .bar {
-    display: none;
-  }
 }

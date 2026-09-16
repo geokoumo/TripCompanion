@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { TripTab } from '../../features/trips/types';
 
-export type TopLevelTab = 'home' | 'search';
+export type TopLevelTab = 'home' | 'trips' | 'search' | 'more';
 
 export type Route =
   | { name: 'home' }
+  | { name: 'trips' }
   | { name: 'search' }
+  | { name: 'more' }
   | { name: 'trip'; tripId: string; tab: TripTab }
   | { name: 'shared'; token: string };
 
@@ -19,8 +21,14 @@ function parseHash(hash: string): Route {
   if (parts[0] === 'shared' && parts[1]) {
     return { name: 'shared', token: parts[1] };
   }
+  if (parts[0] === 'trips') {
+    return { name: 'trips' };
+  }
   if (parts[0] === 'search') {
     return { name: 'search' };
+  }
+  if (parts[0] === 'more') {
+    return { name: 'more' };
   }
   return { name: 'home' };
 }
@@ -38,11 +46,15 @@ export function useHashRoute(): [Route, (route: Route) => void] {
     const hash =
       next.name === 'home'
         ? '#/'
-        : next.name === 'search'
-          ? '#/search'
-          : next.name === 'shared'
-            ? `#/shared/${next.token}`
-            : `#/trip/${next.tripId}/${next.tab}`;
+        : next.name === 'trips'
+          ? '#/trips'
+          : next.name === 'search'
+            ? '#/search'
+            : next.name === 'more'
+              ? '#/more'
+              : next.name === 'shared'
+                ? `#/shared/${next.token}`
+                : `#/trip/${next.tripId}/${next.tab}`;
     window.location.hash = hash;
   };
 

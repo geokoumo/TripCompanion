@@ -6,11 +6,13 @@ import { OnboardingFlow } from '../features/auth/components/OnboardingFlow';
 import { ResetPasswordScreen } from '../features/auth/components/ResetPasswordScreen';
 import { TripListScreen } from '../features/trips/components/TripListScreen';
 import { TripDetailScreen } from '../features/trips/components/TripDetailScreen';
-import { useHashRoute, type Route } from '../shared/lib/useHashRoute';
+import { HomeDashboard } from '../features/trips/components/HomeDashboard';
+import { useHashRoute, type Route, type TopLevelTab } from '../shared/lib/useHashRoute';
 import { BottomNav } from './BottomNav';
 import { ErrorBoundary } from './ErrorBoundary';
 import { CreateTripWizardLazy, SearchScreenLazy, SettingsScreenLazy, SharedTripViewLazy } from './lazyScreens';
 import { LoadingScreen } from './LoadingScreen';
+import { MoreScreen } from './MoreScreen';
 import { AuthProvider, useAuth } from './providers/AuthProvider';
 import { ScreenLoadingFallback } from './ScreenLoadingFallback';
 import { Sidebar } from './Sidebar';
@@ -19,9 +21,9 @@ import { ToastProvider } from './providers/ToastProvider';
 import { TripsProvider } from './providers/TripsProvider';
 import styles from './App.module.css';
 
-const TOP_LEVEL_ROUTES = new Set(['home', 'search']);
+const TOP_LEVEL_ROUTES = new Set(['home', 'trips', 'search', 'more']);
 
-function Router({ route, navigate }: { route: Route; navigate: (route: Route) => void }) {
+function Router({ route, navigate, onCreateTrip, onOpenSettings }: { route: Route; navigate: (route: Route) => void; onCreateTrip: () => void; onOpenSettings: () => void }) {
   if (route.name === 'trip') {
     return (
       <TripDetailScreen
@@ -33,11 +35,25 @@ function Router({ route, navigate }: { route: Route; navigate: (route: Route) =>
     );
   }
 
+  if (route.name === 'trips') {
+    return <TripListScreen onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab: tab ?? 'overview' })} />;
+  }
+
   if (route.name === 'search') {
     return <SearchScreenLazy onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab })} />;
   }
 
-  return <TripListScreen onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab: tab ?? 'overview' })} />;
+  if (route.name === 'more') {
+    return <MoreScreen onOpenSearch={() => navigate({ name: 'search' })} onOpenSettings={onOpenSettings} />;
+  }
+
+  return (
+    <HomeDashboard
+      onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab: tab ?? 'overview' })}
+      onSeeAllTrips={() => navigate({ name: 'trips' })}
+      onCreateTrip={onCreateTrip}
+    />
+  );
 }
 
 // Gates the app behind the initial auth-session resolution — otherwise a
@@ -74,38 +90,25 @@ function AuthGatedApp() {
     return <OnboardingFlow onContinueLocally={() => setContinuingLocally(true)} />;
   }
 
-  // The bottom nav is the app-shell's primary navigation across the three
-  // top-level sections; a trip's own detail screen already has its back
-  // link and in-trip tab bar, so the shell nav stays out of its way there.
+  // The bottom nav/sidebar are the app-shell's primary navigation across
+  // the top-level sections; a trip's own detail screen already has its
+  // back link and in-trip tab bar, so the shell nav stays out of its way
+  // there (though the sidebar itself is always visible at desktop).
   const showBottomNav = TOP_LEVEL_ROUTES.has(route.name);
+  const activeTab: TopLevelTab = route.name === 'trip' ? 'home' : route.name;
 
   return (
     <TripsProvider>
       <ErrorBoundary>
-        <Sidebar
-          active={route.name === 'search' ? 'search' : 'home'}
-          onNavigate={(name) => navigate({ name })}
-          onCreateTrip={() => setWizardOpen(true)}
-          settingsActive={settingsOpen}
-          onSettingsTap={() => setSettingsOpen(true)}
-          trip={route.name === 'trip' ? { activeTab: route.tab, onTabChange: (tab) => navigate({ name: 'trip', tripId: route.tripId, tab }) } : null}
-        />
+        <Sidebar active={activeTab} onNavigate={navigate} onCreateTrip={() => setWizardOpen(true)} onOpenSettings={() => setSettingsOpen(true)} />
 
         <div className={styles.content} style={{ paddingBottom: showBottomNav ? 'var(--bottom-nav-clearance)' : 0 }}>
           <Suspense fallback={<ScreenLoadingFallback />}>
-            <Router route={route} navigate={navigate} />
+            <Router route={route} navigate={navigate} onCreateTrip={() => setWizardOpen(true)} onOpenSettings={() => setSettingsOpen(true)} />
           </Suspense>
         </div>
 
-        {showBottomNav && (
-          <BottomNav
-            active={route.name === 'search' ? 'search' : 'home'}
-            onNavigate={(name) => navigate({ name })}
-            onCreateTrip={() => setWizardOpen(true)}
-            settingsActive={settingsOpen}
-            onSettingsTap={() => setSettingsOpen(true)}
-          />
-        )}
+        {showBottomNav && <BottomNav active={activeTab} onNavigate={navigate} onCreateTrip={() => setWizardOpen(true)} />}
 
         {wizardOpen && (
           <Suspense fallback={<ScreenLoadingFallback />}>
