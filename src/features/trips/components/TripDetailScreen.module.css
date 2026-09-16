@@ -1,0 +1,16 @@
+.content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Trip screens get more breathing room than the app's other centered
+   columns at desktop — enough for OverviewTab's two-column layout to read
+   as an intentional composition rather than a single narrow column
+   stretched into empty space beside the sidebar. */
+@media (min-width: 1024px) {
+  .content {
+    max-width: 900px;
+    padding: 0 32px;
+  }
+}

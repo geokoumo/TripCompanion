@@ -16,6 +16,7 @@ import { useTrip } from '../hooks/useTrip';
 import type { Trip, TripTab } from '../types';
 import { InTripBottomNav } from './InTripBottomNav';
 import { TripHeader } from './TripHeader';
+import styles from './TripDetailScreen.module.css';
 
 interface TripDetailScreenProps {
   tripId: string;
@@ -84,7 +85,7 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
             onSaveTrip={(updated) => saveTrip(updated)}
             hideDates={activeTab === 'overview'}
           />
-          <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
+          <div className={styles.content}>
             {activeTab === 'overview' && <OverviewTab trip={trip} updateTrip={updateTrip} onOpenTripHealth={() => setShowTripHealth(true)} />}
             {(activeTab === 'flights' || activeTab === 'stays') && (
               <BookingsTab trip={trip} activeTab={activeTab} onTabChange={onTabChange} updateTrip={updateTrip} />
