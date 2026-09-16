@@ -49,6 +49,13 @@
   color: var(--color-teal);
 }
 
+/* The desktop Sidebar (Sidebar.tsx) replaces this bar above this width. */
+@media (min-width: 1024px) {
+  .bar {
+    display: none;
+  }
+}
+
 .createButton {
   position: absolute;
   left: 50%;

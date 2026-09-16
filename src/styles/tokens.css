@@ -1,27 +1,26 @@
 :root {
-  /* Base surfaces — locked TripCompanion V1 spec palette (design foundations
-     handoff). Every hex value below is copied verbatim from that spec, not
-     approximated by eye. */
-  --color-bg: #fbf9f6;
+  /* Base surfaces — TripCompanion Design 2.0 palette: warm editorial neutrals
+     with a soft sea-green accent, replacing the flat V1 spec. Values are
+     re-derived from the Design 2.0 reference screens (Home/Overview/
+     Itinerary Planner/Travel Organizer), not the earlier locked spec. */
+  --color-bg: #f6f3ed;
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-surface-accent: #eaf4f2;
-  --color-border: #e6dfd3;
-  --color-border-strong: #e6dfd3;
+  --color-surface-accent: #e7f0e8;
+  --color-border: #e6e0d3;
+  --color-border-strong: #d9d2c1;
 
-  /* Text — spec distinguishes secondary body copy from truly-muted/inactive
-     text; previously both collapsed onto one "muted" token. */
-  --color-text: #1c1a17;
-  --color-text-secondary: #706a5f;
-  --color-text-muted: #a09a8f;
-  --color-text-faint: #a09a8f;
+  /* Text — same three-step hierarchy as before, recolored slightly warmer. */
+  --color-text: #201d18;
+  --color-text-secondary: #6b6459;
+  --color-text-muted: #9c9488;
+  --color-text-faint: #9c9488;
   --color-text-on-accent: #ffffff;
 
-  /* Accents — teal is the brand primary (buttons, active states, links);
-     rust is the warm decorative tone + danger/negative semantic, now tied
-     to the spec's single "error" value. Brass/purple/gray and the
-     avatar/budget-category rotations are supplementary hues the spec
-     doesn't define and are untouched. */
+  /* Accents — a deep sea-green replaces the old brighter teal as the brand
+     primary (buttons, active states, links, "Confirmed"/"Active" pills).
+     Rust/brass/purple/gray and the avatar/budget-category rotations are
+     supplementary hues Design 2.0 doesn't redefine and are kept as-is. */
   --color-rust: #b3422e;
   --color-rust-soft: #f9ece9;
   /* Text sitting directly on a -soft tint (badges, pills, inline notes) uses
@@ -30,20 +29,19 @@
   --color-rust-on-soft: #b3422e;
   --color-brass: #9a752a;
   --color-brass-soft: #f7efdb;
-  --color-teal: #26796d;
-  --color-teal-strong: #255f55;
-  --color-teal-soft: #eaf4f2;
-  /* Text/borders on a soft teal tint use the stronger accent step — the
-     spec's own "Active text & borders" role — for contrast the base accent
-     doesn't quite reach at small sizes. */
-  --color-teal-on-soft: #255f55;
+  --color-teal: #2f6f52;
+  --color-teal-strong: #24573f;
+  --color-teal-soft: #e7f0e8;
+  /* Text/borders on a soft teal tint use the stronger accent step for
+     contrast the base accent doesn't quite reach at small sizes. */
+  --color-teal-on-soft: #24573f;
   --color-purple: #6b5b95;
   --color-purple-soft: #e8e4f0;
   --color-gray: #7d766c;
   --color-gray-soft: #ece8e0;
 
   --color-danger: #b3422e;
-  --color-success: #26796d;
+  --color-success: #2f6f52;
   /* Semantic alias, not a new hue — Trip Health and other non-destructive
      alerts read as "warning" (rust) distinctly from destructive actions
      (also rust today), so components can name the intent they mean without
@@ -51,7 +49,28 @@
   --color-warning: #b3422e;
   --color-warning-soft: #f9ece9;
   --color-warning-on-soft: #b3422e;
-  --color-scrim: rgba(28, 26, 23, 0.42);
+  --color-scrim: rgba(24, 22, 18, 0.45);
+
+  /* Semantic Design 2.0 token names, aliased onto the values above — new
+     shell/navigation components (the desktop sidebar) reach for these
+     directly; every existing component keeps using the --color-* names
+     above unchanged, so this doesn't require touching either set of
+     call sites to land the new palette everywhere at once. */
+  --background: var(--color-bg);
+  --surface: var(--color-surface);
+  --surface-secondary: #f0ece2;
+  --surface-tertiary: var(--color-surface-accent);
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-muted);
+  --border: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --accent: var(--color-teal);
+  --accent-foreground: var(--color-text-on-accent);
+  --success: var(--color-success);
+  --warning: var(--color-warning);
+  --danger: var(--color-danger);
+  --overlay: var(--color-scrim);
 
   /* Border-width scale — the 1 / 1.5 / 2px steps already in use everywhere,
      named so new components reach for a token instead of a fresh guess. */
@@ -65,20 +84,20 @@
   --avatar-3: #9a752a;
   --avatar-4: #6b5b95;
 
-  /* Shadows — the locked spec is flat UI with no exceptions: NONE. */
-  --shadow-elevated: none;
-  --shadow-toast: none;
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
+  /* Shadows — Design 2.0 is a soft-elevation editorial surface (unlike the
+     old spec's flat/no-shadow rule): a barely-there ambient shadow on cards,
+     a bit more on sheets/toasts that sit above the page. */
+  --shadow-sm: 0 1px 2px rgba(32, 29, 24, 0.05);
+  --shadow-md: 0 4px 16px rgba(32, 29, 24, 0.08);
+  --shadow-lg: 0 12px 32px rgba(32, 29, 24, 0.12);
+  --shadow-elevated: 0 8px 24px rgba(32, 29, 24, 0.1);
+  --shadow-toast: 0 6px 20px rgba(32, 29, 24, 0.16);
 
-  /* Radii — matched to the Figma spec's own scale (buttons 8 / fields 10 /
-     cards 12), which reads distinctly crisper than an all-purpose ~14-17px
-     rounding. Keeping three distinct steps rather than one soft default is
-     what makes rounding look chosen instead of automatic. */
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
+  /* Radii — a touch more generous than the old crisp 8/10/12 scale, matching
+     Design 2.0's softer card corners. */
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-sheet-top: 24px;
   --radius-pill: 999px;
 
@@ -110,31 +129,43 @@
   --screen-padding-x: 18px;
   --screen-padding-top: 58px;
 
-  /* Typography families */
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
-  --font-body: 'Work Sans', system-ui, sans-serif;
+  /* Bottom clearance for the fixed bottom nav bar — zeroed out at the
+     desktop breakpoint where Sidebar.tsx replaces the bottom bar with a
+     fixed left column instead, so screens don't reserve empty space at the
+     bottom of the viewport for a bar that isn't there. */
+  --bottom-nav-clearance: calc(64px + env(safe-area-inset-bottom, 0px));
+
+  /* Sidebar.tsx's fixed width at the desktop breakpoint — named so the
+     content-shifting margin and the sidebar's own width can't drift apart. */
+  --sidebar-width: 240px;
+
+  /* Typography families — Design 2.0: Outfit for display/headings, Manrope
+     for body/UI. IBM Plex Mono is kept only for genuinely tabular domain
+     codes (confirmation/reference numbers), not as a general text role. */
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
 
-  /* Typography — named roles per the locked V1 spec (Display/Screen
-     Title/Section Title/Entity Title/Body/Secondary/Label/Button/
-     Navigation/Metadata/Status). Sizes below are the spec's exact values;
-     see each token's usage sites for which role it plays. */
-  --fs-display: 1.625rem; /* 26px — welcome/hero screens (Space Grotesk Bold) */
-  --fs-screen-title: 1.375rem; /* 22px — top header nav title (Space Grotesk Bold) */
+  /* Typography — named roles carried over from the V1 role scale (Display/
+     Screen Title/Section Title/Entity Title/Body/Secondary/Label/Button/
+     Navigation/Metadata/Status); sizes unchanged, family now resolves
+     through --font-display/--font-body above. */
+  --fs-display: 1.625rem; /* 26px — welcome/hero screens (Outfit Semibold) */
+  --fs-screen-title: 1.375rem; /* 22px — top header nav title (Outfit Semibold) */
   --fs-header-title: 1.375rem; /* 22px — same role, historical second token name */
-  --fs-card-title: 0.9375rem; /* 15px — entity title (Space Grotesk Bold) */
-  --fs-sheet-title: 1.125rem; /* 18px — section title (Space Grotesk Bold) */
+  --fs-card-title: 0.9375rem; /* 15px — entity title (Outfit Semibold) */
+  --fs-sheet-title: 1.125rem; /* 18px — section title (Outfit Semibold) */
   --fs-airport-code: 1.5625rem; /* 25px — domain-specific hero number, not part of the 11-role scale */
   --fs-budget-total: 2.25rem; /* 36px — domain-specific hero number, not part of the 11-role scale */
   --fs-countdown: 2.75rem; /* 44px — domain-specific hero number, not part of the 11-role scale */
-  --fs-body: 0.875rem; /* 14px — body (Work Sans Regular) */
-  --fs-item-title: 0.9375rem; /* 15px — entity title (Space Grotesk Bold) */
-  --fs-meta: 0.8125rem; /* 13px — secondary (Work Sans Regular) */
-  --fs-chip: 0.8125rem; /* 13px — secondary (Work Sans Regular) */
-  --fs-button: 0.875rem; /* 14px — button (Work Sans SemiBold) */
-  --fs-field-label: 0.6875rem; /* 11px — label (Work Sans SemiBold, uppercase, 0.5px tracking) */
-  --fs-eyebrow: 0.6875rem; /* 11px — label (Work Sans SemiBold, uppercase, 0.5px tracking) */
-  --fs-navigation: 0.6875rem; /* 11px — navigation (Work Sans Medium) */
+  --fs-body: 0.875rem; /* 14px — body (Manrope Regular) */
+  --fs-item-title: 0.9375rem; /* 15px — entity title (Outfit Semibold) */
+  --fs-meta: 0.8125rem; /* 13px — secondary (Manrope Regular) */
+  --fs-chip: 0.8125rem; /* 13px — secondary (Manrope Regular) */
+  --fs-button: 0.875rem; /* 14px — button (Manrope SemiBold) */
+  --fs-field-label: 0.6875rem; /* 11px — label (Manrope SemiBold, uppercase, 0.5px tracking) */
+  --fs-eyebrow: 0.6875rem; /* 11px — label (Manrope SemiBold, uppercase, 0.5px tracking) */
+  --fs-navigation: 0.6875rem; /* 11px — navigation (Manrope Medium) */
   --fs-data: 0.6875rem; /* 11px — metadata (IBM Plex Mono Regular) */
   --fs-status: 0.625rem; /* 10px — status (IBM Plex Mono Bold) */
   --fs-stamp: 0.59375rem; /* 9.5px — component-specific micro-label (StampToggle segments), outside the 11-role scale */
@@ -185,18 +216,18 @@
     --color-rust-on-soft: #e07a56;
     --color-brass: #d4a851;
     --color-brass-soft: #33291a;
-    --color-teal: #4fb3a3;
-    --color-teal-strong: #72d3c3;
-    --color-teal-soft: #1f423c;
-    --color-teal-on-soft: #72d3c3;
-    --color-surface-accent: #1f423c;
+    --color-teal: #4bb08c;
+    --color-teal-strong: #7fd4ae;
+    --color-teal-soft: #1f3c2f;
+    --color-teal-on-soft: #7fd4ae;
+    --color-surface-accent: #1f3c2f;
     --color-purple: #a596d6;
     --color-purple-soft: #2c2740;
     --color-gray: #9d9488;
     --color-gray-soft: #2a2620;
 
     --color-danger: #e07a56;
-    --color-success: #4fb3a3;
+    --color-success: #4bb08c;
     --color-warning: #e07a56;
     --color-warning-soft: #3d2721;
     --color-warning-on-soft: #e07a56;
@@ -224,18 +255,18 @@
   --color-rust-on-soft: #e07a56;
   --color-brass: #d4a851;
   --color-brass-soft: #33291a;
-  --color-teal: #4fb3a3;
-  --color-teal-strong: #72d3c3;
-  --color-teal-soft: #1f423c;
-  --color-teal-on-soft: #72d3c3;
-  --color-surface-accent: #1f423c;
+  --color-teal: #4bb08c;
+  --color-teal-strong: #7fd4ae;
+  --color-teal-soft: #1f3c2f;
+  --color-teal-on-soft: #7fd4ae;
+  --color-surface-accent: #1f3c2f;
   --color-purple: #a596d6;
   --color-purple-soft: #2c2740;
   --color-gray: #9d9488;
   --color-gray-soft: #2a2620;
 
   --color-danger: #e07a56;
-  --color-success: #4fb3a3;
+  --color-success: #4bb08c;
   --color-warning: #e07a56;
   --color-warning-soft: #3d2721;
   --color-warning-on-soft: #e07a56;
@@ -302,5 +333,11 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --bottom-nav-clearance: 0px;
   }
 }

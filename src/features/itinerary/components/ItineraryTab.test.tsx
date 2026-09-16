@@ -16,7 +16,16 @@ vi.mock('../../../app/providers/ToastProvider', () => ({
   useToast: () => ({ showToast: vi.fn() }),
 }));
 
-const DATE = '2026-09-15';
+// ItineraryTab defaults to showing "today" when today falls within the
+// trip's range, else day 1 — so a trip fixture hardcoded to a fixed year
+// eventually has the real clock catch up to it and land ON "today",
+// silently shifting which day is selected by default out from under these
+// tests (exactly what happened once the sandbox's clock reached 2026-09-15).
+// Anchoring the year 10 years out keeps day-of-month values identical
+// (15/17/18/20, used throughout this file) while keeping the whole range
+// safely out of "today"'s reach for the foreseeable future.
+const FUTURE_YEAR = new Date().getFullYear() + 10;
+const DATE = `${FUTURE_YEAR}-09-15`;
 
 function makeStop(overrides: Partial<ItineraryStop> = {}): ItineraryStop {
   return {
@@ -56,7 +65,7 @@ function makeStay(overrides: Partial<Stay> = {}): Stay {
     address: 'Kyoto',
     checkinDate: DATE,
     checkinTime: '15:00',
-    checkoutDate: '2026-09-18',
+    checkoutDate: `${FUTURE_YEAR}-09-18`,
     checkoutTime: '11:00',
     ...overrides,
   };
@@ -67,7 +76,7 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
     id: 't1',
     title: 'Trip',
     homeCurrency: 'EUR',
-    legs: [{ id: 'l1', city: 'Tokyo', country: 'Japan', startDate: DATE, endDate: '2026-09-20', currency: 'EUR' }],
+    legs: [{ id: 'l1', city: 'Tokyo', country: 'Japan', startDate: DATE, endDate: `${FUTURE_YEAR}-09-20`, currency: 'EUR' }],
     flights: [],
     stays: [],
     itineraryStops: [makeStop()],
@@ -226,7 +235,7 @@ describe('ItineraryTab — trip-relative day framing', () => {
   });
 
   it('omits the city segment entirely (never a "NO CITY"/"Unknown" placeholder) when a leg has no city yet', () => {
-    renderTab(makeTrip({ legs: [{ id: 'l1', city: '', country: '', startDate: DATE, endDate: '2026-09-20', currency: 'EUR' }] }));
+    renderTab(makeTrip({ legs: [{ id: 'l1', city: '', country: '', startDate: DATE, endDate: `${FUTURE_YEAR}-09-20`, currency: 'EUR' }] }));
     expect(screen.getByText('DAY 1 OF 6 · ARRIVAL')).toBeInTheDocument();
     expect(screen.queryByText(/NO CITY/)).not.toBeInTheDocument();
     expect(screen.queryByText(/UNKNOWN/i)).not.toBeInTheDocument();
@@ -247,13 +256,13 @@ describe('ItineraryTab — selected day survives navigating away and back', () =
       </AuthProvider>,
     );
     await user.click(screen.getByRole('tab', { name: /17/ }));
-    expect(onSelectedDateChange).toHaveBeenCalledWith('2026-09-17');
+    expect(onSelectedDateChange).toHaveBeenCalledWith(`${FUTURE_YEAR}-09-17`);
   });
 
   it('restores a previously-selected day passed back in via the selectedDate prop', () => {
     render(
       <AuthProvider>
-        <ItineraryTab trip={makeTrip()} updateTrip={vi.fn().mockResolvedValue(undefined)} selectedDate="2026-09-17" onSelectedDateChange={vi.fn()} />
+        <ItineraryTab trip={makeTrip()} updateTrip={vi.fn().mockResolvedValue(undefined)} selectedDate={`${FUTURE_YEAR}-09-17`} onSelectedDateChange={vi.fn()} />
       </AuthProvider>,
     );
     expect(screen.getByText('DAY 3 OF 6 · TOKYO')).toBeInTheDocument();

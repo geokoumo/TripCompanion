@@ -44,3 +44,12 @@
 .item[data-active='true'] {
   color: var(--color-teal);
 }
+
+/* The desktop Sidebar (app/Sidebar.tsx) shows this same set of destinations
+   as its trip-scoped section above this width — showing both would just be
+   the same nav twice. */
+@media (min-width: 1024px) {
+  .bar {
+    display: none;
+  }
+}

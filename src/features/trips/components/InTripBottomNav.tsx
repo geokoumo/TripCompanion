@@ -2,7 +2,7 @@ import { BackpackIcon, CompassIcon, ListIcon, TicketIcon, WalletIcon } from '../
 import type { TripTab } from '../types';
 import styles from './InTripBottomNav.module.css';
 
-const NAV_ITEMS: { key: TripTab | 'bookings'; label: string; Icon: typeof CompassIcon; navigateTab: TripTab }[] = [
+export const IN_TRIP_NAV_ITEMS: { key: TripTab | 'bookings'; label: string; Icon: typeof CompassIcon; navigateTab: TripTab }[] = [
   { key: 'overview', label: 'Overview', Icon: CompassIcon, navigateTab: 'overview' },
   { key: 'itinerary', label: 'Itinerary', Icon: ListIcon, navigateTab: 'itinerary' },
   { key: 'bookings', label: 'Bookings', Icon: TicketIcon, navigateTab: 'flights' },
@@ -10,7 +10,7 @@ const NAV_ITEMS: { key: TripTab | 'bookings'; label: string; Icon: typeof Compas
   { key: 'checklist', label: 'Packing', Icon: BackpackIcon, navigateTab: 'checklist' },
 ];
 
-function isActive(itemKey: TripTab | 'bookings', activeTab: TripTab): boolean {
+export function isInTripNavActive(itemKey: TripTab | 'bookings', activeTab: TripTab): boolean {
   if (itemKey === 'bookings') return activeTab === 'flights' || activeTab === 'stays';
   return itemKey === activeTab;
 }
@@ -25,12 +25,12 @@ export function InTripBottomNav({ activeTab, onTabChange }: InTripBottomNavProps
   return (
     <nav className={styles.bar}>
       <div className={styles.inner}>
-        {NAV_ITEMS.map(({ key, label, Icon, navigateTab }) => (
+        {IN_TRIP_NAV_ITEMS.map(({ key, label, Icon, navigateTab }) => (
           <button
             key={key}
             type="button"
             className={styles.item}
-            data-active={isActive(key, activeTab)}
+            data-active={isInTripNavActive(key, activeTab)}
             onClick={() => onTabChange(navigateTab)}
           >
             <Icon size={20} />

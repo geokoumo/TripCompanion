@@ -13,9 +13,11 @@ import { CreateTripWizardLazy, SearchScreenLazy, SettingsScreenLazy, SharedTripV
 import { LoadingScreen } from './LoadingScreen';
 import { AuthProvider, useAuth } from './providers/AuthProvider';
 import { ScreenLoadingFallback } from './ScreenLoadingFallback';
+import { Sidebar } from './Sidebar';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './providers/ToastProvider';
 import { TripsProvider } from './providers/TripsProvider';
+import styles from './App.module.css';
 
 const TOP_LEVEL_ROUTES = new Set(['home', 'search']);
 
@@ -80,7 +82,16 @@ function AuthGatedApp() {
   return (
     <TripsProvider>
       <ErrorBoundary>
-        <div style={{ paddingBottom: showBottomNav ? 'calc(64px + env(safe-area-inset-bottom, 0px))' : 0 }}>
+        <Sidebar
+          active={route.name === 'search' ? 'search' : 'home'}
+          onNavigate={(name) => navigate({ name })}
+          onCreateTrip={() => setWizardOpen(true)}
+          settingsActive={settingsOpen}
+          onSettingsTap={() => setSettingsOpen(true)}
+          trip={route.name === 'trip' ? { activeTab: route.tab, onTabChange: (tab) => navigate({ name: 'trip', tripId: route.tripId, tab }) } : null}
+        />
+
+        <div className={styles.content} style={{ paddingBottom: showBottomNav ? 'var(--bottom-nav-clearance)' : 0 }}>
           <Suspense fallback={<ScreenLoadingFallback />}>
             <Router route={route} navigate={navigate} />
           </Suspense>

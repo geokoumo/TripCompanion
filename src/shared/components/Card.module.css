@@ -9,6 +9,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-5);
   margin-bottom: var(--space-3);
+  box-shadow: var(--shadow-sm);
 }
 
 .card[data-interactive='true'] {
@@ -43,6 +44,7 @@
   border-bottom: var(--border-width-hairline) solid var(--color-border);
   padding: var(--space-3) 0;
   margin-bottom: 0;
+  box-shadow: none;
 }
 
 .card[data-flat='true']:last-child {

@@ -1,0 +1,9 @@
+/* Sidebar.tsx occupies this width as a fixed column starting at the desktop
+   breakpoint (see its own @media min-width: 1024px) — shifting the content
+   column over by the same amount keeps it out from under the sidebar
+   without needing to touch every screen's own centered-column CSS. */
+@media (min-width: 1024px) {
+  .content {
+    margin-left: var(--sidebar-width);
+  }
+}
