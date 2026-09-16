@@ -71,6 +71,10 @@
   --warning: var(--color-warning);
   --danger: var(--color-danger);
   --overlay: var(--color-scrim);
+  /* Text/icons overlaid directly on photography (hero/editorial cards, always
+     under a dark gradient scrim regardless of theme) — deliberately NOT a
+     light/dark-mode-dependent token, since the scrim under it doesn't change. */
+  --text-on-image: #ffffff;
 
   /* Border-width scale — the 1 / 1.5 / 2px steps already in use everywhere,
      named so new components reach for a token instead of a fresh guess. */

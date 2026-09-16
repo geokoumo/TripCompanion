@@ -25,5 +25,6 @@ export function tripToListItem(trip: Trip): TripListItem {
     endDate: range?.endDate ?? null,
     cities,
     travelers: trip.travelers.map((t) => ({ name: t.name, avatarColor: t.avatarColor })),
+    coverPhotoPath: trip.coverPhotoPath,
   };
 }

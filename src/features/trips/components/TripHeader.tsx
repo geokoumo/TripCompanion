@@ -1,6 +1,9 @@
-import { Suspense, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
 import { ShareSheetLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
+import { useAuth } from '../../../app/providers/AuthProvider';
+import { useToast } from '../../../app/providers/ToastProvider';
+import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { downloadTripAsJson } from '../lib/tripFile';
@@ -25,11 +28,34 @@ interface TripHeaderProps {
 // header is now just identity + trip-level actions (share/menu), no
 // navigation state.
 export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip, hideDates = false }: TripHeaderProps) {
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
   const [manageTravelersOpen, setManageTravelersOpen] = useState(false);
+  const coverPhotoInputRef = useRef<HTMLInputElement>(null);
   const range = getTripDateRange(trip.legs, trip.flights);
+
+  const handleCoverPhotoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const validationError = validateTripFile(file);
+    if (validationError) {
+      showToast(validationError, { variant: 'error' });
+      return;
+    }
+    try {
+      const newPath = user ? await uploadTripFile(user.id, trip.id, file) : await readAsDataUrl(file);
+      const oldPath = trip.coverPhotoPath;
+      await onSaveTrip({ ...trip, coverPhotoPath: newPath });
+      if (oldPath && !isLocalDataUrl(oldPath)) void deleteTripFile(oldPath);
+      showToast('Cover photo updated.');
+    } catch {
+      showToast('Upload failed. Try again.', { variant: 'error' });
+    }
+  };
 
   return (
     <div className={styles.header}>
@@ -65,6 +91,7 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
           onDuplicate={onDuplicate}
           onExport={() => downloadTripAsJson(trip)}
           onEditDescription={() => setEditDescriptionOpen(true)}
+          onChangeCoverPhoto={() => coverPhotoInputRef.current?.click()}
           onManageTravelers={() => setManageTravelersOpen(true)}
           onArchiveToggle={onArchiveToggle}
           onDelete={onDeleteRequest}
@@ -76,6 +103,7 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
       {manageTravelersOpen && (
         <ManageTravelersSheet trip={trip} onClose={() => setManageTravelersOpen(false)} onSave={onSaveTrip} />
       )}
+      <input ref={coverPhotoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => void handleCoverPhotoFile(e)} />
     </div>
   );
 }

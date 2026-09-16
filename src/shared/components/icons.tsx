@@ -326,6 +326,16 @@ export function EyeIcon(props: IconProps) {
   );
 }
 
+/** Home dashboard's "Next Important Activity" row. */
+export function BellIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M6 10a6 6 0 0 1 12 0c0 4.5 1.5 6 1.5 6h-15S6 14.5 6 10z" />
+      <path d="M10 19a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
+
 /** Read-only/locked state — auto-pulled itinerary entries projected from a flight or stay. */
 export function LockIcon(props: IconProps) {
   return (

@@ -41,6 +41,10 @@ export const TripSchema = z.object({
   // Optional free-text blurb, shown on Overview when present. Backed by the
   // `description` column added in the Round 9 migration.
   description: nullableOptional(z.string()),
+  // Storage path into the shared trip-files bucket (see tripFilesBucket.ts)
+  // — a data: URL when set locally by a signed-out/guest session, same
+  // convention documents already use. Undefined/null means "no photo set".
+  coverPhotoPath: nullableOptional(z.string()),
   travelers: z.array(TravelerSchema).default([]),
   // The trip's overall date span is DERIVED from legs[]/flights[] — see lib/dateRange.ts.
   // Never stored directly.
@@ -85,6 +89,7 @@ export const TripListItemSchema = z.object({
   endDate: z.string().nullable(),
   cities: z.array(z.string()).default([]),
   travelers: z.array(z.object({ name: z.string(), avatarColor: z.enum(TRAVELER_AVATAR_COLORS) })).default([]),
+  coverPhotoPath: nullableOptional(z.string()),
 });
 
 export type TripListItem = z.infer<typeof TripListItemSchema>;

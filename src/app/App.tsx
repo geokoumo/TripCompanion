@@ -52,6 +52,7 @@ function Router({ route, navigate, onCreateTrip, onOpenSettings }: { route: Rout
       onOpenTrip={(tripId, tab) => navigate({ name: 'trip', tripId, tab: tab ?? 'overview' })}
       onSeeAllTrips={() => navigate({ name: 'trips' })}
       onCreateTrip={onCreateTrip}
+      onOpenSettings={onOpenSettings}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { Suspense, useRef, useState } from 'react';
+import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { CreateTripWizardLazy, ShareSheetLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
@@ -6,6 +7,7 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { StampToggle } from '../../../shared/components/StampToggle';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
+import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { useTrips } from '../hooks/useTrips';
 import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
 import type { Trip, TripTab } from '../types';
@@ -21,6 +23,7 @@ interface TripListScreenProps {
 }
 
 export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
+  const { user } = useAuth();
   const { trips, loading, saveTrip, deleteTrip, getFullTrip } = useTrips();
   const { showToast } = useToast();
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
@@ -30,8 +33,10 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const [pendingDelete, setPendingDelete] = useState<Trip | null>(null);
   const [editDescriptionTrip, setEditDescriptionTrip] = useState<Trip | null>(null);
   const [manageTravelersTrip, setManageTravelersTrip] = useState<Trip | null>(null);
+  const [coverPhotoTrip, setCoverPhotoTrip] = useState<Trip | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const coverPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const visible = trips.filter((t) => (filter === 'active' ? !t.archived : t.archived));
   const todayLabel = formatDateShort(new Date().toISOString().slice(0, 10));
@@ -64,6 +69,28 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const openMenuFor = async (id: string) => {
     const full = await getFullTrip(id);
     if (full) setMenuTrip(full);
+  };
+
+  const handleCoverPhotoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const trip = coverPhotoTrip;
+    setCoverPhotoTrip(null);
+    if (!file || !trip) return;
+    const validationError = validateTripFile(file);
+    if (validationError) {
+      showToast(validationError, { variant: 'error' });
+      return;
+    }
+    try {
+      const newPath = user ? await uploadTripFile(user.id, trip.id, file) : await readAsDataUrl(file);
+      const oldPath = trip.coverPhotoPath;
+      await saveTrip({ ...trip, coverPhotoPath: newPath });
+      if (oldPath && !isLocalDataUrl(oldPath)) void deleteTripFile(oldPath);
+      showToast('Cover photo updated.');
+    } catch {
+      showToast('Upload failed. Try again.', { variant: 'error' });
+    }
   };
 
   const confirmDeleteTrip = () => {
@@ -124,6 +151,10 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
           onDuplicate={() => setDuplicateSource(menuTrip)}
           onExport={() => downloadTripAsJson(menuTrip)}
           onEditDescription={() => setEditDescriptionTrip(menuTrip)}
+          onChangeCoverPhoto={() => {
+            setCoverPhotoTrip(menuTrip);
+            coverPhotoInputRef.current?.click();
+          }}
           onManageTravelers={() => setManageTravelersTrip(menuTrip)}
           onArchiveToggle={() => void saveTrip({ ...menuTrip, archived: !menuTrip.archived })}
           onDelete={() => setPendingDelete(menuTrip)}
@@ -165,6 +196,7 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
 
       {helpOpen && <HelpSheet onClose={() => setHelpOpen(false)} onImportFile={() => importInputRef.current?.click()} />}
       <input ref={importInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={(e) => void handleImportFile(e)} />
+      <input ref={coverPhotoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => void handleCoverPhotoFile(e)} />
     </div>
   );
 }
