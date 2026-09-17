@@ -26,7 +26,7 @@ export function AddChecklistItemSheet({ onClose, onSave }: AddChecklistItemSheet
 
   const effectiveCategory = creatingCategory ? customCategory.trim() : category;
   const canSave = text.trim().length > 0 && effectiveCategory.length > 0;
-  const handleSave = () => void run(() => onSave({ text: text.trim(), category: effectiveCategory, quantity }));
+  const handleSave = () => run(() => onSave({ text: text.trim(), category: effectiveCategory, quantity })).catch(() => {});
 
   return (
     <Modal

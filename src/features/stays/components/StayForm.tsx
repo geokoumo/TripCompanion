@@ -64,7 +64,7 @@ export function StayForm({ trip, updateTrip, initial, existingStays, recentLocat
       showToast('Check-out must be after check-in.', { variant: 'error' });
       return;
     }
-    void run(() => onSave(stay));
+    run(() => onSave(stay)).catch(() => {});
   };
 
   return (

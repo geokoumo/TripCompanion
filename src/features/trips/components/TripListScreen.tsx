@@ -6,7 +6,7 @@ import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { StampToggle } from '../../../shared/components/StampToggle';
-import { formatDateShort } from '../../../shared/lib/dateFormat';
+import { formatDateShort, todayStr } from '../../../shared/lib/dateFormat';
 import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { useTrips } from '../hooks/useTrips';
 import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
@@ -39,7 +39,7 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const coverPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const visible = trips.filter((t) => (filter === 'active' ? !t.archived : t.archived));
-  const todayLabel = formatDateShort(new Date().toISOString().slice(0, 10));
+  const todayLabel = formatDateShort(todayStr());
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

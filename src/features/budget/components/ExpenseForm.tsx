@@ -74,7 +74,7 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
   // the same domain rule Add/Edit Activity uses.
   const dateValid = !expense.date || validateActivityDate(expense.date, range).length === 0;
   const canSave = expense.amount > 0 && expense.categoryId && expense.date && dateValid && expense.paidBy && expense.splitAmong.length > 0 && hasRate;
-  const handleSave = () => void run(() => onSave(expense));
+  const handleSave = () => run(() => onSave(expense)).catch(() => {});
 
   return (
     <Modal

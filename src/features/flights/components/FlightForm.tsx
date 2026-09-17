@@ -111,7 +111,7 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
     rememberRecentValue('airline', flight.airline);
     rememberRecentValue('airport', flight.depAirport);
     rememberRecentValue('airport', flight.arrAirport);
-    void run(() => onSave(flight));
+    run(() => onSave(flight)).catch(() => {});
   };
 
   return (

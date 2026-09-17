@@ -18,10 +18,11 @@ export function EditDescriptionSheet({ trip, onClose, onSave }: EditDescriptionS
 
   // Only closes after the save actually persists — closing first (the old
   // behavior) would show "success" for a write that could still fail.
-  const save = () => void run(async () => {
-    await onSave({ ...trip, description: description.trim() || undefined });
-    onClose();
-  });
+  const save = () =>
+    run(async () => {
+      await onSave({ ...trip, description: description.trim() || undefined });
+      onClose();
+    }).catch(() => {});
 
   return (
     <Modal

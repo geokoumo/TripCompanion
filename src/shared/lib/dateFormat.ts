@@ -52,11 +52,27 @@ export function daysBetween(fromDateStr: string, toDateStr: string): number {
   return Math.round((to - from) / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * Today's calendar date in the device's own local timezone — NOT
+ * `toISOString()`, which reports the UTC date and would silently read as
+ * tomorrow or yesterday for a large fraction of every day in any timezone
+ * away from UTC. Every date this is compared against (trip dates, activity
+ * dates) is a naive local calendar-date string entered via a local date
+ * picker, so "today" has to use the same local frame of reference or a
+ * traveler crossing timezones would see the wrong day's itinerary as
+ * "Today" for hours at a time.
+ */
 export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
 }
 
-/** "HH:mm" for the current instant — paired with todayStr() to compare against saved date+time fields, same UTC-based convention as todayStr(). */
+/** "HH:mm" for the current instant, in local time — paired with todayStr() to compare against saved date+time fields, same local-time convention as todayStr() (see its comment). */
 export function nowTimeStr(): string {
-  return new Date().toISOString().slice(11, 16);
+  const d = new Date();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }

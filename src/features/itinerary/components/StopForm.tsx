@@ -98,7 +98,7 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
       setFormError(describeActivityError(errors[0]!, trip.itineraryStops));
       return;
     }
-    void run(() => onSave(stop));
+    run(() => onSave(stop)).catch(() => {});
   };
 
   return (

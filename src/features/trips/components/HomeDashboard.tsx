@@ -167,7 +167,23 @@ export function HomeDashboard({ onOpenTrip, onSeeAllTrips, onCreateTrip, onOpenS
         </button>
       </div>
 
-      <button type="button" className={styles.hero} onClick={() => onOpenTrip(active.id)} style={heroPhotoUrl ? { backgroundImage: `url(${heroPhotoUrl})` } : undefined}>
+      {/* A real <button> can't contain the menu button's own nested button —
+          same nestedInteractive pattern as shared/components/Card.tsx: a
+          role="button" div as the outer interactive element instead. */}
+      <div
+        role="button"
+        tabIndex={0}
+        className={styles.hero}
+        onClick={() => onOpenTrip(active.id)}
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onOpenTrip(active.id);
+          }
+        }}
+        style={heroPhotoUrl ? { backgroundImage: `url(${heroPhotoUrl})` } : undefined}
+      >
         {!heroPhotoUrl && <div className={styles.heroPlaceholder} aria-hidden="true" />}
         <div className={styles.heroOverlay} />
         <button
@@ -195,7 +211,7 @@ export function HomeDashboard({ onOpenTrip, onSeeAllTrips, onCreateTrip, onOpenS
             </div>
           )}
         </div>
-      </button>
+      </div>
 
       {upNext && (
         <button type="button" className={styles.activityRow} onClick={() => onOpenTrip(active.id, 'itinerary')}>

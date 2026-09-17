@@ -122,9 +122,17 @@ export type SharedTrip = z.infer<typeof SharedTripSchema>;
 
 export type TripStatus = 'upcoming' | 'today' | 'ongoing' | 'completed';
 
+// `today` stays an optional Date param for testability (vi.setSystemTime),
+// but the comparison itself must use the LOCAL calendar date, not
+// toISOString()'s UTC date — trip/activity dates are naive local
+// calendar-date strings, so comparing them against a UTC "today" reads as
+// the wrong status for a large fraction of every day in any non-UTC
+// timezone (see shared/lib/dateFormat's todayStr for the same fix).
 export function getTripStatus(range: { startDate: string; endDate: string } | null, today: Date = new Date()): TripStatus {
   if (!range) return 'upcoming';
-  const todayStr = today.toISOString().slice(0, 10);
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${today.getFullYear()}-${month}-${day}`;
   if (todayStr < range.startDate) return 'upcoming';
   if (todayStr > range.endDate) return 'completed';
   if (todayStr === range.startDate) return 'today';

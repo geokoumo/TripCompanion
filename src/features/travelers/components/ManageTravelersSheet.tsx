@@ -98,13 +98,13 @@ export function ManageTravelersSheet({ trip, onClose, onSave }: ManageTravelersS
   const canSave = membershipChanged || nameChanged;
 
   const save = () =>
-    void run(async () => {
+    run(async () => {
       const removedIds = trip.travelers.filter((t) => !travelers.some((w) => w.id === t.id)).map((t) => t.id);
       let updated = trip;
       for (const id of removedIds) updated = removeTravelerFromTrip(updated, id);
       await onSave({ ...updated, travelers });
       onClose();
-    });
+    }).catch(() => {});
 
   return (
     <Modal

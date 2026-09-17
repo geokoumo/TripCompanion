@@ -94,7 +94,7 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
   // silently re-saved as-is; the same domain rule Add/Edit Activity uses.
   const dateValid = !item.date || validateActivityDate(item.date, range).length === 0;
   const canSave = item.name.trim().length > 0 && timeOrderValid && dateValid;
-  const handleSave = () => void run(() => onSave(item, addToItinerary));
+  const handleSave = () => run(() => onSave(item, addToItinerary)).catch(() => {});
 
   return (
     <Modal

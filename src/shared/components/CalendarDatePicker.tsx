@@ -31,7 +31,11 @@ export function CalendarDatePicker({ value, onChange, minDate, maxDate }: Calend
     return { year: now.getFullYear(), month: now.getMonth() };
   })();
   const [{ year, month }, setViewDate] = useState(initial);
-  const todayStr = new Date().toISOString().slice(0, 10);
+  // Local calendar date, not toISOString()'s UTC date — otherwise the
+  // highlighted "today" cell is off by one for a large part of every day in
+  // any timezone away from UTC.
+  const now = new Date();
+  const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
 
   const firstOfMonth = new Date(year, month, 1);
   const startWeekday = firstOfMonth.getDay(); // Sunday = 0
