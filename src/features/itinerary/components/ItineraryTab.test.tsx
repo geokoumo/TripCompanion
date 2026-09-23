@@ -1,20 +1,33 @@
-import { render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../../../app/providers/AuthProvider';
 import type { Flight } from '../../flights/types';
 import type { Stay } from '../../stays/types';
 import type { Trip } from '../../trips/types';
 import { ItineraryTab } from './ItineraryTab';
-import type { ItineraryStop } from '../types';
+import type { Idea, ItineraryStop } from '../types';
 
+// A stable, per-test-controllable pair rather than a fresh `vi.fn()` per
+// `useTripsContext()`/`useToast()` call, so tests can both assert on calls
+// and drive getFullTrip's resolved value (the Ideas-assignment tests below
+// need a fresh trip that diverges from the one passed as a prop).
+const { getFullTripMock, showToastMock } = vi.hoisted(() => ({
+  getFullTripMock: vi.fn(),
+  showToastMock: vi.fn(),
+}));
 vi.mock('../../../app/providers/TripsProvider', () => ({
-  useTripsContext: () => ({ getFullTrip: vi.fn() }),
+  useTripsContext: () => ({ getFullTrip: getFullTripMock }),
 }));
 vi.mock('../../../app/providers/ToastProvider', () => ({
-  useToast: () => ({ showToast: vi.fn() }),
+  useToast: () => ({ showToast: showToastMock }),
 }));
+
+beforeEach(() => {
+  getFullTripMock.mockReset();
+  showToastMock.mockReset();
+});
 
 // ItineraryTab defaults to showing "today" when today falls within the
 // trip's range, else day 1 — so a trip fixture hardcoded to a fixed year
@@ -102,6 +115,41 @@ function renderTab(trip: Trip, updateTrip = vi.fn().mockResolvedValue(undefined)
     </AuthProvider>,
   );
   return { updateTrip };
+}
+
+function makeIdea(overrides: Partial<Idea> = {}): Idea {
+  return {
+    id: 'idea1',
+    title: 'Ramen crawl',
+    type: 'food',
+    ...overrides,
+  };
+}
+
+// Unlike renderTab (a static trip prop + a spy updateTrip that never
+// actually mutates anything), this harness owns trip state and really
+// applies each updateTrip updater to it — needed to observe, at the DOM
+// level, whether a rejected Idea assignment truly leaves the Idea in place
+// and an accepted one truly persists the Stop and drops the Idea.
+function ItineraryTabStatefulHarness({ initialTrip, onTripChange }: { initialTrip: Trip; onTripChange?: (t: Trip) => void }) {
+  const [trip, setTrip] = useState(initialTrip);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const updateTrip = async (updater: (t: Trip) => Trip) => {
+    setTrip((prev) => {
+      const next = updater(prev);
+      onTripChange?.(next);
+      return next;
+    });
+  };
+  return <ItineraryTab trip={trip} updateTrip={updateTrip} selectedDate={selectedDate} onSelectedDateChange={setSelectedDate} />;
+}
+
+function renderStatefulTab(trip: Trip, onTripChange?: (t: Trip) => void) {
+  render(
+    <AuthProvider>
+      <ItineraryTabStatefulHarness initialTrip={trip} onTripChange={onTripChange} />
+    </AuthProvider>,
+  );
 }
 
 const OPEN_STOP = /Open Sensō-ji Temple/;
@@ -329,4 +377,151 @@ describe('ItineraryTab — auto-pulled entries stay read-only projections', () =
     await user.click(screen.getByRole('button', { name: 'Edit' }));
     expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
   });
+});
+
+// Trip spans FUTURE_YEAR-09-15 .. FUTURE_YEAR-09-20 (see makeTrip's leg).
+describe('ItineraryTab — Idea assignment obeys the same Stop validation as manual Stop creation', () => {
+  const DAY16 = `${FUTURE_YEAR}-09-16`;
+  const BEFORE_TRIP_START = `${FUTURE_YEAR}-09-10`;
+  const AFTER_TRIP_END = `${FUTURE_YEAR}-09-25`;
+
+  it('1. a valid Idea on a valid day is assigned: the Stop is created and the Idea is removed', async () => {
+    getFullTripMock.mockResolvedValue(undefined); // no divergence — falls back to the current in-memory trip, same as saveStop's own fallback
+    const idea = makeIdea({ suggestedDate: DAY16 });
+    renderStatefulTab(makeTrip({ ideas: [idea] }));
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /On 16 Sep/ }));
+
+    await waitFor(() => expect(screen.queryByText('Ramen crawl')).not.toBeInTheDocument());
+    expect(showToastMock).toHaveBeenCalledWith('Added to 16 Sep at 12:00.');
+    expect(showToastMock).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ variant: 'error' }));
+
+    await user.click(screen.getByRole('tab', { name: /16/ }));
+    expect(screen.getByRole('button', { name: /Open Ramen crawl/ })).toBeInTheDocument();
+  });
+
+  it('2. an Idea suggested before the trip start is rejected: no Stop is created, and the Idea stays', async () => {
+    getFullTripMock.mockResolvedValue(undefined);
+    const idea = makeIdea({ suggestedDate: BEFORE_TRIP_START });
+    renderStatefulTab(makeTrip({ ideas: [idea] }));
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /On 10 Sep/ }));
+
+    await waitFor(() => expect(showToastMock).toHaveBeenCalledWith(expect.stringContaining("outside your trip's dates"), { variant: 'error' }));
+    expect(screen.getByText('Ramen crawl')).toBeInTheDocument();
+  });
+
+  it('3. an Idea suggested after the trip end is rejected the same way', async () => {
+    getFullTripMock.mockResolvedValue(undefined);
+    const idea = makeIdea({ suggestedDate: AFTER_TRIP_END });
+    renderStatefulTab(makeTrip({ ideas: [idea] }));
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /On 25 Sep/ }));
+
+    await waitFor(() => expect(showToastMock).toHaveBeenCalledWith(expect.stringContaining("outside your trip's dates"), { variant: 'error' }));
+    expect(screen.getByText('Ramen crawl')).toBeInTheDocument();
+  });
+
+  // Items 4/5 (invalid time, invalid duration): assignIdeaToDay always builds
+  // the candidate Stop with a fixed, well-formed time ('12:00') and duration
+  // (60) — Idea never carries either field, so the UI has no way to produce
+  // a malformed one. Coverage for the rule itself (that validateStopForSave
+  // — the exact function this path calls — rejects INVALID_TIME_RANGE and
+  // INVALID_DURATION) already exists in activityValidation.test.ts, and
+  // applies equally here because both paths share that one function.
+
+  it('6. an Idea that would overlap an existing activity is rejected — same overlap rule as manual Stops', async () => {
+    getFullTripMock.mockResolvedValue(undefined);
+    const idea = makeIdea({ suggestedDate: DAY16 });
+    const conflicting = makeStop({ id: 'conflict1', date: DAY16, time: '12:00', durationMinutes: 30 });
+    renderStatefulTab(makeTrip({ ideas: [idea], itineraryStops: [makeStop(), conflicting] }));
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /On 16 Sep/ }));
+
+    await waitFor(() => expect(showToastMock).toHaveBeenCalledWith(expect.stringContaining('overlaps with'), { variant: 'error' }));
+    expect(screen.getByText('Ramen crawl')).toBeInTheDocument();
+  });
+
+  it('7. an Idea assigned next to (not overlapping) another activity succeeds', async () => {
+    getFullTripMock.mockResolvedValue(undefined);
+    const idea = makeIdea({ suggestedDate: DAY16 });
+    // Ends 11:00; the assignment lands at 12:00 — adjacent, not overlapping.
+    const neighbor = makeStop({ id: 'neighbor1', date: DAY16, time: '10:00', durationMinutes: 60 });
+    renderStatefulTab(makeTrip({ ideas: [idea], itineraryStops: [makeStop(), neighbor] }));
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /On 16 Sep/ }));
+
+    await waitFor(() => expect(screen.queryByText('Ramen crawl')).not.toBeInTheDocument());
+    expect(showToastMock).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ variant: 'error' }));
+  });
+
+  it('8. validates against the freshly refetched trip, not stale in-memory state', async () => {
+    const idea = makeIdea({ suggestedDate: DAY16 });
+    const localTrip = makeTrip({ ideas: [idea], itineraryStops: [makeStop()] }); // no conflict locally
+    // A conflict that only exists in the "server" copy — e.g. added from
+    // another tab/device after this screen loaded but before the Idea was
+    // assigned. The stale local trip has no idea this exists.
+    const freshConflicting = makeStop({ id: 'conflict-from-elsewhere', date: DAY16, time: '12:00', durationMinutes: 30 });
+    const freshTrip: Trip = { ...localTrip, itineraryStops: [...localTrip.itineraryStops, freshConflicting] };
+    getFullTripMock.mockResolvedValue(freshTrip);
+
+    renderStatefulTab(localTrip);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /On 16 Sep/ }));
+
+    await waitFor(() => expect(showToastMock).toHaveBeenCalledWith(expect.stringContaining('overlaps with'), { variant: 'error' }));
+    expect(screen.getByText('Ramen crawl')).toBeInTheDocument();
+    expect(getFullTripMock).toHaveBeenCalledWith('t1');
+  });
+
+  it('9 & 10. a failed assignment never removes the Idea and never persists a Stop', async () => {
+    getFullTripMock.mockResolvedValue(undefined);
+    const idea = makeIdea({ suggestedDate: BEFORE_TRIP_START });
+    renderStatefulTab(makeTrip({ ideas: [idea] }));
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /On 10 Sep/ }));
+    await waitFor(() => expect(showToastMock).toHaveBeenCalled());
+
+    expect(screen.getByText('Ramen crawl')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Open Ramen crawl/ })).not.toBeInTheDocument();
+  });
+
+  it('11. a successful assignment writes a trip whose data survives being reloaded fresh', async () => {
+    getFullTripMock.mockResolvedValue(undefined);
+    const idea = makeIdea({ suggestedDate: DAY16 });
+    let persisted: Trip | undefined;
+    renderStatefulTab(makeTrip({ ideas: [idea] }), (t) => {
+      persisted = t;
+    });
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /On 16 Sep/ }));
+    await waitFor(() => expect(screen.queryByText('Ramen crawl')).not.toBeInTheDocument());
+
+    expect(persisted).toBeDefined();
+    expect(persisted!.ideas).toHaveLength(0);
+    expect(persisted!.itineraryStops.some((s) => s.title === 'Ramen crawl')).toBe(true);
+
+    // Simulate a hard reload: mount a brand-new ItineraryTab from exactly
+    // the data that was written, the same way TripDetailScreen re-fetches
+    // and remounts this tab after a refresh.
+    cleanup();
+    render(
+      <AuthProvider>
+        <ItineraryTabHarness trip={persisted!} updateTrip={vi.fn().mockResolvedValue(undefined)} />
+      </AuthProvider>,
+    );
+    await user.click(screen.getByRole('tab', { name: /16/ }));
+    expect(screen.getByRole('button', { name: /Open Ramen crawl/ })).toBeInTheDocument();
+  });
+
+  // 12. Existing normal Stop creation/edit tests (every other describe block
+  // in this file, plus activityValidation.test.ts) pass unmodified — see the
+  // full regression run in the implementation report.
 });

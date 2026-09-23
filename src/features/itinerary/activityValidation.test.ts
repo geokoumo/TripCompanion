@@ -89,6 +89,23 @@ describe('validateStopForSave', () => {
     const candidate = makeStop({ id: 'a1', time: '10:00', durationMinutes: 60 });
     expect(validateStopForSave(candidate, makeTrip(), [preEditSelf])).toEqual([]);
   });
+
+  // Idea assignment (ItineraryTab.assignIdeaToDay) builds a Stop with this
+  // exact shape — id/date/time/allDay/durationMinutes/title/type/location/
+  // link/note/travelerIds/done — and calls this same function to validate
+  // it. Ideas never carry their own time/duration (always a fixed '12:00'/
+  // 60min), so a malformed value can't reach here through that UI today,
+  // but confirming this function rejects one anyway is what guarantees that
+  // path is protected too, with no separate/weaker rule of its own.
+  it("rejects a malformed time on the exact stop shape Idea assignment builds", () => {
+    const errors = validateStopForSave(makeStop({ time: 'not-a-time' }), makeTrip(), []);
+    expect(errors.some((e) => e.code === 'INVALID_TIME_RANGE')).toBe(true);
+  });
+
+  it('rejects a non-positive duration on the exact stop shape Idea assignment builds', () => {
+    const errors = validateStopForSave(makeStop({ durationMinutes: 0 }), makeTrip(), []);
+    expect(errors.some((e) => e.code === 'INVALID_DURATION')).toBe(true);
+  });
 });
 
 describe('describeActivityError', () => {

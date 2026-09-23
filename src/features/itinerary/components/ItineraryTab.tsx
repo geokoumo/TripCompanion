@@ -160,7 +160,16 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
 
   const addIdea = (idea: Idea) => updateTrip((t) => ({ ...t, ideas: [...t.ideas, idea] }));
   const removeIdea = (id: string) => deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'ideas', id });
-  const assignIdeaToDay = (idea: Idea) => {
+
+  // An assigned Idea becomes a real Stop, so it must clear exactly the same
+  // gate a manually created/edited Stop does — same validateStopForSave call,
+  // same fresh-trip refetch as saveStop above (so a conflict introduced by
+  // another tab/device since the Idea was opened is still caught), same
+  // upsertItineraryStop repository helper, same error surface. Building the
+  // Stop and writing it directly, with no validation at all, was the bug
+  // this closes — a rejected assignment must leave the Idea in place and
+  // persist nothing.
+  const assignIdeaToDay = async (idea: Idea) => {
     const date = idea.suggestedDate ?? selectedDate;
     const time = '12:00';
     const stop: ItineraryStop = {
@@ -177,10 +186,17 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
       travelerIds: [],
       done: false,
     };
-    void updateTrip((t) => ({
-      ...t,
+
+    const freshTrip = (await getFullTrip(trip.id)) ?? trip;
+    const errors = validateStopForSave(stop, freshTrip, freshTrip.itineraryStops);
+    if (errors.length > 0) {
+      showToast(describeActivityError(errors[0]!, freshTrip.itineraryStops), { variant: 'error' });
+      return;
+    }
+
+    await updateTrip((t) => ({
+      ...upsertItineraryStop(t, stop),
       ideas: t.ideas.filter((i) => i.id !== idea.id),
-      itineraryStops: [...t.itineraryStops, stop],
     }));
     showToast(`Added to ${formatDateNoYear(date)} at ${time}.`);
   };
