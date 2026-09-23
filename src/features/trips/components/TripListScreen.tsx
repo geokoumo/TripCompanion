@@ -1,7 +1,7 @@
 import { Suspense, useRef, useState } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { CreateTripWizardLazy, ShareSheetLazy } from '../../../app/lazyScreens';
+import { ShareSheetLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
@@ -9,6 +9,7 @@ import { StampToggle } from '../../../shared/components/StampToggle';
 import { formatDateShort, todayStr } from '../../../shared/lib/dateFormat';
 import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { useTrips } from '../hooks/useTrips';
+import { cloneTripForDuplication } from '../lib/cloneTripForDuplication';
 import { downloadTripAsJson, parseImportedTrip } from '../lib/tripFile';
 import type { Trip, TripTab } from '../types';
 import { ManageTravelersSheet } from '../../travelers/components/ManageTravelersSheet';
@@ -29,7 +30,6 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
   const [menuTrip, setMenuTrip] = useState<Trip | null>(null);
   const [shareTrip, setShareTrip] = useState<Trip | null>(null);
-  const [duplicateSource, setDuplicateSource] = useState<Trip | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Trip | null>(null);
   const [editDescriptionTrip, setEditDescriptionTrip] = useState<Trip | null>(null);
   const [manageTravelersTrip, setManageTravelersTrip] = useState<Trip | null>(null);
@@ -93,6 +93,17 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
     }
   };
 
+  const duplicateTrip = async (source: Trip) => {
+    const clone = cloneTripForDuplication(source);
+    try {
+      await saveTrip(clone);
+      showToast(`Duplicated as "${clone.title}".`);
+      onOpenTrip(clone.id);
+    } catch {
+      // saveTrip already surfaces its own failure toast
+    }
+  };
+
   const confirmDeleteTrip = () => {
     if (!pendingDelete) return;
     const snapshot = pendingDelete;
@@ -148,7 +159,7 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
           trip={menuTrip}
           onClose={() => setMenuTrip(null)}
           onShare={() => setShareTrip(menuTrip)}
-          onDuplicate={() => setDuplicateSource(menuTrip)}
+          onDuplicate={() => void duplicateTrip(menuTrip)}
           onExport={() => downloadTripAsJson(menuTrip)}
           onEditDescription={() => setEditDescriptionTrip(menuTrip)}
           onChangeCoverPhoto={() => {
@@ -173,21 +184,6 @@ export function TripListScreen({ onOpenTrip }: TripListScreenProps) {
 
       {editDescriptionTrip && (
         <EditDescriptionSheet trip={editDescriptionTrip} onClose={() => setEditDescriptionTrip(null)} onSave={(updated) => saveTrip(updated)} />
-      )}
-
-      {duplicateSource && (
-        <Suspense fallback={<ScreenLoadingFallback />}>
-          <CreateTripWizardLazy
-            onClose={() => setDuplicateSource(null)}
-            onCreated={() => setDuplicateSource(null)}
-            duplicateSeed={{
-              categories: duplicateSource.budgetCategories,
-              checklistTemplateItems: duplicateSource.checklistItems
-                .filter((i) => i.travelerId === duplicateSource.travelers[0]?.id)
-                .map(({ text, category, quantity }) => ({ text, category, quantity })),
-            }}
-          />
-        </Suspense>
       )}
 
       {pendingDelete && (

@@ -1,9 +1,7 @@
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { CreateTripWizardLazy } from '../../../app/lazyScreens';
 import { LoadingScreen } from '../../../app/LoadingScreen';
-import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { ErrorState } from '../../../shared/components/ErrorState';
 import { TripHealthScreen } from '../../tripHealth/components/TripHealthScreen';
@@ -13,6 +11,7 @@ import { ItineraryTab } from '../../itinerary/components/ItineraryTab';
 import { BudgetTab } from '../../budget/components/BudgetTab';
 import { ChecklistTab } from '../../checklist/components/ChecklistTab';
 import { useTrip } from '../hooks/useTrip';
+import { cloneTripForDuplication } from '../lib/cloneTripForDuplication';
 import type { Trip, TripTab } from '../types';
 import type { AddToTripDestination } from '../../bookings/lib/bookingGridConfig';
 import { InTripBottomNav } from './InTripBottomNav';
@@ -24,6 +23,11 @@ interface TripDetailScreenProps {
   activeTab: TripTab;
   onTabChange: (tab: TripTab) => void;
   onBack: () => void;
+  // Called with the new trip's id right after a successful "Duplicate trip"
+  // — the caller owns global navigation, so it decides where that lands
+  // (currently: straight into the new trip, the same established behavior
+  // as creating any other new trip).
+  onDuplicated: (newTripId: string) => void;
   // Passed through from the app shell's global Add Hub (BottomNav's "+") so
   // BookingsTab can land straight on the chosen destination — see that
   // prop's doc comment on BookingsTab for why it's consumed via an effect.
@@ -36,14 +40,14 @@ export function TripDetailScreen({
   activeTab,
   onTabChange,
   onBack,
+  onDuplicated,
   pendingBookingSubView,
   onConsumePendingBookingSubView,
 }: TripDetailScreenProps) {
   const { trip, loading, updateTrip, saveTrip } = useTrip(tripId);
-  const { deleteTrip } = useTripsContext();
+  const { deleteTrip, saveTrip: saveTripToContext } = useTripsContext();
   const { showToast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [duplicating, setDuplicating] = useState(false);
   const [showTripHealth, setShowTripHealth] = useState(false);
   // Lifted out of ItineraryTab so the selected day survives switching to
   // another in-trip tab and back — ItineraryTab itself unmounts on every
@@ -76,6 +80,17 @@ export function TripDetailScreen({
     });
   };
 
+  const duplicateTrip = async () => {
+    const clone = cloneTripForDuplication(trip);
+    try {
+      await saveTripToContext(clone);
+      showToast(`Duplicated as "${clone.title}".`);
+      onDuplicated(clone.id);
+    } catch {
+      // saveTrip already surfaces its own failure toast
+    }
+  };
+
   return (
     <div style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
       {showTripHealth ? (
@@ -93,7 +108,7 @@ export function TripDetailScreen({
             trip={trip}
             onBack={onBack}
             onArchiveToggle={() => void saveTrip({ ...trip, archived: !trip.archived })}
-            onDuplicate={() => setDuplicating(true)}
+            onDuplicate={() => void duplicateTrip()}
             onDeleteRequest={() => setConfirmDelete(true)}
             onSaveTrip={(updated) => saveTrip(updated)}
             hideDates={activeTab === 'overview'}
@@ -128,24 +143,6 @@ export function TripDetailScreen({
 
       {confirmDelete && (
         <DeleteConfirmSheet itemName={trip.title} onCancel={() => setConfirmDelete(false)} onConfirm={confirmDeleteTrip} />
-      )}
-
-      {duplicating && (
-        <Suspense fallback={<ScreenLoadingFallback />}>
-          <CreateTripWizardLazy
-            onClose={() => setDuplicating(false)}
-            onCreated={() => {
-              setDuplicating(false);
-              onBack();
-            }}
-            duplicateSeed={{
-              categories: trip.budgetCategories,
-              checklistTemplateItems: trip.checklistItems
-                .filter((i) => i.travelerId === trip.travelers[0]?.id)
-                .map(({ text, category, quantity }) => ({ text, category, quantity })),
-            }}
-          />
-        </Suspense>
       )}
     </div>
   );

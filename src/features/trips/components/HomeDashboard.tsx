@@ -2,7 +2,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { useTripsContext } from '../../../app/providers/TripsProvider';
-import { CreateTripWizardLazy, ShareSheetLazy } from '../../../app/lazyScreens';
+import { ShareSheetLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { getOwnProfile } from '../../../data/repository/profileRepository';
@@ -18,6 +18,7 @@ import { downloadTripAsJson } from '../lib/tripFile';
 import { daysBetween, formatDateShort, nowTimeStr, todayStr } from '../../../shared/lib/dateFormat';
 import { buildTripMoments, formatRelativeMinutes, getCurrentAndNextMoment, minutesUntilMoment } from '../lib/timeline';
 import { getActiveOrNextTrip } from '../lib/activeTrip';
+import { cloneTripForDuplication } from '../lib/cloneTripForDuplication';
 import { destinationLabel } from '../lib/summary';
 import { getTripStatus, type Trip, type TripListItem, type TripTab } from '../types';
 import { useCoverPhotoUrl } from '../lib/useCoverPhotoUrl';
@@ -63,7 +64,6 @@ export function HomeDashboard({ onOpenTrip, onSeeAllTrips, onCreateTrip, onOpenS
   const [manageTravelersOpen, setManageTravelersOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [duplicateOpen, setDuplicateOpen] = useState(false);
   const coverPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const active = getActiveOrNextTrip(trips);
@@ -110,6 +110,17 @@ export function HomeDashboard({ onOpenTrip, onSeeAllTrips, onCreateTrip, onOpenS
       showToast('Cover photo updated.');
     } catch {
       showToast('Upload failed. Try again.', { variant: 'error' });
+    }
+  };
+
+  const duplicateTrip = async (source: Trip) => {
+    const clone = cloneTripForDuplication(source);
+    try {
+      await saveTrip(clone);
+      showToast(`Duplicated as "${clone.title}".`);
+      onOpenTrip(clone.id);
+    } catch {
+      // saveTrip already surfaces its own failure toast
     }
   };
 
@@ -253,7 +264,7 @@ export function HomeDashboard({ onOpenTrip, onSeeAllTrips, onCreateTrip, onOpenS
           trip={fullTrip}
           onClose={() => setMenuOpen(false)}
           onShare={() => setShareOpen(true)}
-          onDuplicate={() => setDuplicateOpen(true)}
+          onDuplicate={() => void duplicateTrip(fullTrip)}
           onExport={() => downloadTripAsJson(fullTrip)}
           onEditDescription={() => setEditDescriptionOpen(true)}
           onChangeCoverPhoto={() => coverPhotoInputRef.current?.click()}
@@ -274,21 +285,6 @@ export function HomeDashboard({ onOpenTrip, onSeeAllTrips, onCreateTrip, onOpenS
       {shareOpen && fullTrip && (
         <Suspense fallback={<ScreenLoadingFallback />}>
           <ShareSheetLazy trip={fullTrip} onClose={() => setShareOpen(false)} onSave={(updated) => void saveTrip(updated)} />
-        </Suspense>
-      )}
-
-      {duplicateOpen && fullTrip && (
-        <Suspense fallback={<ScreenLoadingFallback />}>
-          <CreateTripWizardLazy
-            onClose={() => setDuplicateOpen(false)}
-            onCreated={() => setDuplicateOpen(false)}
-            duplicateSeed={{
-              categories: fullTrip.budgetCategories,
-              checklistTemplateItems: fullTrip.checklistItems
-                .filter((i) => i.travelerId === fullTrip.travelers[0]?.id)
-                .map(({ text, category, quantity }) => ({ text, category, quantity })),
-            }}
-          />
         </Suspense>
       )}
 

@@ -33,18 +33,12 @@ const STEP_SUBTITLES: Record<number, string> = {
 
 const STARTER_CATEGORY_NAMES = BUDGET_CATEGORY_PRESETS.slice(0, 3);
 
-export interface DuplicateSeed {
-  categories: BudgetCategory[];
-  checklistTemplateItems: { text: string; category: string; quantity: number }[];
-}
-
 interface CreateTripWizardProps {
   onClose: () => void;
   onCreated: (tripId: string) => void;
-  duplicateSeed?: DuplicateSeed;
 }
 
-export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTripWizardProps) {
+export function CreateTripWizard({ onClose, onCreated }: CreateTripWizardProps) {
   const { saveTrip } = useTripsContext();
   const { showToast } = useToast();
   const [step, setStep] = useState(0);
@@ -105,17 +99,15 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
         ? legs
         : [{ id: generateId(), city: '', country: '', startDate, endDate, currency: getDefaultCurrency() }];
 
-    const checklistItems = duplicateSeed
-      ? effectiveTravelers.flatMap((t) =>
-          duplicateSeed.checklistTemplateItems.map((item) => ({ id: generateId(), travelerId: t.id, ...item, done: false })),
-        )
-      : effectiveTravelers.flatMap((t) =>
-          template === '__master__' ? loadMasterTemplate(t.id) : template ? buildChecklistFromTemplate(template, t.id) : [],
-        );
+    const checklistItems = effectiveTravelers.flatMap((t) =>
+      template === '__master__' ? loadMasterTemplate(t.id) : template ? buildChecklistFromTemplate(template, t.id) : [],
+    );
 
-    const budgetCategories: BudgetCategory[] = duplicateSeed
-      ? duplicateSeed.categories.map((c) => ({ ...c, id: generateId() }))
-      : STARTER_CATEGORY_NAMES.map((name, i) => ({ id: generateId(), name, color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]! }));
+    const budgetCategories: BudgetCategory[] = STARTER_CATEGORY_NAMES.map((name, i) => ({
+      id: generateId(),
+      name,
+      color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]!,
+    }));
 
     const trip: Trip = {
       id: generateId(),
@@ -142,7 +134,7 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
 
     try {
       await saveTrip(trip);
-      showToast(duplicateSeed ? 'Copied the budget categories and packing template only.' : 'Trip created.');
+      showToast('Trip created.');
       onCreated(trip.id);
     } catch {
       // saveTrip already surfaces a toast on failure
@@ -295,21 +287,15 @@ export function CreateTripWizard({ onClose, onCreated, duplicateSeed }: CreateTr
 
       {step === 3 && (
         <>
-          {duplicateSeed ? (
-            <p className={styles.note}>The packing list will be copied from the original trip.</p>
-          ) : (
-            <>
-              <ChipSelect
-                options={[
-                  ...TEMPLATE_NAMES.map((name) => ({ id: name, label: name })),
-                  ...(hasMasterTemplate() ? [{ id: '__master__', label: 'Saved template' }] : []),
-                ]}
-                value={template ?? ''}
-                onChange={(id) => setTemplate(id)}
-              />
-              <p className={styles.note}>The template just pre-fills the list. You can change all of it later.</p>
-            </>
-          )}
+          <ChipSelect
+            options={[
+              ...TEMPLATE_NAMES.map((name) => ({ id: name, label: name })),
+              ...(hasMasterTemplate() ? [{ id: '__master__', label: 'Saved template' }] : []),
+            ]}
+            value={template ?? ''}
+            onChange={(id) => setTemplate(id)}
+          />
+          <p className={styles.note}>The template just pre-fills the list. You can change all of it later.</p>
         </>
       )}
 

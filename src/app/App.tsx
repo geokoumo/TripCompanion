@@ -48,6 +48,7 @@ function Router({
         activeTab={route.tab}
         onTabChange={(tab) => navigate({ name: 'trip', tripId: route.tripId, tab })}
         onBack={() => navigate({ name: 'home' })}
+        onDuplicated={(newTripId) => navigate({ name: 'trip', tripId: newTripId, tab: 'overview' })}
         pendingBookingSubView={pendingBookingSubView}
         onConsumePendingBookingSubView={onConsumePendingBookingSubView}
       />
