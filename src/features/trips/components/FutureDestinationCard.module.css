@@ -58,3 +58,16 @@
   font-weight: 600;
   line-height: 1.15;
 }
+
+/* HomeDashboard stacks these full-width in a single column at desktop
+   (see its own module.css) instead of side-scrolling — a wide banner reads
+   better at that width than the mobile portrait crop. */
+@media (min-width: 1024px) {
+  .card {
+    width: 100%;
+  }
+
+  .photoWrap {
+    aspect-ratio: 3 / 1;
+  }
+}

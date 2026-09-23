@@ -228,3 +228,61 @@
   padding-left: var(--space-5);
   padding-right: var(--space-5);
 }
+
+/* Design 2.0's desktop Home is a two-column composition (a wide banner
+   hero, then Next Important Activity beside Future Destinations) rather
+   than the mobile column stretched into the sidebar's empty space. Every
+   piece below stays the same component with the same real data — only the
+   arrangement changes. */
+@media (min-width: 1024px) {
+  .screen {
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--space-6);
+    row-gap: var(--space-5);
+    grid-template-areas:
+      'header header'
+      'hero hero'
+      'activity future';
+  }
+
+  .header {
+    grid-area: header;
+    margin-bottom: 0;
+  }
+
+  .greeting {
+    font-size: var(--fs-2xl);
+  }
+
+  .hero {
+    grid-area: hero;
+    aspect-ratio: auto;
+    height: 320px;
+    max-height: none;
+    margin-bottom: 0;
+  }
+
+  .heroDestination {
+    font-size: var(--fs-2xl);
+  }
+
+  .activityRow {
+    grid-area: activity;
+    margin-bottom: 0;
+    align-self: start;
+  }
+
+  .futureSection {
+    grid-area: future;
+    margin-bottom: 0;
+  }
+
+  .futureScroll {
+    flex-direction: column;
+    overflow-x: visible;
+    margin: 0;
+    padding: 0;
+  }
+}

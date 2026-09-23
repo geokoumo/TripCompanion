@@ -17,7 +17,7 @@
   flex-shrink: 0;
   width: 52px;
   padding: 10px 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   border: 1.5px solid var(--color-border-strong);
   background: var(--color-surface-raised);
   font: inherit;

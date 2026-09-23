@@ -5,6 +5,16 @@
   margin: 0 auto;
 }
 
+/* Matches TripDetailScreen's own desktop widen (see its module.css) — a
+   list of trip cards centered in the same narrow 640px column reads as an
+   accidentally-compressed mobile layout once there's real space beside the
+   sidebar, not an intentional desktop composition. */
+@media (min-width: 1024px) {
+  .screen {
+    max-width: 900px;
+  }
+}
+
 .topRow {
   display: flex;
   align-items: flex-start;
