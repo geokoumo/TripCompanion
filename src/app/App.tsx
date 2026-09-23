@@ -7,6 +7,9 @@ import { ResetPasswordScreen } from '../features/auth/components/ResetPasswordSc
 import { TripListScreen } from '../features/trips/components/TripListScreen';
 import { TripDetailScreen } from '../features/trips/components/TripDetailScreen';
 import { HomeDashboard } from '../features/trips/components/HomeDashboard';
+import { getActiveOrNextTrip } from '../features/trips/lib/activeTrip';
+import { AddToTripSheet } from '../features/bookings/components/AddToTripSheet';
+import type { AddToTripDestination } from '../features/bookings/lib/bookingGridConfig';
 import { useHashRoute, type Route, type TopLevelTab } from '../shared/lib/useHashRoute';
 import { BottomNav } from './BottomNav';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -18,12 +21,26 @@ import { ScreenLoadingFallback } from './ScreenLoadingFallback';
 import { Sidebar } from './Sidebar';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './providers/ToastProvider';
-import { TripsProvider } from './providers/TripsProvider';
+import { TripsProvider, useTripsContext } from './providers/TripsProvider';
 import styles from './App.module.css';
 
 const TOP_LEVEL_ROUTES = new Set(['home', 'trips', 'search', 'more']);
 
-function Router({ route, navigate, onCreateTrip, onOpenSettings }: { route: Route; navigate: (route: Route) => void; onCreateTrip: () => void; onOpenSettings: () => void }) {
+function Router({
+  route,
+  navigate,
+  onCreateTrip,
+  onOpenSettings,
+  pendingBookingSubView,
+  onConsumePendingBookingSubView,
+}: {
+  route: Route;
+  navigate: (route: Route) => void;
+  onCreateTrip: () => void;
+  onOpenSettings: () => void;
+  pendingBookingSubView: AddToTripDestination | null;
+  onConsumePendingBookingSubView: () => void;
+}) {
   if (route.name === 'trip') {
     return (
       <TripDetailScreen
@@ -31,6 +48,8 @@ function Router({ route, navigate, onCreateTrip, onOpenSettings }: { route: Rout
         activeTab={route.tab}
         onTabChange={(tab) => navigate({ name: 'trip', tripId: route.tripId, tab })}
         onBack={() => navigate({ name: 'home' })}
+        pendingBookingSubView={pendingBookingSubView}
+        onConsumePendingBookingSubView={onConsumePendingBookingSubView}
       />
     );
   }
@@ -57,6 +76,45 @@ function Router({ route, navigate, onCreateTrip, onOpenSettings }: { route: Rout
   );
 }
 
+// The global "+" (BottomNav) needs the trip list to resolve which trip it's
+// adding to (getActiveOrNextTrip, same resolution BottomNav's own Itinerary
+// button and Sidebar's desktop nav already use) — that requires
+// useTripsContext(), which only works below <TripsProvider> in the tree, so
+// this lives as its own component rendered inside it rather than in
+// AuthGatedApp itself (which renders TripsProvider, not a descendant of it).
+function AddHubOverlay({
+  open,
+  onClose,
+  navigate,
+  onDestinationChosen,
+}: {
+  open: boolean;
+  onClose: () => void;
+  navigate: (route: Route) => void;
+  onDestinationChosen: (destination: AddToTripDestination) => void;
+}) {
+  const { trips } = useTripsContext();
+  if (!open) return null;
+
+  return (
+    <AddToTripSheet
+      onClose={onClose}
+      onSelect={(destination) => {
+        const trip = getActiveOrNextTrip(trips);
+        if (trip) {
+          onDestinationChosen(destination);
+          navigate({ name: 'trip', tripId: trip.id, tab: destination === 'stays' ? 'stays' : 'flights' });
+        } else {
+          // No eligible trip to add into — same fallback BottomNav's own
+          // Itinerary button uses. Never create a trip on the app's behalf.
+          navigate({ name: 'trips' });
+        }
+        onClose();
+      }}
+    />
+  );
+}
+
 // Gates the app behind the initial auth-session resolution — otherwise a
 // signed-in user briefly sees a signed-out shell (and, once the repository
 // switch lands, could even glimpse the other data source) before the real
@@ -66,6 +124,8 @@ function AuthGatedApp() {
   const [route, navigate] = useHashRoute();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [addHubOpen, setAddHubOpen] = useState(false);
+  const [pendingBookingSubView, setPendingBookingSubView] = useState<AddToTripDestination | null>(null);
   const { continuingLocally, setContinuingLocally } = useGuestGate(user);
   const { localTrips, dismiss: dismissLocalTripsPrompt } = useLocalTripsImportPrompt(!!user);
 
@@ -105,11 +165,25 @@ function AuthGatedApp() {
 
         <div className={styles.content} style={{ paddingBottom: showBottomNav ? 'var(--bottom-nav-clearance)' : 0 }}>
           <Suspense fallback={<ScreenLoadingFallback />}>
-            <Router route={route} navigate={navigate} onCreateTrip={() => setWizardOpen(true)} onOpenSettings={() => setSettingsOpen(true)} />
+            <Router
+              route={route}
+              navigate={navigate}
+              onCreateTrip={() => setWizardOpen(true)}
+              onOpenSettings={() => setSettingsOpen(true)}
+              pendingBookingSubView={pendingBookingSubView}
+              onConsumePendingBookingSubView={() => setPendingBookingSubView(null)}
+            />
           </Suspense>
         </div>
 
-        {showBottomNav && <BottomNav active={activeTab} onNavigate={navigate} onCreateTrip={() => setWizardOpen(true)} />}
+        {showBottomNav && <BottomNav active={activeTab} onNavigate={navigate} onAddTap={() => setAddHubOpen(true)} />}
+
+        <AddHubOverlay
+          open={addHubOpen}
+          onClose={() => setAddHubOpen(false)}
+          navigate={navigate}
+          onDestinationChosen={setPendingBookingSubView}
+        />
 
         {wizardOpen && (
           <Suspense fallback={<ScreenLoadingFallback />}>

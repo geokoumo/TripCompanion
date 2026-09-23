@@ -7,7 +7,7 @@ import styles from './BottomNav.module.css';
 interface BottomNavProps {
   active: TopLevelTab;
   onNavigate: (route: Route) => void;
-  onCreateTrip: () => void;
+  onAddTap: () => void;
 }
 
 /**
@@ -17,8 +17,11 @@ interface BottomNavProps {
  * actually on a trip. "Itinerary" here has no trip of its own to show
  * outside that context, so it jumps into whichever trip is active right
  * now or soonest upcoming, the same resolution Sidebar's desktop nav uses.
+ * "+" opens the Add Hub (the same quick-add sheet the in-trip Bookings tab
+ * uses) against that same active-or-next trip — it does not create a trip;
+ * Create Trip stays reachable via Home/Trips/Sidebar's own entry points.
  */
-export function BottomNav({ active, onNavigate, onCreateTrip }: BottomNavProps) {
+export function BottomNav({ active, onNavigate, onAddTap }: BottomNavProps) {
   const { trips } = useTripsContext();
 
   const openItinerary = () => {
@@ -37,7 +40,7 @@ export function BottomNav({ active, onNavigate, onCreateTrip }: BottomNavProps) 
           <SuitcaseIcon size={20} />
           Trips
         </button>
-        <button type="button" className={styles.createButton} onClick={onCreateTrip} aria-label="New trip">
+        <button type="button" className={styles.createButton} onClick={onAddTap} aria-label="Add to trip">
           +
         </button>
         <button type="button" className={styles.item} onClick={openItinerary}>

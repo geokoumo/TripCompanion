@@ -14,6 +14,7 @@ import { BudgetTab } from '../../budget/components/BudgetTab';
 import { ChecklistTab } from '../../checklist/components/ChecklistTab';
 import { useTrip } from '../hooks/useTrip';
 import type { Trip, TripTab } from '../types';
+import type { AddToTripDestination } from '../../bookings/lib/bookingGridConfig';
 import { InTripBottomNav } from './InTripBottomNav';
 import { TripHeader } from './TripHeader';
 import styles from './TripDetailScreen.module.css';
@@ -23,9 +24,21 @@ interface TripDetailScreenProps {
   activeTab: TripTab;
   onTabChange: (tab: TripTab) => void;
   onBack: () => void;
+  // Passed through from the app shell's global Add Hub (BottomNav's "+") so
+  // BookingsTab can land straight on the chosen destination — see that
+  // prop's doc comment on BookingsTab for why it's consumed via an effect.
+  pendingBookingSubView?: AddToTripDestination | null;
+  onConsumePendingBookingSubView?: () => void;
 }
 
-export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: TripDetailScreenProps) {
+export function TripDetailScreen({
+  tripId,
+  activeTab,
+  onTabChange,
+  onBack,
+  pendingBookingSubView,
+  onConsumePendingBookingSubView,
+}: TripDetailScreenProps) {
   const { trip, loading, updateTrip, saveTrip } = useTrip(tripId);
   const { deleteTrip } = useTripsContext();
   const { showToast } = useToast();
@@ -88,7 +101,14 @@ export function TripDetailScreen({ tripId, activeTab, onTabChange, onBack }: Tri
           <div className={styles.content}>
             {activeTab === 'overview' && <OverviewTab trip={trip} updateTrip={updateTrip} onOpenTripHealth={() => setShowTripHealth(true)} />}
             {(activeTab === 'flights' || activeTab === 'stays') && (
-              <BookingsTab trip={trip} activeTab={activeTab} onTabChange={onTabChange} updateTrip={updateTrip} />
+              <BookingsTab
+                trip={trip}
+                activeTab={activeTab}
+                onTabChange={onTabChange}
+                updateTrip={updateTrip}
+                pendingSubView={pendingBookingSubView}
+                onConsumePendingSubView={onConsumePendingBookingSubView}
+              />
             )}
             {activeTab === 'itinerary' && (
               <ItineraryTab

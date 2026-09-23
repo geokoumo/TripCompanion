@@ -1,4 +1,4 @@
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { DocumentsListScreenLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { BOOKING_ITEM_TYPES, type BookingItemTypeId } from '../../../config/constants';
@@ -21,6 +21,14 @@ interface BookingsTabProps {
   activeTab: Extract<TripTab, 'flights' | 'stays'>;
   onTabChange: (tab: TripTab) => void;
   updateTrip: ReturnType<typeof useTrip>['updateTrip'];
+  // Set by the app shell's global "+" (BottomNav) when it navigates here
+  // with a destination already chosen from the Add Hub, so this tab lands
+  // straight on that destination instead of the default unified feed.
+  // Consumed via an effect (not a useState initializer) because navigating
+  // to an unchanged hash doesn't remount this component — e.g. tapping "+"
+  // while already on the Bookings tab — so a mount-only read would miss it.
+  pendingSubView?: AddToTripDestination | null;
+  onConsumePendingSubView?: () => void;
 }
 
 const SWITCHER_ITEMS: { id: SubView; label: string; Icon: typeof PlaneIcon }[] = [
@@ -47,7 +55,7 @@ const BOOKING_TYPE_IDS = new Set<string>(BOOKING_ITEM_TYPES.map((t) => t.id));
  * connected set of bookings instead of leading with a single type. The
  * per-type pills still exist for focused management of just one type.
  */
-export function BookingsTab({ trip, activeTab, onTabChange, updateTrip }: BookingsTabProps) {
+export function BookingsTab({ trip, activeTab, onTabChange, updateTrip, pendingSubView, onConsumePendingSubView }: BookingsTabProps) {
   // 'flights' is also the generic default the bottom nav's "Bookings" button
   // always navigates to, so it can't signal real intent to land on Flights
   // specifically — treat it as "just entered Bookings" and show the unified
@@ -60,6 +68,15 @@ export function BookingsTab({ trip, activeTab, onTabChange, updateTrip }: Bookin
     setSubView(view);
     if (view === 'flights' || view === 'stays') onTabChange(view);
   };
+
+  useEffect(() => {
+    if (!pendingSubView) return;
+    select(pendingSubView);
+    onConsumePendingSubView?.();
+    // Deliberately keyed on pendingSubView alone: it's a one-shot signal the
+    // parent clears right after this runs, so re-running on every render of
+    // select/onConsumePendingSubView would just re-apply an already-consumed value.
+  }, [pendingSubView]);
 
   return (
     <div>
