@@ -3,7 +3,7 @@ import { useToast } from '../../../app/providers/ToastProvider';
 import { Button } from '../../../shared/components/Button';
 import { Modal } from '../../../shared/components/Modal';
 import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
-import { generateId } from '../../../shared/lib/id';
+import { generateShareToken } from '../../../shared/lib/id';
 import { TRIP_TABS, type Trip, type TripTab } from '../types';
 import styles from './ShareSheet.module.css';
 
@@ -42,7 +42,7 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
   // behavior) could show a working link even if the save failed.
   const generateLink = () =>
     void run(async () => {
-      const token = generateId();
+      const token = generateShareToken();
       try {
         await onSave({
           ...trip,

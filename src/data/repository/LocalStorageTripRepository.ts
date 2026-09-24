@@ -15,13 +15,24 @@ const legacyTripKey = (id: string) => `tripcompanion:trip:${id}`;
 
 type RawTripRecord = Record<string, unknown>;
 
-function readRawList(): RawTripRecord[] {
+// `raw` corrupted here means something outside this app's own writes
+// clobbered the key (setItem is atomic, so the app itself never leaves it
+// half-written) — surface that distinctly from "no trips yet" rather than
+// silently presenting an empty list, which would look like the user's trips
+// just vanished. Never write anything back in this branch: the corrupted
+// key is left alone in storage in case some other repair is possible.
+function readRawList(onCorrupted?: () => void): RawTripRecord[] {
   const raw = storageAdapter.get(TRIPS_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as RawTripRecord[]) : [];
+    if (!Array.isArray(parsed)) {
+      onCorrupted?.();
+      return [];
+    }
+    return parsed as RawTripRecord[];
   } catch {
+    onCorrupted?.();
     return [];
   }
 }
@@ -75,13 +86,15 @@ function migrateLegacyStorage(): void {
   storageAdapter.remove(LEGACY_INDEX_KEY);
 }
 
+const CORRUPTED_MESSAGE = 'Your saved trips could not be read. Local data may be corrupted.';
+
 export class LocalStorageTripRepository implements TripRepository {
   /** Wired up by the app shell so a record that fails to load surfaces a toast instead of silently vanishing. */
   onRecordError: (message: string) => void = () => {};
 
   async getTrips(): Promise<TripListItem[]> {
     migrateLegacyStorage();
-    const list = readRawList();
+    const list = readRawList(() => this.onRecordError(CORRUPTED_MESSAGE));
     const items: TripListItem[] = [];
     for (const record of list) {
       try {
@@ -96,7 +109,7 @@ export class LocalStorageTripRepository implements TripRepository {
 
   async getTrip(id: string): Promise<Trip | null> {
     migrateLegacyStorage();
-    const record = readRawList().find((r) => r.id === id);
+    const record = readRawList(() => this.onRecordError(CORRUPTED_MESSAGE)).find((r) => r.id === id);
     if (!record) return null;
     try {
       const migrated = migrateTrip(record);
@@ -109,7 +122,16 @@ export class LocalStorageTripRepository implements TripRepository {
 
   async saveTrip(trip: Trip): Promise<void> {
     const validated = TripSchema.parse(trip);
-    const list = readRawList();
+    // If the existing key is unreadable, writing on top of it would persist
+    // an empty-list interpretation over storage.getItem()'s true (corrupted)
+    // contents — turning a possibly-recoverable corruption into a permanent
+    // loss of every other trip. Refuse the write instead; the caller's
+    // existing save-failed handling (rollback + toast) takes it from there.
+    let corrupted = false;
+    const list = readRawList(() => {
+      corrupted = true;
+    });
+    if (corrupted) throw new Error('local-storage-corrupted');
     const index = list.findIndex((r) => r.id === validated.id);
     if (index >= 0) {
       list[index] = validated;
@@ -120,14 +142,19 @@ export class LocalStorageTripRepository implements TripRepository {
   }
 
   async deleteTrip(id: string): Promise<void> {
-    writeRawList(readRawList().filter((r) => r.id !== id));
+    let corrupted = false;
+    const list = readRawList(() => {
+      corrupted = true;
+    });
+    if (corrupted) throw new Error('local-storage-corrupted');
+    writeRawList(list.filter((r) => r.id !== id));
   }
 
   async searchTrips(query: string): Promise<SearchResultGroup[]> {
     if (!query.trim()) return [];
     migrateLegacyStorage();
     const groups: SearchResultGroup[] = [];
-    for (const record of readRawList()) {
+    for (const record of readRawList(() => this.onRecordError(CORRUPTED_MESSAGE))) {
       let trip: Trip;
       try {
         trip = TripSchema.parse(migrateTrip(record));
