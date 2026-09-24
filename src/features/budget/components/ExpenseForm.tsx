@@ -181,10 +181,16 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
         error={!dateValid && range ? `Outside the trip (${formatDateNoYear(range.startDate)} – ${formatDateNoYear(range.endDate)})` : undefined}
       />
 
-      {travelers.length > 0 && (
+      {travelers.length > 0 ? (
         <FieldWrapper label="Paid by">
           <ChipSelect options={travelers.map((t) => ({ id: t.id, label: t.name }))} value={expense.paidBy} onChange={(id) => update('paidBy', id)} />
         </FieldWrapper>
+      ) : (
+        // Save otherwise stays silently disabled forever — canSave requires
+        // paidBy, and there's no traveler to pick without at least one on
+        // the trip. Same dead end this trip could already be in from
+        // removing every traveler via Manage Travelers.
+        <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>Add a traveler to this trip before logging an expense.</p>
       )}
       {travelers.length > 1 && (
         <FieldWrapper label="Split among">

@@ -262,21 +262,31 @@
     height: 320px;
     max-height: none;
     margin-bottom: 0;
+    min-width: 0;
   }
 
   .heroDestination {
     font-size: var(--fs-2xl);
   }
 
+  /* min-width: 0 on every grid item below: a grid track otherwise sizes to
+     its item's intrinsic minimum content width, and .activityTitle's
+     ellipsis truncation (white-space: nowrap) has no minimum — its full
+     unwrapped text width — unless the item itself is allowed to shrink
+     first. Without this, a long activity title (or destination name) can
+     widen the whole grid past the viewport instead of truncating/wrapping
+     in place. */
   .activityRow {
     grid-area: activity;
     margin-bottom: 0;
     align-self: start;
+    min-width: 0;
   }
 
   .futureSection {
     grid-area: future;
     margin-bottom: 0;
+    min-width: 0;
   }
 
   .futureScroll {

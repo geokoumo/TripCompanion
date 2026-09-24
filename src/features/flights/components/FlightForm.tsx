@@ -94,8 +94,8 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
   const timeCheck = flight.depDate && flight.depTime && flight.arrDate && flight.arrTime ? checkFlightTimeOrder(flight) : null;
 
   const handleSave = () => {
-    if (!flight.flightNumber.trim() || !flight.depAirport.trim() || !flight.arrAirport.trim()) {
-      showToast('Missing flight details — number, departure, arrival.', { variant: 'error' });
+    if (!flight.airline.trim() || !flight.flightNumber.trim() || !flight.depAirport.trim() || !flight.arrAirport.trim()) {
+      showToast('Missing flight details — airline, number, departure, arrival.', { variant: 'error' });
       return;
     }
     if (!flight.depDate || !flight.depTime || !flight.arrDate || !flight.arrTime) {

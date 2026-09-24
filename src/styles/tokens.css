@@ -294,6 +294,17 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: var(--fs-body);
+  /* Nothing in the data model bounds how long a trip title, destination
+     name, activity title, or confirmation number can be, and some real
+     place names (Llanfairpwllgwyngyll…) have no natural break point at
+     all — without this, a single long unbroken word overflows its
+     container and pushes the whole page into horizontal scroll instead of
+     wrapping. Set once here (inherited everywhere) rather than added
+     per-component, since every screen that renders user-entered text is
+     equally exposed to it. Elements that intentionally truncate instead
+     (text-overflow: ellipsis + overflow: hidden) are unaffected — this
+     only matters where a line is otherwise allowed to wrap. */
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
 }
 

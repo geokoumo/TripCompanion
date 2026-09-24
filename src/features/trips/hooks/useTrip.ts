@@ -42,15 +42,37 @@ export function useTrip(tripId: string | undefined) {
   const saveTrip = useCallback(
     async (next: Trip) => {
       await saveTripToContext(next);
+      // Set synchronously, not just via the effect above: two fire-and-forget
+      // updateTrip calls made close together (e.g. checking off two
+      // checklist items in quick succession) each read tripRef.current at
+      // call time, before either save resolves. Waiting on the effect alone
+      // leaves a window — between this promise resolving and React actually
+      // running the effect — where a queued call could still read the
+      // pre-save trip. Assigning the ref here closes that window regardless
+      // of render/effect timing.
+      tripRef.current = next;
       setTrip(next);
     },
     [saveTripToContext],
   );
 
+  // Every updateTrip call is chained onto the previous one rather than run
+  // immediately, so a second call fired before the first's save has
+  // resolved (the normal case for two independent fire-and-forget actions,
+  // e.g. two quick taps on two different checklist items) always applies
+  // its updater on top of the first call's result — never on the same stale
+  // base, which would silently drop whichever write finishes first. A
+  // rejected save doesn't jam the queue for whatever's queued behind it.
+  const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
+
   const updateTrip = useCallback(
-    async (updater: (current: Trip) => Trip) => {
-      if (!tripRef.current) return;
-      await saveTrip(updater(tripRef.current));
+    (updater: (current: Trip) => Trip) => {
+      const run = writeQueueRef.current.then(() => {
+        if (!tripRef.current) return;
+        return saveTrip(updater(tripRef.current));
+      });
+      writeQueueRef.current = run.catch(() => {});
+      return run;
     },
     [saveTrip],
   );
