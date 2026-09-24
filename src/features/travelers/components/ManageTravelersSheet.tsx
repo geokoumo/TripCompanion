@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTripsContext } from '../../../app/providers/TripsProvider';
+import { useToast } from '../../../app/providers/ToastProvider';
 import { Button } from '../../../shared/components/Button';
 import { TextField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
@@ -6,7 +8,7 @@ import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
 import type { Trip } from '../../trips/types';
 import { nextAvatarColor } from '../lib/avatarColors';
-import { getTravelerRemovalImpact, removeTravelerFromTrip } from '../lib/travelerRemoval';
+import { canRemoveTraveler, getTravelerRemovalImpact, removeTravelerFromTrip } from '../lib/travelerRemoval';
 import type { Traveler } from '../types';
 import styles from './ManageTravelersSheet.module.css';
 
@@ -33,6 +35,8 @@ interface PendingRemoval {
  * with an explicit confirmation, mirroring the DB's own cascade behavior.
  */
 export function ManageTravelersSheet({ trip, onClose, onSave }: ManageTravelersSheetProps) {
+  const { getFullTrip } = useTripsContext();
+  const { showToast } = useToast();
   const [travelers, setTravelers] = useState<Traveler[]>(trip.travelers);
   const [name, setName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -99,10 +103,35 @@ export function ManageTravelersSheet({ trip, onClose, onSave }: ManageTravelersS
 
   const save = () =>
     run(async () => {
+      // This sheet's `trip` prop is a snapshot from whenever it opened — it
+      // can go stale while the sheet sits open (e.g. another tab/device adds
+      // an expense for a traveler being removed here). Re-read the trip and
+      // re-check the financial-safety block against that fresh copy right
+      // before committing, the same fresh-read-before-commit pattern used for
+      // itinerary Idea assignment, so a concurrent expense still blocks
+      // removal exactly as it would have if it had existed from the start.
+      const fresh = (await getFullTrip(trip.id)) ?? trip;
       const removedIds = trip.travelers.filter((t) => !travelers.some((w) => w.id === t.id)).map((t) => t.id);
-      let updated = trip;
+      const stillBlocked = removedIds.filter((id) => !canRemoveTraveler(fresh, id));
+      if (stillBlocked.length > 0) {
+        const names = stillBlocked.map((id) => trip.travelers.find((t) => t.id === id)?.name ?? 'A traveler').join(', ');
+        showToast(`${names} now ${stillBlocked.length === 1 ? 'has' : 'have'} an expense linked elsewhere — can't remove. Reopen to see the latest details.`, {
+          variant: 'error',
+        });
+        return;
+      }
+      let updated = fresh;
       for (const id of removedIds) updated = removeTravelerFromTrip(updated, id);
-      await onSave({ ...updated, travelers });
+      // Apply this sheet's own renames/additions on top of the fresh
+      // traveler list (not the stale one), so a traveler added or removed
+      // elsewhere in the meantime is preserved rather than clobbered.
+      const finalTravelers = updated.travelers
+        .map((t) => {
+          const edited = travelers.find((w) => w.id === t.id);
+          return edited && edited.name !== t.name ? { ...t, name: edited.name } : t;
+        })
+        .concat(travelers.filter((t) => !originalIds.has(t.id)));
+      await onSave({ ...updated, travelers: finalTravelers });
       onClose();
     }).catch(() => {});
 

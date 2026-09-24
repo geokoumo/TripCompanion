@@ -86,7 +86,15 @@ export function DocumentDetailSheet({ doc, trip, updateTrip, onClose }: Document
   };
 
   const handleDelete = async () => {
-    await updateTrip((t) => removeDocument(t, doc.id));
+    try {
+      await updateTrip((t) => removeDocument(t, doc.id));
+    } catch {
+      // updateTrip's own failure path already surfaces a "Save failed" toast;
+      // this just stops the rejection from propagating unhandled out of the
+      // fire-and-forget `void handleDelete()` call site, and leaves the sheet
+      // open (not a false "Deleted.") so the user can retry.
+      return;
+    }
     if (!isLocalDataUrl(doc.storagePath)) void deleteTripFile(doc.storagePath);
     showToast('Deleted.');
     onClose();

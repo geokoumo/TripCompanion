@@ -1,8 +1,28 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ManageTravelersSheet } from './ManageTravelersSheet';
 import type { Trip } from '../../trips/types';
+
+// Same pattern as ItineraryTab.test.tsx: a controllable getFullTrip lets the
+// staleness-regression tests below simulate a concurrent edit (e.g. another
+// tab adding an expense) that the sheet's own `trip` prop doesn't know about.
+const { getFullTripMock, showToastMock } = vi.hoisted(() => ({
+  getFullTripMock: vi.fn(),
+  showToastMock: vi.fn(),
+}));
+vi.mock('../../../app/providers/TripsProvider', () => ({
+  useTripsContext: () => ({ getFullTrip: getFullTripMock }),
+}));
+vi.mock('../../../app/providers/ToastProvider', () => ({
+  useToast: () => ({ showToast: showToastMock }),
+}));
+
+beforeEach(() => {
+  getFullTripMock.mockReset();
+  showToastMock.mockReset();
+  getFullTripMock.mockResolvedValue(undefined); // no divergence — falls back to the trip prop, same as the app's own fallback
+});
 
 function makeTrip(overrides: Partial<Trip> = {}): Trip {
   return {
@@ -173,5 +193,62 @@ describe('ManageTravelersSheet', () => {
 
     resolve();
     await vi.waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
+
+  it('re-checks the expense-safety block against fresh data at save time, not the stale trip prop this sheet opened with', async () => {
+    // Regression: the sheet's `trip` prop is a snapshot from whenever it
+    // opened. If another tab/device adds an expense for a traveler being
+    // removed here while this sheet is still open, the confirmation dialog
+    // (built from the stale prop) would show no warning at all — but the
+    // actual save must still refuse to remove that traveler and must not
+    // silently drop the concurrently-added expense.
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const trip = makeTrip(); // no expenses in the stale snapshot
+    const freshWithExpense = makeTrip({
+      expenses: [
+        { id: 'e1', amount: 40, currency: 'EUR', categoryId: 'c1', date: '2026-01-01', paidBy: 'existing2', splitAmong: ['existing1', 'existing2'] },
+      ] as Trip['expenses'],
+    });
+    getFullTripMock.mockResolvedValue(freshWithExpense);
+
+    render(<ManageTravelersSheet trip={trip} onClose={() => {}} onSave={onSave} />);
+
+    // The confirmation dialog itself still reflects the stale snapshot (no
+    // expense known yet) and lets the removal proceed to the travelers list...
+    await user.click(screen.getByRole('button', { name: 'Remove Sam' }));
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+    expect(screen.queryByText('Sam')).not.toBeInTheDocument();
+
+    // ...but committing it must consult fresh data and refuse.
+    await user.click(screen.getByRole('button', { name: /^Save/ }));
+
+    expect(onSave).not.toHaveBeenCalled();
+    expect(showToastMock).toHaveBeenCalledWith(expect.stringContaining("can't remove"), expect.objectContaining({ variant: 'error' }));
+  });
+
+  it('applies removal on top of fresh trip data (not the stale prop) once the safety check passes', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const trip = makeTrip();
+    // Fresh data has an extra expense that doesn't involve the removed
+    // traveler — it must survive the save untouched.
+    const freshTrip = makeTrip({
+      expenses: [
+        { id: 'e1', amount: 15, currency: 'EUR', categoryId: 'c1', date: '2026-01-01', paidBy: 'existing1', splitAmong: ['existing1'] },
+      ] as Trip['expenses'],
+    });
+    getFullTripMock.mockResolvedValue(freshTrip);
+
+    render(<ManageTravelersSheet trip={trip} onClose={() => {}} onSave={onSave} />);
+
+    await user.click(screen.getByRole('button', { name: 'Remove Sam' }));
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+    await user.click(screen.getByRole('button', { name: /^Save/ }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    const saved = onSave.mock.calls[0]![0] as Trip;
+    expect(saved.travelers.map((t) => t.name)).toEqual(['Alex']);
+    expect(saved.expenses).toEqual(freshTrip.expenses);
   });
 });
