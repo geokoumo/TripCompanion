@@ -6,6 +6,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { flightRelatedTo, retagDocuments } from '../../documents/lib/relatedTo';
+import { findStopsOutOfRange, outOfRangeStopsMessage } from '../../itinerary/lib/outOfRangeStops';
 import type { Flight } from '../types';
 import { FlightCard } from './FlightCard';
 import { FlightDetailView } from './FlightDetailView';
@@ -27,14 +28,21 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
   const openFlight = useCallback((flight: Flight) => setViewing(flight), []);
 
   const save = async (flight: Flight) => {
+    let outOfRangeMessage: string | null = null;
     try {
       await updateTrip((t) => {
         const existing = t.flights.find((f) => f.id === flight.id);
         const flights = existing ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight];
-        const documents = existing ? retagDocuments(t.documents, flightRelatedTo(existing), flightRelatedTo(flight)) : t.documents;
-        return { ...t, flights, documents };
+        const documents = existing ? retagDocuments(t.documents, 'flight', flight.id, flightRelatedTo(existing), flightRelatedTo(flight)) : t.documents;
+        const next = { ...t, flights, documents };
+        // F-05: a flight edit can shrink the trip's derived date range —
+        // surface any itinerary stop that's now outside it immediately,
+        // rather than leaving it discoverable only via Trip Health.
+        outOfRangeMessage = outOfRangeStopsMessage(findStopsOutOfRange(next));
+        return next;
       });
       showToast('Flight saved.');
+      if (outOfRangeMessage) showToast(outOfRangeMessage, { variant: 'warn' });
       setEditing(null);
       setCreating(false);
     } catch {
@@ -43,7 +51,15 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
   };
 
   const remove = (flight: Flight) => {
-    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id: flight.id, clearDocumentsRelatedTo: flightRelatedTo(flight) });
+    deleteEntityWithUndo({
+      updateTrip,
+      showToast,
+      arrayKey: 'flights',
+      id: flight.id,
+      clearDocumentsRelatedTo: flightRelatedTo(flight),
+      clearDocumentsSourceType: 'flight',
+      clearDocumentsSourceId: flight.id,
+    });
     setPendingDelete(null);
     setEditing(null);
   };

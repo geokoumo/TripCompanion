@@ -50,4 +50,16 @@ describe('checkFlightTimeOrder', () => {
     const result = checkFlightTimeOrder(makeInput({ depAirport: 'ZZZ', depTimezoneOverride: 'Europe/Athens' }));
     expect(result.unresolvedTimezone).toBe(false);
   });
+
+  // F-07: a flight departing shortly before a DST spring-forward transition
+  // and arriving shortly after it must be judged by real elapsed time (90
+  // real minutes here), not by the 150 minutes the wall clock appears to
+  // show — confirms the fix at the level checkFlightTimeOrder actually uses.
+  it('computes a correct, DST-adjusted elapsed time across a spring-forward transition (America/New_York, 2026-03-08)', () => {
+    const result = checkFlightTimeOrder(
+      makeInput({ depAirport: 'JFK', depDate: '2026-03-08', depTime: '01:30', arrAirport: 'JFK', arrDate: '2026-03-08', arrTime: '04:00' }),
+    );
+    expect(result.isValid).toBe(true);
+    expect(result.arrUtcMs! - result.depUtcMs!).toBe(90 * 60 * 1000);
+  });
 });

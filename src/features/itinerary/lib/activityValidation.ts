@@ -2,6 +2,8 @@ import { validateActivity, type DomainError, type Activity as DomainActivity } f
 import type { DateRange } from '../../../domain';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../../trips/lib/dateRange';
+import type { Flight } from '../../flights/types';
+import type { Stay } from '../../stays/types';
 import type { Trip } from '../../trips/types';
 import type { ItineraryStop } from '../types';
 
@@ -41,6 +43,11 @@ export function validateStopForSave(stop: ItineraryStop, trip: Pick<Trip, 'legs'
   return validateActivity(toDomainActivity(stop), {
     tripRange: tripActivityRange(trip),
     existingActivities: existingStops.map(toDomainActivity),
+    // F-06: real flight/stay travel-window occupancy, checked here so every
+    // caller of validateStopForSave (manual StopForm, idea assignment, and
+    // booking→itinerary) gets it identically — never only the StopForm UI.
+    flights: trip.flights,
+    stays: trip.stays,
   });
 }
 
@@ -52,8 +59,14 @@ const FIELD_LABELS: Record<string, string> = {
   location: 'Location',
 };
 
-/** Turns one machine-readable DomainError into a plain-language message — this presentation layer is deliberately outside src/domain, which never hardcodes copy. */
-export function describeActivityError(error: DomainError, stops: ItineraryStop[]): string {
+/**
+ * Turns one machine-readable DomainError into a plain-language message —
+ * this presentation layer is deliberately outside src/domain, which never
+ * hardcodes copy. `flights`/`stays` are optional and only needed to name the
+ * specific flight/stay a TIME_OVERLAP's conflictingKind points at (F-06);
+ * omitting them still produces a correct, just less specific, message.
+ */
+export function describeActivityError(error: DomainError, stops: ItineraryStop[], flights: Flight[] = [], stays: Stay[] = []): string {
   switch (error.code) {
     case 'MISSING_REQUIRED_DATA':
       return `${FIELD_LABELS[error.field] ?? 'This field'} is required.`;
@@ -66,6 +79,18 @@ export function describeActivityError(error: DomainError, stops: ItineraryStop[]
     case 'INVALID_DURATION':
       return 'Duration must be a positive number of minutes.';
     case 'TIME_OVERLAP': {
+      if (error.conflictingKind === 'flight') {
+        const flight = flights.find((f) => f.id === error.conflictingId);
+        return flight
+          ? `This overlaps with your ${flight.airline} ${flight.flightNumber} flight. Change the time or duration.`
+          : 'This overlaps with one of your flights. Change the time or duration.';
+      }
+      if (error.conflictingKind === 'stay') {
+        const stay = stays.find((s) => s.id === error.conflictingId);
+        return stay
+          ? `This falls on check-in/check-out for "${stay.name}". Change the time or duration.`
+          : 'This falls on a stay\'s check-in/check-out. Change the time or duration.';
+      }
       const conflict = stops.find((s) => s.id === error.conflictingId);
       return conflict
         ? `This overlaps with "${conflict.title}"${conflict.time ? ` at ${conflict.time}` : ''}. Change the time or duration.`

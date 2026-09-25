@@ -59,7 +59,7 @@ export function FlightDetailView({ flight, trip, updateTrip, onClose, onEdit }: 
         {flight.link && <DetailLinkRow label="Link" href={flight.link} />}
       </DetailSection>
 
-      <ItemDocumentsSection trip={trip} relatedTo={flightRelatedTo(flight)} onOpenDocument={setViewingDoc} />
+      <ItemDocumentsSection trip={trip} relatedTo={flightRelatedTo(flight)} sourceType="flight" sourceId={flight.id} onOpenDocument={setViewingDoc} />
 
       {viewingDoc && <DocumentDetailSheet doc={viewingDoc} trip={trip} updateTrip={updateTrip} onClose={() => setViewingDoc(null)} />}
     </Modal>

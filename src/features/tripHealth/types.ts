@@ -18,7 +18,9 @@ export type TripHealthCheckType =
   | 'STAY_OVERLAP'
   | 'MISSING_BOARDING_PASS'
   | 'MISSING_STAY_DOCUMENT'
-  | 'MISSING_EXCHANGE_RATE';
+  | 'MISSING_EXCHANGE_RATE'
+  | 'FLIGHT_TIME_ORDER'
+  | 'MISSING_REQUIRED_FLIGHT_INFO';
 
 /**
  * critical: the trip itself is incomplete (no title/dates/travelers) —

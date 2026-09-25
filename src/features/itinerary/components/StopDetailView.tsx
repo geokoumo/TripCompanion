@@ -4,6 +4,7 @@ import { DetailBlock, DetailLinkRow, DetailRow, DetailSection } from '../../../s
 import { Modal } from '../../../shared/components/Modal';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import type { Traveler } from '../../travelers/types';
+import { stopTravelerLabel } from '../lib/travelerLabel';
 import type { ItineraryStop } from '../types';
 
 interface StopDetailViewProps {
@@ -33,7 +34,7 @@ function durationLabel(minutes: number): string {
  */
 export function StopDetailView({ stop, travelers, onClose, onEdit }: StopDetailViewProps) {
   const type = ITINERARY_STOP_TYPES.find((t) => t.id === stop.type);
-  const travelerLabel = stop.travelerIds.length === 0 ? 'Everyone' : travelers.filter((t) => stop.travelerIds.includes(t.id)).map((t) => t.name).join(', ');
+  const travelerLabel = stopTravelerLabel(stop, travelers, 'Everyone');
 
   return (
     <Modal

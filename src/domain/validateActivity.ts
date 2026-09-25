@@ -1,11 +1,12 @@
 import type { DomainError } from './errors';
-import type { Activity, DateRange } from './schemas';
+import type { Activity, DateRange, Flight, Stay } from './schemas';
 import { validateRequiredData } from './validateRequiredData';
 import { validateActivityDate } from './validateActivityDate';
 import { validateTimeRange } from './validateTimeRange';
 import { validatePriceAndCurrency } from './validatePriceAndCurrency';
 import { validateLocation } from './validateLocation';
 import { detectActivityOverlap } from './detectActivityOverlap';
+import { detectFlightStayOccupancyConflict } from './detectFlightStayOccupancy';
 
 export interface ActivityValidationContext {
   /** The trip's overall date range, or null when it can't be determined yet (e.g. a brand-new trip with no dates set) — DATE_OUT_OF_RANGE is skipped in that case rather than every activity failing closed. */
@@ -16,6 +17,9 @@ export interface ActivityValidationContext {
    * detection excludes it by id internally.
    */
   existingActivities: Activity[];
+  /** The trip's flights/stays, checked for real travel-window occupancy (F-06) — an activity can't fall during a flight's elapsed time or at a stay's exact check-in/check-out instant. Optional and defaulting to none, so an existing caller that doesn't have this data yet (e.g. validateTrip before flights were mapped in) degrades to skipping this check rather than failing to type-check. */
+  flights?: Flight[];
+  stays?: Stay[];
 }
 
 /**
@@ -40,5 +44,6 @@ export function validateActivity(activity: Activity, context: ActivityValidation
     ...validatePriceAndCurrency({ price: activity.price, currency: activity.currency }),
     ...validateLocation(activity.location),
     ...detectActivityOverlap(activity, context.existingActivities),
+    ...detectFlightStayOccupancyConflict(activity, context.flights ?? [], context.stays ?? []),
   ];
 }

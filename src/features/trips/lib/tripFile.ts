@@ -1,4 +1,5 @@
 import { generateId } from '../../../shared/lib/id';
+import { hasInvalidDateOrder } from '../validation';
 import { TripSchema, type Trip } from '../types';
 
 function slugify(text: string): string {
@@ -32,5 +33,12 @@ export function downloadTripAsJson(trip: Trip): void {
 export function parseImportedTrip(fileContents: string): Trip {
   const raw: unknown = JSON.parse(fileContents);
   const parsed = TripSchema.parse(raw);
+  // F-08: reject an imported leg/stay with a backwards date range before it
+  // ever reaches a repository — the same rule both backends enforce at save
+  // time, checked here too so the caller's existing "not a valid trip" error
+  // handling covers this case without a separate message path.
+  if (hasInvalidDateOrder(parsed)) {
+    throw new Error('Imported trip has a leg or stay whose end date is before its start date.');
+  }
   return { ...parsed, id: generateId() };
 }

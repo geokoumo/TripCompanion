@@ -35,6 +35,8 @@ const COPY: Record<string, string> = {
 
   'tripHealth.title.activityConflict': 'Overlapping activities',
   'tripHealth.description.activityConflict': '"{{activity}}" overlaps with "{{conflicting}}" on {{date}}.',
+  'tripHealth.description.activityConflictFlight': '"{{activity}}" overlaps with your {{flight}} flight.',
+  'tripHealth.description.activityConflictStay': '"{{activity}}" falls on check-in/check-out for {{stay}}.',
 
   'tripHealth.title.stayOverlap': 'Overlapping stays',
   'tripHealth.description.stayOverlap': '{{stay}} checkout overlaps with {{conflicting}} check-in on {{date}}.',
@@ -54,6 +56,13 @@ const COPY: Record<string, string> = {
     '{{count}} {{currency}} {{expenseWord}} missing a saved exchange rate. Add a fixed rate so budget totals are calculated from saved trip data only.',
   'tripHealth.action.addExchangeRate': 'Add exchange rate',
 
+  'tripHealth.title.flightTimeOrder': 'Flight arrival is before departure',
+  'tripHealth.description.flightTimeOrder':
+    '{{flight}} is set to arrive before it departs, based on each airport\'s time zone. Check the dates and times.',
+  'tripHealth.title.missingFlightInfo': 'Flight is missing information',
+  'tripHealth.description.missingFlightInfo': '{{flight}} is missing its {{field}}.',
+  'tripHealth.action.reviewFlight': 'Review flight',
+
   'tripHealth.passed.allClear': 'All checks passed.',
   'tripHealth.passed.tripInfo': 'Trip information is complete.',
   'tripHealth.passed.activityIntegrity': 'Every activity has valid, complete data.',
@@ -62,6 +71,7 @@ const COPY: Record<string, string> = {
   'tripHealth.passed.boardingPasses': 'Boarding passes are attached for flights departing soon.',
   'tripHealth.passed.stayDocuments': 'Confirmation documents are attached for your stays.',
   'tripHealth.passed.exchangeRates': 'All foreign-currency expenses have a saved exchange rate.',
+  'tripHealth.passed.flightValidity': 'Every flight has valid, complete data.',
 };
 
 /** Fills a copy key's `{{placeholders}}` from `params`. Never throws on an unknown key — falls back to the key itself so a typo surfaces visibly instead of crashing the screen. */

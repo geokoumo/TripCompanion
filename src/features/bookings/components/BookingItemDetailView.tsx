@@ -78,7 +78,7 @@ export function BookingItemDetailView({ item, trip, updateTrip, onClose, onEdit 
 
       {item.notes && <DetailBlock label="Notes" value={item.notes} />}
 
-      <ItemDocumentsSection trip={trip} relatedTo={bookingItemRelatedTo(item)} onOpenDocument={setViewingDoc} />
+      <ItemDocumentsSection trip={trip} relatedTo={bookingItemRelatedTo(item)} sourceType="booking" sourceId={item.id} onOpenDocument={setViewingDoc} />
 
       {viewingDoc && <DocumentDetailSheet doc={viewingDoc} trip={trip} updateTrip={updateTrip} onClose={() => setViewingDoc(null)} />}
     </Modal>

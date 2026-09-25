@@ -1,5 +1,7 @@
-import { validateTrip, type DomainError } from '../../../domain';
+import { validateFlight, validateTrip, type DomainError, type FlightChronology } from '../../../domain';
 import { isMissingExchangeRate } from '../../budget/lib/currency';
+import { checkFlightTimeOrder } from '../../flights/lib/flightTime';
+import { documentBelongsToSource, flightRelatedTo, stayRelatedTo } from '../../documents/lib/relatedTo';
 import { formatDateNoYear, formatDateShort } from '../../../shared/lib/dateFormat';
 import type { Trip } from '../../trips/types';
 import { toDomainTrip } from './domainMapping';
@@ -22,6 +24,11 @@ function stayLabel(trip: Trip, id: string | undefined): string {
   return trip.stays.find((s) => s.id === id)?.name ?? 'This stay';
 }
 
+function flightLabel(trip: Trip, id: string | undefined): string {
+  const flight = trip.flights.find((f) => f.id === id);
+  return flight ? `${flight.airline} ${flight.flightNumber}`.trim() : 'This flight';
+}
+
 const FIELD_LABELS: Record<string, string> = {
   title: 'title',
   type: 'type',
@@ -31,6 +38,14 @@ const FIELD_LABELS: Record<string, string> = {
   startDate: 'start date',
   endDate: 'end date',
   travelers: 'at least one traveler',
+  airline: 'airline',
+  flightNumber: 'flight number',
+  depAirport: 'departure airport',
+  depDate: 'departure date',
+  depTime: 'departure time',
+  arrAirport: 'arrival airport',
+  arrDate: 'arrival date',
+  arrTime: 'arrival time',
 };
 
 function fieldLabel(field: string): string {
@@ -182,6 +197,36 @@ function mapDomainError(error: DomainError, trip: Trip): TripHealthWarning {
       };
 
     case 'TIME_OVERLAP':
+      // F-06: conflictingId can now name a flight or a stay (real
+      // travel-window occupancy), not just another itinerary stop —
+      // activityLabel's stop-only lookup would silently mislabel either as
+      // "This activity" if not branched on conflictingKind first.
+      if (error.conflictingKind === 'flight') {
+        return {
+          type: 'ACTIVITY_CONFLICT',
+          severity: 'warning',
+          entityType: 'activity',
+          entityId,
+          titleKey: 'tripHealth.title.activityConflict',
+          descriptionKey: 'tripHealth.description.activityConflictFlight',
+          params: { activity: activityLabel(trip, entityId), flight: flightLabel(trip, error.conflictingId) },
+          action: 'tripHealth.action.reviewItinerary',
+          navigationTarget: 'itinerary',
+        };
+      }
+      if (error.conflictingKind === 'stay') {
+        return {
+          type: 'ACTIVITY_CONFLICT',
+          severity: 'warning',
+          entityType: 'activity',
+          entityId,
+          titleKey: 'tripHealth.title.activityConflict',
+          descriptionKey: 'tripHealth.description.activityConflictStay',
+          params: { activity: activityLabel(trip, entityId), stay: stayLabel(trip, error.conflictingId) },
+          action: 'tripHealth.action.reviewItinerary',
+          navigationTarget: 'itinerary',
+        };
+      }
       return {
         type: 'ACTIVITY_CONFLICT',
         severity: 'warning',
@@ -221,14 +266,67 @@ function mapDomainError(error: DomainError, trip: Trip): TripHealthWarning {
     }
 
     case 'FLIGHT_TIME_ORDER':
-      // validateTrip() never validates flights today (toDomainTrip maps
-      // flights: [] — see its doc comment), so this code can't actually be
-      // produced by anything mapDomainError is called on. Kept as an
-      // explicit case (rather than a silent fallthrough) so this switch
-      // stays exhaustive over DomainErrorCode; wiring validateFlight into
-      // Trip Health is a separate, not-yet-made product decision.
-      throw new Error('FLIGHT_TIME_ORDER is not produced by validateTrip() and has no Trip Health mapping yet.');
+      // validateTrip() itself never produces this — flight validity (F-03)
+      // is its own bespoke check (checkFlightValidity below), the same
+      // pattern as checkBoardingPasses/checkStayDocuments/checkExchangeRates,
+      // since it needs a feature-layer timezone lookup (checkFlightTimeOrder)
+      // the domain layer can't have. Kept as an explicit case (rather than a
+      // silent fallthrough) so this switch stays exhaustive over
+      // DomainErrorCode.
+      throw new Error('FLIGHT_TIME_ORDER is not produced by validateTrip(); see checkFlightValidity.');
   }
+}
+
+/**
+ * Runs the exact same canonical domain.validateFlight() every flight already
+ * goes through at save time (FlightForm.handleSave) — required fields, plus
+ * (when all four date/time fields are present) a real timezone-aware
+ * chronology check via checkFlightTimeOrder (F-03). This is a bespoke,
+ * feature-layer check rather than something folded into validateTrip():
+ * checkFlightTimeOrder needs airport-timezone resolution, which is a
+ * feature, not domain, concern (see validateFlight.ts's own doc comment).
+ *
+ * An unresolved airport timezone is never read as "chronology proven valid"
+ * — it just means the chronology half of this check is skipped for that
+ * flight (same as every other caller of validateFlight); required-field
+ * completeness is still checked independently either way.
+ */
+function checkFlightValidity(trip: Trip): TripHealthWarning[] {
+  const warnings: TripHealthWarning[] = [];
+  for (const flight of trip.flights) {
+    const chronology: FlightChronology | undefined =
+      flight.depDate && flight.depTime && flight.arrDate && flight.arrTime ? checkFlightTimeOrder(flight) : undefined;
+    const label = `${flight.airline} ${flight.flightNumber}`.trim() || 'This flight';
+
+    for (const error of validateFlight(flight, chronology)) {
+      warnings.push(
+        error.code === 'FLIGHT_TIME_ORDER'
+          ? {
+              type: 'FLIGHT_TIME_ORDER',
+              severity: 'critical',
+              entityType: 'flight',
+              entityId: flight.id,
+              titleKey: 'tripHealth.title.flightTimeOrder',
+              descriptionKey: 'tripHealth.description.flightTimeOrder',
+              params: { flight: label },
+              action: 'tripHealth.action.reviewFlight',
+              navigationTarget: 'flights',
+            }
+          : {
+              type: 'MISSING_REQUIRED_FLIGHT_INFO',
+              severity: 'warning',
+              entityType: 'flight',
+              entityId: flight.id,
+              titleKey: 'tripHealth.title.missingFlightInfo',
+              descriptionKey: 'tripHealth.description.missingFlightInfo',
+              params: { flight: label, field: fieldLabel(error.field) },
+              action: 'tripHealth.action.reviewFlight',
+              navigationTarget: 'flights',
+            },
+      );
+    }
+  }
+  return warnings;
 }
 
 /** Flights departing imminently with no matching boarding-pass document attached. Not covered by the domain layer (which knows nothing about documents) — a Trip-Health-specific policy check. */
@@ -238,8 +336,9 @@ function checkBoardingPasses(trip: Trip, today: string): TripHealthWarning[] {
   for (const flight of trip.flights) {
     if (flight.status === 'cancelled') continue;
     if (flight.depDate < today || flight.depDate > windowEnd) continue;
-    const relatedTo = flight.depAirport && flight.arrAirport ? `${flight.depAirport} → ${flight.arrAirport} flight` : 'Flight';
-    const hasBoardingPass = trip.documents.some((d) => d.category === 'boarding_pass' && d.relatedTo === relatedTo);
+    const hasBoardingPass = trip.documents.some(
+      (d) => d.category === 'boarding_pass' && documentBelongsToSource(d, 'flight', flight.id, flightRelatedTo(flight)),
+    );
     if (hasBoardingPass) continue;
     warnings.push({
       type: 'MISSING_BOARDING_PASS',
@@ -260,7 +359,9 @@ function checkBoardingPasses(trip: Trip, today: string): TripHealthWarning[] {
 function checkStayDocuments(trip: Trip): TripHealthWarning[] {
   const warnings: TripHealthWarning[] = [];
   for (const stay of trip.stays) {
-    const hasConfirmation = trip.documents.some((d) => d.category === 'hotel_confirmation' && d.relatedTo === stay.name);
+    const hasConfirmation = trip.documents.some(
+      (d) => d.category === 'hotel_confirmation' && documentBelongsToSource(d, 'stay', stay.id, stayRelatedTo(stay)),
+    );
     if (hasConfirmation) continue;
     warnings.push({
       type: 'MISSING_STAY_DOCUMENT',
@@ -315,6 +416,8 @@ const CATEGORY_BY_TYPE: Record<TripHealthCheckType, string> = {
   MISSING_BOARDING_PASS: 'boardingPasses',
   MISSING_STAY_DOCUMENT: 'stayDocuments',
   MISSING_EXCHANGE_RATE: 'exchangeRates',
+  FLIGHT_TIME_ORDER: 'flightValidity',
+  MISSING_REQUIRED_FLIGHT_INFO: 'flightValidity',
 };
 
 const PASSED_LABEL_BY_CATEGORY: Record<string, string> = {
@@ -325,6 +428,7 @@ const PASSED_LABEL_BY_CATEGORY: Record<string, string> = {
   boardingPasses: 'tripHealth.passed.boardingPasses',
   stayDocuments: 'tripHealth.passed.stayDocuments',
   exchangeRates: 'tripHealth.passed.exchangeRates',
+  flightValidity: 'tripHealth.passed.flightValidity',
 };
 
 /**
@@ -333,9 +437,12 @@ const PASSED_LABEL_BY_CATEGORY: Record<string, string> = {
  * actually resolve it. Nothing here is hardcoded or simulated: the
  * required-info/activity-integrity/activity-conflict/stay-overlap checks
  * all come straight from domain.validateTrip() (the same engine Add/Edit
- * Activity uses to validate a save), and the remaining checks
- * (boarding passes, stay documents, exchange rates) are genuine
- * Trip-Health-only policies with nothing elsewhere to duplicate.
+ * Activity uses to validate a save); flight validity (F-03) reuses the same
+ * domain.validateFlight() every flight already goes through at save time,
+ * just invoked here as its own check rather than inside validateTrip() (see
+ * checkFlightValidity); and the remaining checks (boarding passes, stay
+ * documents, exchange rates) are genuine Trip-Health-only policies with
+ * nothing elsewhere to duplicate.
  *
  * Purely a function of `trip` and `today` — call it again after any change
  * to the trip (a new expense, a fixed stay date, an uploaded document) and
@@ -345,6 +452,7 @@ export function computeTripHealth(trip: Trip, today: string): TripHealthReport {
   const domainErrors = dedupePairwiseErrors(validateTrip(toDomainTrip(trip)));
   const warnings: TripHealthWarning[] = [
     ...domainErrors.map((error) => mapDomainError(error, trip)),
+    ...checkFlightValidity(trip),
     ...checkBoardingPasses(trip, today),
     ...checkStayDocuments(trip),
     ...checkExchangeRates(trip),

@@ -13,6 +13,6 @@ import type { BookingItem } from '../../features/bookings/types';
 export function upsertBookingItem(trip: Trip, item: BookingItem): Trip {
   const existing = trip.bookingItems.find((b) => b.id === item.id);
   const bookingItems = existing ? trip.bookingItems.map((b) => (b.id === item.id ? item : b)) : [...trip.bookingItems, item];
-  const documents = existing ? retagDocuments(trip.documents, bookingItemRelatedTo(existing), bookingItemRelatedTo(item)) : trip.documents;
+  const documents = existing ? retagDocuments(trip.documents, 'booking', item.id, bookingItemRelatedTo(existing), bookingItemRelatedTo(item)) : trip.documents;
   return { ...trip, bookingItems, documents };
 }

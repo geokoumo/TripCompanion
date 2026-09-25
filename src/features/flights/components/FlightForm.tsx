@@ -96,11 +96,15 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
 
   const handleSave = () => {
     const errors = validateFlight(flight, timeCheck ?? undefined);
-    if (errors.some((e) => ['airline', 'flightNumber', 'depAirport', 'arrAirport'].includes(e.field))) {
+    // Checked by error code, not just field name (F-16 fix): FLIGHT_TIME_ORDER's
+    // field is 'arrTime', which also appears in the date/time required-field
+    // list below — a field-only check would misreport a genuine backwards-
+    // chronology flight (every field present) as "missing details".
+    if (errors.some((e) => e.code === 'MISSING_REQUIRED_DATA' && ['airline', 'flightNumber', 'depAirport', 'arrAirport'].includes(e.field))) {
       showToast('Missing flight details — airline, number, departure, arrival.', { variant: 'error' });
       return;
     }
-    if (errors.some((e) => ['depDate', 'depTime', 'arrDate', 'arrTime'].includes(e.field))) {
+    if (errors.some((e) => e.code === 'MISSING_REQUIRED_DATA' && ['depDate', 'depTime', 'arrDate', 'arrTime'].includes(e.field))) {
       showToast('Missing flight details — number, departure, arrival.', { variant: 'error' });
       return;
     }
@@ -302,6 +306,8 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
         trip={trip}
         updateTrip={updateTrip}
         relatedTo={flightRelatedTo(flight)}
+        sourceType="flight"
+        sourceId={flight.id}
         defaultCategory="boarding_pass"
       />
     </Modal>

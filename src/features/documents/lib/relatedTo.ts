@@ -2,7 +2,7 @@ import { BOOKING_ITEM_TYPES } from '../../../config/constants';
 import type { BookingItem } from '../../bookings/types';
 import type { Flight } from '../../flights/types';
 import type { Stay } from '../../stays/types';
-import type { Document } from '../types';
+import type { Document, DocumentSourceType } from '../types';
 
 /**
  * The single source of truth for the free-text `documents.relatedTo` label
@@ -27,14 +27,31 @@ export function bookingItemRelatedTo(item: Pick<BookingItem, 'name' | 'type'>): 
 }
 
 /**
- * Repoints every document tagged with the old `from` label onto the new
+ * Whether `doc` belongs to a given source entity — the single place both
+ * matching strategies live (F-11). Prefers the stable sourceType/sourceId
+ * identity when the document has one: immune to a rename, and to a label
+ * collision with an unrelated entity (e.g. two stays that happen to share a
+ * name). Falls back to the legacy relatedTo label match for a document that
+ * predates this field, or was added via AddDocumentForm's free-text entry,
+ * which has no single source record to derive an id from.
+ */
+export function documentBelongsToSource(doc: Document, sourceType: DocumentSourceType, sourceId: string, label: string): boolean {
+  if (doc.sourceType && doc.sourceId) return doc.sourceType === sourceType && doc.sourceId === sourceId;
+  return doc.relatedTo === label;
+}
+
+/**
+ * Repoints every document belonging to a source entity onto its new
  * `to` label, so renaming a flight/stay/booking item (which changes what
  * flightRelatedTo/stayRelatedTo/bookingItemRelatedTo compute for it) never
- * silently orphans its attachments from that record's own View Details —
- * see ItemDocumentsSection/AttachmentsField, both of which look documents
- * up by an exact relatedTo match. A no-op when the label hasn't changed.
+ * silently orphans its attachments from that record's own View Details.
+ * Matches via documentBelongsToSource, so a document carrying a stable
+ * sourceId is found and retagged correctly even if its OLD relatedTo label
+ * happened to collide with a different entity's — only the display label
+ * (relatedTo) is ever rewritten, sourceId itself never changes. A no-op
+ * when the label hasn't changed.
  */
-export function retagDocuments(documents: Document[], from: string, to: string): Document[] {
+export function retagDocuments(documents: Document[], sourceType: DocumentSourceType, sourceId: string, from: string, to: string): Document[] {
   if (from === to) return documents;
-  return documents.map((d) => (d.relatedTo === from ? { ...d, relatedTo: to } : d));
+  return documents.map((d) => (documentBelongsToSource(d, sourceType, sourceId, from) ? { ...d, relatedTo: to } : d));
 }

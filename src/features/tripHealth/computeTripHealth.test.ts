@@ -374,6 +374,86 @@ describe('computeTripHealth — exchange rates', () => {
   });
 });
 
+describe('computeTripHealth — flight validity (F-03)', () => {
+  it('passes when there are no flights', () => {
+    const report = computeTripHealth(trip(), TODAY);
+    expect(report.passedChecks.some((c) => c.id === 'flightValidity')).toBe(true);
+  });
+
+  it('passes when every flight has valid, complete data', () => {
+    const report = computeTripHealth(trip({ flights: [flight()] }), TODAY);
+    expect(report.passedChecks.some((c) => c.id === 'flightValidity')).toBe(true);
+    expect(report.warnings.some((w) => w.type === 'FLIGHT_TIME_ORDER' || w.type === 'MISSING_REQUIRED_FLIGHT_INFO')).toBe(false);
+  });
+
+  it('flags a flight whose real, timezone-aware arrival instant is before its departure instant, critical severity', () => {
+    // Same airport (resolvable timezone), arrival clock time before departure clock time — genuinely backwards.
+    const report = computeTripHealth(trip({ flights: [flight({ depTime: '18:00', arrTime: '09:00' })] }), TODAY);
+    const warning = report.warnings.find((w) => w.type === 'FLIGHT_TIME_ORDER');
+    expect(warning).toBeDefined();
+    expect(warning?.severity).toBe('critical');
+    expect(warning?.entityType).toBe('flight');
+    expect(warning?.entityId).toBe('f1');
+    expect(warning?.navigationTarget).toBe('flights');
+    expect(resolveCopy(warning!.titleKey)).toBe('Flight arrival is before departure');
+    expect(resolveCopy(warning!.descriptionKey, warning!.params)).toContain('ANA NH1');
+    expect(report.passedChecks.some((c) => c.id === 'flightValidity')).toBe(false);
+  });
+
+  it('does not flag FLIGHT_TIME_ORDER when the airport timezone can\'t be resolved — unresolved is never treated as "chronology proven valid"', () => {
+    const report = computeTripHealth(trip({ flights: [flight({ depAirport: 'ZZZ', arrAirport: 'ZZZ', depTime: '18:00', arrTime: '09:00' })] }), TODAY);
+    expect(report.warnings.some((w) => w.type === 'FLIGHT_TIME_ORDER')).toBe(false);
+  });
+
+  it('flags a flight missing a required field as MISSING_REQUIRED_FLIGHT_INFO, warning severity', () => {
+    const report = computeTripHealth(trip({ flights: [flight({ flightNumber: '' })] }), TODAY);
+    const warning = report.warnings.find((w) => w.type === 'MISSING_REQUIRED_FLIGHT_INFO');
+    expect(warning).toBeDefined();
+    expect(warning?.severity).toBe('warning');
+    expect(warning?.params.field).toBe('flight number');
+    expect(resolveCopy(warning!.titleKey)).toBe('Flight is missing information');
+  });
+});
+
+describe('computeTripHealth — flight/stay occupancy (F-06)', () => {
+  it('flags an itinerary activity that falls during a flight\'s real elapsed travel time, naming the flight', () => {
+    const report = computeTripHealth(
+      trip({
+        flights: [flight({ depTime: '10:00', arrTime: '12:00' })],
+        itineraryStops: [stop({ time: '11:00', durationMinutes: 30 })],
+      }),
+      TODAY,
+    );
+    const warning = report.warnings.find((w) => w.type === 'ACTIVITY_CONFLICT');
+    expect(warning).toBeDefined();
+    expect(resolveCopy(warning!.descriptionKey, warning!.params)).toBe('"Stop" overlaps with your ANA NH1 flight.');
+  });
+
+  it('does not flag an activity that starts exactly when a flight lands (touching boundary is fine)', () => {
+    const report = computeTripHealth(
+      trip({
+        flights: [flight({ depTime: '10:00', arrTime: '12:00' })],
+        itineraryStops: [stop({ time: '12:00', durationMinutes: 30 })],
+      }),
+      TODAY,
+    );
+    expect(report.warnings.some((w) => w.type === 'ACTIVITY_CONFLICT')).toBe(false);
+  });
+
+  it('flags an itinerary activity scheduled at a stay\'s exact check-in instant, naming the stay', () => {
+    const report = computeTripHealth(
+      trip({
+        stays: [stay({ checkinTime: '15:00' })],
+        itineraryStops: [stop({ time: '15:00', durationMinutes: undefined })],
+      }),
+      TODAY,
+    );
+    const warning = report.warnings.find((w) => w.type === 'ACTIVITY_CONFLICT');
+    expect(warning).toBeDefined();
+    expect(resolveCopy(warning!.descriptionKey, warning!.params)).toBe('"Stop" falls on check-in/check-out for Hotel.');
+  });
+});
+
 describe('computeTripHealth — determinism', () => {
   it('produces identical output for identical input, independent of call order', () => {
     const t = trip({ expenses: [expense({ currency: 'JPY', exchangeRateToHome: null })] });

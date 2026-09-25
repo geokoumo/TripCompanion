@@ -1,6 +1,7 @@
 import { supabase } from '../supabase/client';
 import { SearchResultGroupSchema, type SearchResultGroup } from '../../features/search/types';
 import { TripListItemSchema, TripSchema, type Trip, type TripListItem } from '../../features/trips/types';
+import { hasInvalidDateOrder } from '../../features/trips/validation';
 import type { TripRepository } from './TripRepository';
 
 /**
@@ -48,6 +49,13 @@ export class SupabaseTripRepository implements TripRepository {
 
   async saveTrip(trip: Trip): Promise<void> {
     const validated = TripSchema.parse(trip);
+    // F-08: same guard as LocalStorageTripRepository — reject client-side
+    // rather than relying solely on the DB's CHECK constraints, so both
+    // backends fail the same way (and an import bypassing UI-level checks
+    // is still rejected before spending a round trip on it).
+    if (hasInvalidDateOrder(validated)) {
+      throw new Error('invalid-date-order');
+    }
     const { error } = await this.client().rpc('upsert_full_trip', { _trip: validated });
     if (error) throw error;
   }

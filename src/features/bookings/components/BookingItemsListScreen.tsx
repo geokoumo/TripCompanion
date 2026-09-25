@@ -6,7 +6,7 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { upsertBookingItem } from '../../../data/repository/bookingRepository';
-import { bookingItemRelatedTo } from '../../documents/lib/relatedTo';
+import { bookingItemRelatedTo, documentBelongsToSource } from '../../documents/lib/relatedTo';
 import type { Trip } from '../../trips/types';
 import { buildLinkedItineraryStop } from '../lib/addToItinerary';
 import type { BookingItem } from '../types';
@@ -36,12 +36,17 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
 
   const save = async (item: BookingItem, addToItinerary: boolean) => {
     try {
+      // The booking item itself must always persist — a failed itinerary
+      // side-effect is never a reason to lose the user's edit (F-02), and a
+      // stop that couldn't be added is reported on its own rather than
+      // stacked with a "saved" toast (F-19).
       let stopToAdd: Trip['itineraryStops'][number] | undefined;
+      let itineraryError: string | undefined;
       if (addToItinerary) {
         const result = buildLinkedItineraryStop(trip, item);
         if ('conflictMessage' in result) {
-          showToast(result.conflictMessage, { variant: 'error' });
-        } else if ('stop' in result) {
+          itineraryError = result.conflictMessage;
+        } else {
           stopToAdd = result.stop;
         }
       }
@@ -53,7 +58,7 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
           itineraryStops: stopToAdd ? [...t.itineraryStops, stopToAdd] : t.itineraryStops,
         };
       });
-      showToast(`${config.singular} saved.`);
+      showToast(itineraryError ?? `${config.singular} saved.`, itineraryError ? { variant: 'error' } : undefined);
       setEditing(null);
       setCreating(false);
     } catch {
@@ -62,7 +67,15 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
   };
 
   const remove = (item: BookingItem) => {
-    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'bookingItems', id: item.id, clearDocumentsRelatedTo: bookingItemRelatedTo(item) });
+    deleteEntityWithUndo({
+      updateTrip,
+      showToast,
+      arrayKey: 'bookingItems',
+      id: item.id,
+      clearDocumentsRelatedTo: bookingItemRelatedTo(item),
+      clearDocumentsSourceType: 'booking',
+      clearDocumentsSourceId: item.id,
+    });
     setPendingDelete(null);
     setEditing(null);
   };
@@ -78,7 +91,7 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
         <BookingItemCard
           key={item.id}
           item={item}
-          hasAttachment={trip.documents.some((d) => d.relatedTo === bookingItemRelatedTo(item))}
+          hasAttachment={trip.documents.some((d) => documentBelongsToSource(d, 'booking', item.id, bookingItemRelatedTo(item)))}
           onOpen={setViewing}
         />
       ))}

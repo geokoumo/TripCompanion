@@ -1,3 +1,5 @@
+import { documentBelongsToSource } from '../../features/documents/lib/relatedTo';
+import type { DocumentSourceType } from '../../features/documents/types';
 import type { Trip } from '../../features/trips/types';
 
 type ArrayFieldKeys = {
@@ -14,11 +16,20 @@ interface DeleteWithUndoParams<K extends ArrayFieldKeys> {
    * The deleted entity's current documents.relatedTo label (see
    * documents/lib/relatedTo.ts) — pass this for entity types that can have
    * attachments (flights, stays, booking items). Any document still tagged
-   * with this exact label is detached (relatedTo cleared) rather than
-   * deleted, so the document is preserved and never silently orphaned from
-   * the deleted record's now-gone View Details. Undo re-attaches them.
+   * with this exact label is detached (relatedTo/sourceType/sourceId
+   * cleared) rather than deleted, so the document is preserved and never
+   * silently orphaned from the deleted record's now-gone View Details. Undo
+   * re-attaches them.
    */
   clearDocumentsRelatedTo?: string;
+  /**
+   * The deleted entity's stable type/id (F-11) — when given, matching for
+   * detach/restore prefers documentBelongsToSource over the relatedTo label
+   * alone, so a delete+undo can never mismatch a document against a
+   * different entity that happens to share the same label.
+   */
+  clearDocumentsSourceType?: DocumentSourceType;
+  clearDocumentsSourceId?: string;
 }
 
 /**
@@ -33,21 +44,27 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
   id,
   deletedMessage = 'Deleted.',
   clearDocumentsRelatedTo,
+  clearDocumentsSourceType,
+  clearDocumentsSourceId,
 }: DeleteWithUndoParams<K>): void {
   const key = arrayKey as unknown as string;
 
   void (async () => {
     let snapshot: { id: string } | undefined;
-    const detachedDocIds: string[] = [];
+    const detached: { id: string; sourceType?: DocumentSourceType; sourceId?: string }[] = [];
     await updateTrip((t) => {
       const record = t as unknown as Record<string, { id: string }[]>;
       const list = record[key]!;
       snapshot = list.find((item) => item.id === id);
       const documents = clearDocumentsRelatedTo
         ? t.documents.map((d) => {
-            if (d.relatedTo !== clearDocumentsRelatedTo) return d;
-            detachedDocIds.push(d.id);
-            return { ...d, relatedTo: undefined };
+            const matches =
+              clearDocumentsSourceType && clearDocumentsSourceId
+                ? documentBelongsToSource(d, clearDocumentsSourceType, clearDocumentsSourceId, clearDocumentsRelatedTo)
+                : d.relatedTo === clearDocumentsRelatedTo;
+            if (!matches) return d;
+            detached.push({ id: d.id, sourceType: d.sourceType ?? undefined, sourceId: d.sourceId ?? undefined });
+            return { ...d, relatedTo: undefined, sourceType: undefined, sourceId: undefined };
           })
         : t.documents;
       return { ...t, [key]: list.filter((item) => item.id !== id), documents };
@@ -62,8 +79,12 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
           void updateTrip((t) => {
             const record = t as unknown as Record<string, { id: string }[]>;
             const list = record[key]!;
-            const documents = detachedDocIds.length
-              ? t.documents.map((d) => (detachedDocIds.includes(d.id) ? { ...d, relatedTo: clearDocumentsRelatedTo } : d))
+            const byId = new Map(detached.map((d) => [d.id, d]));
+            const documents = detached.length
+              ? t.documents.map((d) => {
+                  const original = byId.get(d.id);
+                  return original ? { ...d, relatedTo: clearDocumentsRelatedTo, sourceType: original.sourceType, sourceId: original.sourceId } : d;
+                })
               : t.documents;
             return { ...t, [key]: [...list, snapshot], documents };
           });

@@ -58,6 +58,26 @@ describe('LocalStorageTripRepository — corrupted top-level storage', () => {
     expect(errors).toContain('Your saved trips could not be read. Local data may be corrupted.');
   });
 
+  it('saveTrip rejects a leg whose end date precedes its start date (F-08), and never persists it', async () => {
+    const repo = new LocalStorageTripRepository();
+    const bad = makeTrip({ legs: [{ id: 'l1', city: 'Rome', country: 'Italy', startDate: '2026-09-08', endDate: '2026-09-05', currency: 'EUR' }] });
+
+    await expect(repo.saveTrip(bad)).rejects.toThrow();
+
+    expect(await repo.getTrip(bad.id)).toBeNull();
+  });
+
+  it('saveTrip rejects a stay whose checkout precedes its checkin (F-08)', async () => {
+    const repo = new LocalStorageTripRepository();
+    const bad = makeTrip({
+      stays: [
+        { id: 's1', name: 'Hotel', address: 'Somewhere', checkinDate: '2026-09-08', checkinTime: '14:00', checkoutDate: '2026-09-05', checkoutTime: '11:00' },
+      ],
+    });
+
+    await expect(repo.saveTrip(bad)).rejects.toThrow();
+  });
+
   it('saveTrip refuses to write on top of corrupted storage rather than silently discarding whatever is there', async () => {
     localStorage.setItem(TRIPS_KEY, '{not valid json');
     const repo = new LocalStorageTripRepository();

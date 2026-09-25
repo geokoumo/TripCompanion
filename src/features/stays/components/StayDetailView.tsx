@@ -68,7 +68,7 @@ export function StayDetailView({ stay, trip, updateTrip, onClose, onEdit }: Stay
 
       {stay.notes && <DetailBlock label="Notes" value={stay.notes} />}
 
-      <ItemDocumentsSection trip={trip} relatedTo={stayRelatedTo(stay)} onOpenDocument={setViewingDoc} />
+      <ItemDocumentsSection trip={trip} relatedTo={stayRelatedTo(stay)} sourceType="stay" sourceId={stay.id} onOpenDocument={setViewingDoc} />
 
       {viewingDoc && <DocumentDetailSheet doc={viewingDoc} trip={trip} updateTrip={updateTrip} onClose={() => setViewingDoc(null)} />}
     </Modal>

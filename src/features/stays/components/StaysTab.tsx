@@ -5,6 +5,7 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { retagDocuments, stayRelatedTo } from '../../documents/lib/relatedTo';
+import { findStopsOutOfRange, outOfRangeStopsMessage } from '../../itinerary/lib/outOfRangeStops';
 import type { Trip } from '../../trips/types';
 import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
 import { dateTimeRangesOverlap } from '../lib/overlap';
@@ -47,15 +48,22 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
   const openStay = useCallback((stay: Stay) => setViewing(stay), []);
 
   const save = async (stay: Stay) => {
+    let outOfRangeMessage: string | null = null;
     try {
       await updateTrip((t) => {
         const existing = t.stays.find((s) => s.id === stay.id);
         const stays = existing ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
         const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
-        const documents = existing ? retagDocuments(t.documents, stayRelatedTo(existing), stayRelatedTo(stay)) : t.documents;
-        return { ...t, stays, rememberedLocations, documents };
+        const documents = existing ? retagDocuments(t.documents, 'stay', stay.id, stayRelatedTo(existing), stayRelatedTo(stay)) : t.documents;
+        const next = { ...t, stays, rememberedLocations, documents };
+        // F-05: a stay edit can shrink the trip's derived date range —
+        // surface any itinerary stop that's now outside it immediately,
+        // rather than leaving it discoverable only via Trip Health.
+        outOfRangeMessage = outOfRangeStopsMessage(findStopsOutOfRange(next));
+        return next;
       });
       showToast('Stay saved.');
+      if (outOfRangeMessage) showToast(outOfRangeMessage, { variant: 'warn' });
       setEditing(null);
       setCreating(false);
     } catch {
@@ -64,7 +72,15 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
   };
 
   const remove = (stay: Stay) => {
-    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'stays', id: stay.id, clearDocumentsRelatedTo: stayRelatedTo(stay) });
+    deleteEntityWithUndo({
+      updateTrip,
+      showToast,
+      arrayKey: 'stays',
+      id: stay.id,
+      clearDocumentsRelatedTo: stayRelatedTo(stay),
+      clearDocumentsSourceType: 'stay',
+      clearDocumentsSourceId: stay.id,
+    });
     setPendingDelete(null);
     setEditing(null);
   };

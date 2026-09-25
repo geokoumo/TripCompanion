@@ -39,8 +39,10 @@ export interface DateOutOfRangeError extends DomainErrorBase<'DATE_OUT_OF_RANGE'
 export interface InvalidTimeRangeError extends DomainErrorBase<'INVALID_TIME_RANGE'> {}
 export interface InvalidDurationError extends DomainErrorBase<'INVALID_DURATION'> {}
 export interface TimeOverlapError extends DomainErrorBase<'TIME_OVERLAP'> {
-  /** id of the other activity this one conflicts with. */
+  /** id of the conflicting entity — another activity by default (see conflictingKind). */
   conflictingId: string;
+  /** What conflictingId refers to. Absent/'activity' for the original activity-vs-activity case (existing callers keep working unchanged); 'flight'/'stay' when the conflict is with the trip's own travel-window occupancy (F-06) rather than another itinerary stop. */
+  conflictingKind?: 'activity' | 'flight' | 'stay';
 }
 export interface StayOverlapError extends DomainErrorBase<'STAY_OVERLAP'> {
   /** id of the other stay this one conflicts with. */

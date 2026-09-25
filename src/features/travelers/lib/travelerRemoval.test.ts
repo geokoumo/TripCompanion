@@ -79,5 +79,25 @@ describe('removeTravelerFromTrip', () => {
     const trip = makeTrip({ itineraryStops: [{ id: 's1', travelerIds: [] }] as unknown as Trip['itineraryStops'] });
     const updated = removeTravelerFromTrip(trip, 'a');
     expect((updated.itineraryStops[0] as unknown as { travelerIds: string[] }).travelerIds).toEqual([]);
+    expect((updated.itineraryStops[0] as unknown as { assignedToNobody?: boolean }).assignedToNobody).toBeUndefined();
+  });
+
+  // F-12: a stop assigned to ONLY the removed traveler ends up with the same
+  // empty travelerIds a "deliberately everyone" stop has — assignedToNobody
+  // distinguishes the two so the UI never silently relabels this "Everyone".
+  it('flags a stop as assignedToNobody when removing its one and only assigned traveler', () => {
+    const trip = makeTrip({ itineraryStops: [{ id: 's1', title: 'Museum', travelerIds: ['a'] }] as unknown as Trip['itineraryStops'] });
+    const updated = removeTravelerFromTrip(trip, 'a');
+    const stop = updated.itineraryStops[0] as unknown as { travelerIds: string[]; assignedToNobody?: boolean };
+    expect(stop.travelerIds).toEqual([]);
+    expect(stop.assignedToNobody).toBe(true);
+  });
+
+  it('does not flag assignedToNobody when the stop still names another traveler after removal', () => {
+    const trip = makeTrip({ itineraryStops: [{ id: 's1', travelerIds: ['a', 'b'] }] as unknown as Trip['itineraryStops'] });
+    const updated = removeTravelerFromTrip(trip, 'a');
+    const stop = updated.itineraryStops[0] as unknown as { travelerIds: string[]; assignedToNobody?: boolean };
+    expect(stop.travelerIds).toEqual(['b']);
+    expect(stop.assignedToNobody).toBeUndefined();
   });
 });

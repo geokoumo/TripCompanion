@@ -50,7 +50,7 @@ export function buildLinkedItineraryStop(trip: Trip, item: BookingItem): LinkedS
 
   const errors = validateStopForSave(stop, trip, trip.itineraryStops);
   if (errors.length > 0) {
-    return { conflictMessage: `Couldn't add to itinerary — ${describeActivityError(errors[0]!, trip.itineraryStops)}` };
+    return { conflictMessage: `Couldn't add to itinerary — ${describeActivityError(errors[0]!, trip.itineraryStops, trip.flights, trip.stays)}` };
   }
   return { stop };
 }

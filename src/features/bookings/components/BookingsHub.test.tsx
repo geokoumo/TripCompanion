@@ -55,6 +55,7 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
     id: 't1',
     title: 'Trip',
     homeCurrency: 'EUR',
+    legs: [],
     flights: [makeFlight()],
     stays: [makeStay()],
     bookingItems: [makeBookingItem()],

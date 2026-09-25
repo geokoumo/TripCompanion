@@ -239,7 +239,7 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
       </div>
 
       <div className={styles.attachmentsSection}>
-        <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={bookingItemRelatedTo(item)} defaultCategory={ATTACHMENT_CATEGORY[type]} />
+        <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={bookingItemRelatedTo(item)} sourceType="booking" sourceId={item.id} defaultCategory={ATTACHMENT_CATEGORY[type]} />
       </div>
     </Modal>
   );

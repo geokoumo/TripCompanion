@@ -2,7 +2,8 @@ import type { DomainError } from './errors';
 import type { Activity } from './schemas';
 import { rangesOverlap, toComparableMs } from './lib/dateTime';
 
-interface TimeSpan {
+/** Exported for reuse by detectFlightStayOccupancy.ts (F-06), which needs the exact same span/point conflict semantics for flights/stays that activities already use here. */
+export interface TimeSpan {
   /** Absolute instant in ms (see toComparableMs) — comparable across different calendar dates, not just within one day. */
   start: number;
   end: number;
@@ -25,7 +26,7 @@ interface TimeSpan {
  * skipping it would silently make it immune to conflict detection, which
  * is the bug this fixes. No duration is ever invented on its behalf.
  */
-function activitySpan(activity: Pick<Activity, 'allDay' | 'date' | 'time' | 'durationMinutes'>): TimeSpan | null {
+export function activitySpan(activity: Pick<Activity, 'allDay' | 'date' | 'time' | 'durationMinutes'>): TimeSpan | null {
   if (activity.allDay) return null;
   if (!activity.time) return null;
 
@@ -46,7 +47,7 @@ function activitySpan(activity: Pick<Activity, 'allDay' | 'date' | 'time' | 'dur
  * range's end is not a conflict, matching the "back-to-back is fine" rule
  * elsewhere); two points conflict iff they're the same instant.
  */
-function spansConflict(a: TimeSpan, b: TimeSpan): boolean {
+export function spansConflict(a: TimeSpan, b: TimeSpan): boolean {
   if (!a.isPoint && !b.isPoint) return rangesOverlap(a.start, a.end, b.start, b.end);
   if (a.isPoint && b.isPoint) return a.start === b.start;
   const point = a.isPoint ? a : b;

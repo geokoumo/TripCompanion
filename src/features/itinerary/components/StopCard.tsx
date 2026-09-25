@@ -3,6 +3,7 @@ import { ITINERARY_STOP_TYPES } from '../../../config/constants';
 import { Card } from '../../../shared/components/Card';
 import { describeCard } from '../../../shared/lib/accessibleLabel';
 import type { Traveler } from '../../travelers/types';
+import { stopTravelerLabel } from '../lib/travelerLabel';
 import type { ItineraryStop } from '../types';
 import styles from './StopCard.module.css';
 
@@ -14,7 +15,7 @@ interface StopCardProps {
 
 function StopCardComponent({ stop, travelers, onOpen }: StopCardProps) {
   const type = ITINERARY_STOP_TYPES.find((t) => t.id === stop.type);
-  const travelerLabel = stop.travelerIds.length === 0 ? 'all' : travelers.filter((t) => stop.travelerIds.includes(t.id)).map((t) => t.name).join(', ');
+  const travelerLabel = stopTravelerLabel(stop, travelers, 'all');
   const durationLabel = stop.durationMinutes ? `${Math.round(stop.durationMinutes / 60) > 0 ? `${Math.floor(stop.durationMinutes / 60)}h ` : ''}${stop.durationMinutes % 60}m` : null;
 
   return (

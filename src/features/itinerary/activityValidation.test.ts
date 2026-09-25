@@ -114,6 +114,27 @@ describe('validateStopForSave', () => {
     const errors = validateStopForSave(makeStop({ durationMinutes: 0 }), makeTrip(), []);
     expect(errors.some((e) => e.code === 'INVALID_DURATION')).toBe(true);
   });
+
+  // F-06: flight/stay occupancy is now a canonical rule, checked identically
+  // no matter which path (manual StopForm, idea assignment, or booking→
+  // itinerary) calls this same function — not just a StopForm UI picker.
+  it('rejects a stop that falls during a flight\'s real elapsed travel time', () => {
+    const trip = makeTrip({ flights: [{ id: 'f1', airline: 'Test Air', flightNumber: 'TA1', depAirport: 'ATH', depDate: '2026-09-06', depTime: '09:00', arrAirport: 'FCO', arrDate: '2026-09-06', arrTime: '11:00', status: 'scheduled' }] });
+    const errors = validateStopForSave(makeStop({ date: '2026-09-06', time: '09:30', durationMinutes: 30 }), trip, []);
+    expect(errors).toContainEqual({ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'f1', conflictingKind: 'flight' });
+  });
+
+  it('rejects a stop scheduled at a stay\'s exact check-in instant', () => {
+    const trip = makeTrip({ stays: [{ id: 's1', name: 'Hotel Roma', address: 'Via Roma', checkinDate: '2026-09-06', checkinTime: '14:00', checkoutDate: '2026-09-09', checkoutTime: '11:00' }] });
+    const errors = validateStopForSave(makeStop({ date: '2026-09-06', time: '14:00' }), trip, []);
+    expect(errors).toContainEqual({ code: 'TIME_OVERLAP', field: 'time', conflictingId: 's1', conflictingKind: 'stay' });
+  });
+
+  it('allows a stop that starts exactly when a flight lands (touching boundary is fine)', () => {
+    const trip = makeTrip({ flights: [{ id: 'f1', airline: 'Test Air', flightNumber: 'TA1', depAirport: 'ATH', depDate: '2026-09-06', depTime: '09:00', arrAirport: 'FCO', arrDate: '2026-09-06', arrTime: '11:00', status: 'scheduled' }] });
+    const errors = validateStopForSave(makeStop({ date: '2026-09-06', time: '11:00', durationMinutes: 30 }), trip, []);
+    expect(errors).toEqual([]);
+  });
 });
 
 describe('describeActivityError', () => {
@@ -142,6 +163,18 @@ describe('describeActivityError', () => {
   it('falls back to a generic overlap message when the conflicting stop cannot be found', () => {
     const error: DomainError = { code: 'TIME_OVERLAP', field: 'time', conflictingId: 'missing' };
     expect(describeActivityError(error, stops)).toBe('This time overlaps with another activity.');
+  });
+
+  it('names the conflicting flight when conflictingKind is flight (F-06)', () => {
+    const error: DomainError = { code: 'TIME_OVERLAP', field: 'time', conflictingId: 'f1', conflictingKind: 'flight' };
+    const flights = [{ id: 'f1', airline: 'Test Air', flightNumber: 'TA1', depAirport: 'ATH', depDate: '2026-09-06', depTime: '09:00', arrAirport: 'FCO', arrDate: '2026-09-06', arrTime: '11:00', status: 'scheduled' as const }];
+    expect(describeActivityError(error, stops, flights, [])).toBe('This overlaps with your Test Air TA1 flight. Change the time or duration.');
+  });
+
+  it('names the conflicting stay when conflictingKind is stay (F-06)', () => {
+    const error: DomainError = { code: 'TIME_OVERLAP', field: 'time', conflictingId: 's1', conflictingKind: 'stay' };
+    const stays = [{ id: 's1', name: 'Hotel Roma', address: 'Via Roma', checkinDate: '2026-09-06', checkinTime: '14:00', checkoutDate: '2026-09-09', checkoutTime: '11:00' }];
+    expect(describeActivityError(error, stops, [], stays)).toBe('This falls on check-in/check-out for "Hotel Roma". Change the time or duration.');
   });
 
   it('describes invalid price/currency/location/time/duration', () => {

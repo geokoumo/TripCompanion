@@ -141,7 +141,7 @@ export function StayForm({ trip, updateTrip, initial, existingStays, recentLocat
         </>
       )}
 
-      <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={stayRelatedTo(stay)} defaultCategory="hotel_confirmation" />
+      <AttachmentsField trip={trip} updateTrip={updateTrip} relatedTo={stayRelatedTo(stay)} sourceType="stay" sourceId={stay.id} defaultCategory="hotel_confirmation" />
     </Modal>
   );
 }

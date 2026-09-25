@@ -24,6 +24,14 @@ export const ItineraryStopSchema = z
     link: nullableOptional(z.string()),
     note: nullableOptional(z.string()),
     travelerIds: z.array(z.string()).default([]), // empty = all travelers
+    // F-12: distinguishes "deliberately assigned to everyone" (the existing,
+    // unchanged meaning of an empty travelerIds — the default for every stop
+    // that predates this field, and for every stop a user saves normally)
+    // from "was assigned to a specific traveler who has since been removed
+    // from the trip" (set only by travelerRemoval.ts's cascade). Absent/false
+    // means "everyone", exactly as travelerIds.length === 0 always has —
+    // this field only ever narrows that case, never redefines it.
+    assignedToNobody: nullableOptional(z.boolean()),
     done: z.boolean().default(false),
   })
   .superRefine((data, ctx) => {

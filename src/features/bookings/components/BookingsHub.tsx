@@ -10,11 +10,12 @@ import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { describeCard } from '../../../shared/lib/accessibleLabel';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { upsertBookingItem } from '../../../data/repository/bookingRepository';
-import { flightRelatedTo, stayRelatedTo, bookingItemRelatedTo, retagDocuments } from '../../documents/lib/relatedTo';
+import { flightRelatedTo, stayRelatedTo, bookingItemRelatedTo, documentBelongsToSource, retagDocuments } from '../../documents/lib/relatedTo';
 import { FlightDetailView } from '../../flights/components/FlightDetailView';
 import { FlightForm } from '../../flights/components/FlightForm';
 import { FLIGHT_STATUS_TONE } from '../../flights/lib/statusTone';
 import type { Flight } from '../../flights/types';
+import { findStopsOutOfRange, outOfRangeStopsMessage } from '../../itinerary/lib/outOfRangeStops';
 import { StayDetailView } from '../../stays/components/StayDetailView';
 import { StayForm } from '../../stays/components/StayForm';
 import type { Stay } from '../../stays/types';
@@ -82,7 +83,7 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
         tone: FLIGHT_STATUS_TONE[f.status] ?? 'gray',
       },
       statusText: null,
-      hasDoc: trip.documents.some((d) => d.relatedTo === flightRelatedTo(f)),
+      hasDoc: trip.documents.some((d) => documentBelongsToSource(d, 'flight', f.id, flightRelatedTo(f))),
     }));
     const stayRows: HubRow[] = trip.stays.map((s) => ({
       id: s.id,
@@ -96,7 +97,7 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
       // real check-in time as context, the same choice the Figma reference
       // makes for a stay row.
       statusText: `Check-in ${s.checkinTime}`,
-      hasDoc: trip.documents.some((d) => d.relatedTo === stayRelatedTo(s)),
+      hasDoc: trip.documents.some((d) => documentBelongsToSource(d, 'stay', s.id, stayRelatedTo(s))),
     }));
     const bookingRows: HubRow[] = trip.bookingItems.map((b) => {
       const config = BOOKING_ITEM_TYPES.find((t) => t.id === b.type);
@@ -112,7 +113,7 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
         // "Ticket Ready"/"Booked"/"Planned" labels have no backing data).
         // Party size, when set, is real data worth surfacing here instead.
         statusText: b.partySize ? `${b.partySize} guest${b.partySize === 1 ? '' : 's'}` : null,
-        hasDoc: trip.documents.some((d) => d.relatedTo === bookingItemRelatedTo(b)),
+        hasDoc: trip.documents.some((d) => documentBelongsToSource(d, 'booking', b.id, bookingItemRelatedTo(b))),
       };
     });
     return [...flightRows, ...stayRows, ...bookingRows].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
@@ -125,50 +126,71 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
   };
 
   const saveFlight = async (flight: Flight) => {
+    let outOfRangeMessage: string | null = null;
     await updateTrip((t) => {
       const existing = t.flights.find((f) => f.id === flight.id);
       const flights = existing ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight];
-      const documents = existing ? retagDocuments(t.documents, flightRelatedTo(existing), flightRelatedTo(flight)) : t.documents;
-      return { ...t, flights, documents };
+      const documents = existing ? retagDocuments(t.documents, 'flight', flight.id, flightRelatedTo(existing), flightRelatedTo(flight)) : t.documents;
+      const next = { ...t, flights, documents };
+      outOfRangeMessage = outOfRangeStopsMessage(findStopsOutOfRange(next)); // F-05
+      return next;
     });
     showToast('Flight saved.');
+    if (outOfRangeMessage) showToast(outOfRangeMessage, { variant: 'warn' });
     setEditingFlight(null);
   };
 
   const saveStay = async (stay: Stay) => {
+    let outOfRangeMessage: string | null = null;
     await updateTrip((t) => {
       const existing = t.stays.find((s) => s.id === stay.id);
       const stays = existing ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
       const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
-      const documents = existing ? retagDocuments(t.documents, stayRelatedTo(existing), stayRelatedTo(stay)) : t.documents;
-      return { ...t, stays, rememberedLocations, documents };
+      const documents = existing ? retagDocuments(t.documents, 'stay', stay.id, stayRelatedTo(existing), stayRelatedTo(stay)) : t.documents;
+      const next = { ...t, stays, rememberedLocations, documents };
+      outOfRangeMessage = outOfRangeStopsMessage(findStopsOutOfRange(next)); // F-05
+      return next;
     });
     showToast('Stay saved.');
+    if (outOfRangeMessage) showToast(outOfRangeMessage, { variant: 'warn' });
     setEditingStay(null);
   };
 
   const saveBooking = async (item: BookingItem, addToItinerary: boolean) => {
+    // The booking item itself must always persist — a failed itinerary
+    // side-effect (F-02/F-19) is never a reason to lose the user's edit, and
+    // a stop that couldn't be added is reported on its own rather than
+    // stacked with a "saved" toast the user would have to reconcile.
     let stopToAdd: Trip['itineraryStops'][number] | undefined;
+    let itineraryError: string | undefined;
     if (addToItinerary) {
       const result = buildLinkedItineraryStop(trip, item);
       if ('conflictMessage' in result) {
-        showToast(result.conflictMessage, { variant: 'error' });
-        return;
+        itineraryError = result.conflictMessage;
+      } else {
+        stopToAdd = result.stop;
       }
-      stopToAdd = result.stop;
     }
     await updateTrip((t) => {
       const withItem = upsertBookingItem(t, item);
       return { ...withItem, itineraryStops: stopToAdd ? [...t.itineraryStops, stopToAdd] : t.itineraryStops };
     });
-    showToast(`${BOOKING_ITEM_TYPES.find((t) => t.id === item.type)?.singular ?? 'Booking'} saved.`);
+    showToast(itineraryError ?? `${BOOKING_ITEM_TYPES.find((t) => t.id === item.type)?.singular ?? 'Booking'} saved.`, itineraryError ? { variant: 'error' } : undefined);
     setEditingBooking(null);
   };
 
   const confirmDelete = () => {
     if (!pendingDelete) return;
     const arrayKey = pendingDelete.kind === 'flight' ? 'flights' : pendingDelete.kind === 'stay' ? 'stays' : 'bookingItems';
-    deleteEntityWithUndo({ updateTrip, showToast, arrayKey, id: pendingDelete.id, clearDocumentsRelatedTo: pendingDelete.relatedTo });
+    deleteEntityWithUndo({
+      updateTrip,
+      showToast,
+      arrayKey,
+      id: pendingDelete.id,
+      clearDocumentsRelatedTo: pendingDelete.relatedTo,
+      clearDocumentsSourceType: pendingDelete.kind,
+      clearDocumentsSourceId: pendingDelete.id,
+    });
     setPendingDelete(null);
     setEditingFlight(null);
     setEditingStay(null);

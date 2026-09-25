@@ -32,8 +32,16 @@ export function removeTravelerFromTrip(trip: Trip, travelerId: string): Trip {
     ...trip,
     travelers: trip.travelers.filter((t) => t.id !== travelerId),
     checklistItems: trip.checklistItems.filter((i) => i.travelerId !== travelerId),
-    itineraryStops: trip.itineraryStops.map((s) =>
-      s.travelerIds.includes(travelerId) ? { ...s, travelerIds: s.travelerIds.filter((id) => id !== travelerId) } : s,
-    ),
+    itineraryStops: trip.itineraryStops.map((s) => {
+      if (!s.travelerIds.includes(travelerId)) return s;
+      const travelerIds = s.travelerIds.filter((id) => id !== travelerId);
+      // F-12: a stop that named ONLY this traveler now has an empty
+      // travelerIds — the same array shape as "assigned to everyone", but
+      // this one arrived there because its one assignee left, not by
+      // deliberate choice. Flag it so the UI can tell the two apart instead
+      // of silently relabeling it "Everyone". A stop that still names other
+      // travelers is unaffected either way.
+      return travelerIds.length === 0 ? { ...s, travelerIds, assignedToNobody: true } : { ...s, travelerIds };
+    }),
   };
 }

@@ -95,10 +95,14 @@ export function StopForm({ initial, defaultDate, trip, onClose, onSave, onDelete
     const errors = validateStopForSave(stop, trip, trip.itineraryStops);
     if (errors.length > 0) {
       // Show the first problem — subsequent ones (if any) surface once this one's fixed and Save is pressed again.
-      setFormError(describeActivityError(errors[0]!, trip.itineraryStops));
+      setFormError(describeActivityError(errors[0]!, trip.itineraryStops, trip.flights, trip.stays));
       return;
     }
-    run(() => onSave(stop)).catch(() => {});
+    // F-12: a deliberate save always resolves the "was this assignment
+    // cleared by a traveler removal, or does it just mean everyone?"
+    // ambiguity — the user has now reviewed (and can re-set) the travelers
+    // field either way, so the flag's one job is done.
+    run(() => onSave({ ...stop, assignedToNobody: undefined })).catch(() => {});
   };
 
   return (

@@ -117,6 +117,17 @@ export function timezoneDisplayLabel(timezone: string, atDate: Date = new Date()
 /**
  * Converts a "local wall clock" date+time string in a given IANA timezone
  * into a real UTC instant (milliseconds since epoch).
+ *
+ * Two passes, not one (F-07 fix): the first offset is sampled at the naive
+ * "local numbers treated as UTC" instant, which can land on the wrong side
+ * of a DST transition — most visibly for a large-offset zone, where that
+ * naive instant can be many hours away from the true one. A second sample,
+ * taken at the once-corrected instant, catches that and is always enough:
+ * a zone's UTC offset never changes twice within one calendar day. For a
+ * local time that falls inside the transition's own skipped or repeated
+ * hour (spring-forward/fall-back) there is no single correct instant by
+ * definition — this still returns a deterministic value (whichever side
+ * the second sample lands on) rather than a silently wrong one.
  */
 export function localDateTimeToUtc(dateStr: string, timeStr: string, timezone: string): number {
   const [year, month, day] = dateStr.split('-').map(Number);
@@ -124,8 +135,10 @@ export function localDateTimeToUtc(dateStr: string, timeStr: string, timezone: s
   if (!year || !month || !day || hour === undefined || minute === undefined) {
     return NaN;
   }
-  // Approximate as UTC first, then correct using the zone's actual offset at that instant.
   const approxUtcMs = Date.UTC(year, month - 1, day, hour, minute);
-  const offsetMin = offsetMinutesAt(timezone, new Date(approxUtcMs));
-  return approxUtcMs - offsetMin * 60_000;
+  const firstOffset = offsetMinutesAt(timezone, new Date(approxUtcMs));
+  const correctedUtcMs = approxUtcMs - firstOffset * 60_000;
+  const secondOffset = offsetMinutesAt(timezone, new Date(correctedUtcMs));
+  if (secondOffset === firstOffset) return correctedUtcMs;
+  return approxUtcMs - secondOffset * 60_000;
 }

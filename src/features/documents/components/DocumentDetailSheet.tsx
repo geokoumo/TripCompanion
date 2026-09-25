@@ -7,8 +7,9 @@ import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { Modal } from '../../../shared/components/Modal';
 import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
-import { removeDocument, replaceDocumentFile } from '../../../data/repository/documentRepository';
+import { replaceDocumentFile } from '../../../data/repository/documentRepository';
 import type { Trip } from '../../trips/types';
+import { deleteDocumentWithUndo } from '../lib/deleteDocumentWithUndo';
 import { useDocumentUrl } from '../lib/useDocumentUrl';
 import type { Document } from '../types';
 import styles from './DocumentDetailSheet.module.css';
@@ -86,17 +87,12 @@ export function DocumentDetailSheet({ doc, trip, updateTrip, onClose }: Document
   };
 
   const handleDelete = async () => {
-    try {
-      await updateTrip((t) => removeDocument(t, doc.id));
-    } catch {
-      // updateTrip's own failure path already surfaces a "Save failed" toast;
-      // this just stops the rejection from propagating unhandled out of the
-      // fire-and-forget `void handleDelete()` call site, and leaves the sheet
-      // open (not a false "Deleted.") so the user can retry.
-      return;
-    }
-    if (!isLocalDataUrl(doc.storagePath)) void deleteTripFile(doc.storagePath);
-    showToast('Deleted.');
+    // deleteDocumentWithUndo (F-09) shows its own "Deleted." + Undo toast and
+    // defers the actual Storage cleanup until the undo window passes — if
+    // the save itself fails, it returns false without toasting, matching
+    // the previous retry-in-place behavior (sheet stays open).
+    const deleted = await deleteDocumentWithUndo(doc, updateTrip, showToast);
+    if (!deleted) return;
     onClose();
   };
 

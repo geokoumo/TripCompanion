@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../../../app/providers/AuthProvider';
 import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Button } from '../../../shared/components/Button';
@@ -25,11 +26,26 @@ interface ShareSheetProps {
 }
 
 export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
+  const { user } = useAuth();
   const { getFullTrip } = useTripsContext();
   const { showToast } = useToast();
   const [selected, setSelected] = useState<Set<TripTab>>(new Set(trip.shareSettings.includedTabs.length ? trip.shareSettings.includedTabs : ['overview']));
   const [shareToken, setShareToken] = useState(trip.shareSettings.shareToken);
   const { saving, run } = useSavingGuard();
+
+  // F-10: a guest/local-mode trip lives only in this browser's storage —
+  // there is no Supabase row for the anonymous get_shared_trip RPC to ever
+  // find, so generating a link here would look successful (the token saves
+  // fine, "Link ready" would show) while being permanently unresolvable for
+  // anyone, including the same person in another browser. Say so plainly
+  // instead of producing a link that can never work.
+  if (!user) {
+    return (
+      <Modal title="Share" onClose={onClose}>
+        <p className={styles.intro}>Sign in to share this trip. Sharing creates a link backed by your account — a trip saved only on this device can&apos;t be shared yet.</p>
+      </Modal>
+    );
+  }
 
   const toggle = (tab: TripTab) => {
     setSelected((prev) => {

@@ -1,6 +1,7 @@
 import { searchWithinTrip } from '../../features/search/lib/searchLocalTrip';
 import type { SearchResultGroup } from '../../features/search/types';
 import { TripSchema, type Trip, type TripListItem } from '../../features/trips/types';
+import { hasInvalidDateOrder } from '../../features/trips/validation';
 import { tripToListItem } from '../../features/trips/lib/tripListItem';
 import { migrateTrip } from '../migrations';
 import { storageAdapter } from '../storage/storageAdapter';
@@ -122,6 +123,14 @@ export class LocalStorageTripRepository implements TripRepository {
 
   async saveTrip(trip: Trip): Promise<void> {
     const validated = TripSchema.parse(trip);
+    // F-08: mirrors the DB CHECK constraints Supabase already enforces
+    // (legs.end_date >= start_date; stays' checkout >= checkin) — a backward
+    // leg/stay must be rejected here too, not just on the Supabase backend,
+    // so the two persistence modes reject the same data. Never applied to
+    // reads: an already-persisted trip that predates this check still loads.
+    if (hasInvalidDateOrder(validated)) {
+      throw new Error('invalid-date-order');
+    }
     // If the existing key is unreadable, writing on top of it would persist
     // an empty-list interpretation over storage.getItem()'s true (corrupted)
     // contents — turning a possibly-recoverable corruption into a permanent

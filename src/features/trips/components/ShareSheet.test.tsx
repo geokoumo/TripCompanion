@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { User } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '../../../app/providers/ToastProvider';
 import type { Trip } from '../types';
@@ -12,9 +13,18 @@ vi.mock('../../../app/providers/TripsProvider', () => ({
   useTripsContext: () => ({ getFullTrip: getFullTripMock }),
 }));
 
+// F-10: sharing requires an account (a guest trip has no Supabase row for
+// get_shared_trip to ever resolve) — signed-in by default so the existing
+// share-flow tests below are unaffected; the guest-mode test overrides this.
+const mockAuth = vi.hoisted(() => ({ user: { id: 'u1', email: 'alex@example.com' } as User | null }));
+vi.mock('../../../app/providers/AuthProvider', () => ({
+  useAuth: () => mockAuth,
+}));
+
 beforeEach(() => {
   getFullTripMock.mockReset();
   getFullTripMock.mockResolvedValue(undefined); // falls back to the trip prop, same as the app's own fallback
+  mockAuth.user = { id: 'u1', email: 'alex@example.com' } as User;
 });
 
 function makeTrip(overrides: Partial<Trip> = {}): Trip {
@@ -53,5 +63,22 @@ describe('ShareSheet — tab chip accessible state', () => {
     expect(flightsChip).toHaveAttribute('aria-pressed', 'false');
     await user.click(flightsChip);
     expect(flightsChip).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('ShareSheet — guest/local mode (F-10)', () => {
+  it('explains that sharing requires an account instead of offering to create a link', () => {
+    mockAuth.user = null;
+    renderSheet(makeTrip());
+    expect(screen.getByText(/sign in to share this trip/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Create link' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Overview' })).not.toBeInTheDocument();
+  });
+
+  it('shows the normal share flow for a signed-in user', () => {
+    mockAuth.user = { id: 'u1', email: 'alex@example.com' } as User;
+    renderSheet(makeTrip());
+    expect(screen.getByRole('button', { name: 'Create link' })).toBeInTheDocument();
+    expect(screen.queryByText(/sign in to share this trip/i)).not.toBeInTheDocument();
   });
 });

@@ -139,7 +139,7 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
     const freshTrip = (await getFullTrip(trip.id)) ?? trip;
     const errors = validateStopForSave(stop, freshTrip, freshTrip.itineraryStops);
     if (errors.length > 0) {
-      showToast(describeActivityError(errors[0]!, freshTrip.itineraryStops), { variant: 'error' });
+      showToast(describeActivityError(errors[0]!, freshTrip.itineraryStops, freshTrip.flights, freshTrip.stays), { variant: 'error' });
       return;
     }
 
@@ -190,7 +190,7 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
     const freshTrip = (await getFullTrip(trip.id)) ?? trip;
     const errors = validateStopForSave(stop, freshTrip, freshTrip.itineraryStops);
     if (errors.length > 0) {
-      showToast(describeActivityError(errors[0]!, freshTrip.itineraryStops), { variant: 'error' });
+      showToast(describeActivityError(errors[0]!, freshTrip.itineraryStops, freshTrip.flights, freshTrip.stays), { variant: 'error' });
       return;
     }
 

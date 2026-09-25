@@ -29,7 +29,12 @@ export function validateTrip(trip: Trip): DomainError[] {
   const tripRange = startValid && endValid ? { startDate: trip.startDate, endDate: trip.endDate } : null;
 
   for (const activity of trip.activities) {
-    const activityErrors = validateActivity(activity, { tripRange, existingActivities: trip.activities });
+    const activityErrors = validateActivity(activity, {
+      tripRange,
+      existingActivities: trip.activities,
+      flights: trip.flights,
+      stays: trip.stays,
+    });
     errors.push(...withEntityId(activityErrors, activity.id));
   }
 

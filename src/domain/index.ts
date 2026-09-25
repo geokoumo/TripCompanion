@@ -14,6 +14,7 @@ export { validateTimeRange, type TimeRangeInput } from './validateTimeRange';
 export { validatePriceAndCurrency, type PriceInput } from './validatePriceAndCurrency';
 export { validateLocation, type LocationOptions } from './validateLocation';
 export { detectActivityOverlap } from './detectActivityOverlap';
+export { detectFlightStayOccupancyConflict } from './detectFlightStayOccupancy';
 export { detectStayOverlap } from './detectStayOverlap';
 export { validateActivity, type ActivityValidationContext } from './validateActivity';
 export { validateFlight, type FlightChronology } from './validateFlight';
