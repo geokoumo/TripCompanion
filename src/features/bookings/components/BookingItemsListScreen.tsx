@@ -61,8 +61,8 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
     }
   };
 
-  const remove = (id: string) => {
-    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'bookingItems', id });
+  const remove = (item: BookingItem) => {
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'bookingItems', id: item.id, clearDocumentsRelatedTo: bookingItemRelatedTo(item) });
     setPendingDelete(null);
     setEditing(null);
   };
@@ -101,7 +101,7 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
       )}
 
       {pendingDelete && (
-        <DeleteConfirmSheet itemName={pendingDelete.name} onCancel={() => setPendingDelete(null)} onConfirm={() => remove(pendingDelete.id)} />
+        <DeleteConfirmSheet itemName={pendingDelete.name} onCancel={() => setPendingDelete(null)} onConfirm={() => remove(pendingDelete)} />
       )}
 
       {viewing && (

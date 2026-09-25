@@ -171,7 +171,7 @@ export function SharedTripView({ token, onExit }: { token: string; onExit: () =>
     );
   }
 
-  const range = getTripDateRange(trip.legs, trip.flights);
+  const range = getTripDateRange(trip.legs, trip.flights, trip.stays);
   const included = new Set(trip.includedTabs);
   const timeline = buildTimeline(trip, included);
 

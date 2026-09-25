@@ -11,7 +11,7 @@ export function tripToListItem(trip: Trip): TripListItem {
   // Flight-inclusive range, unlike list_trips()'s legs-only min/max — this
   // preserves local-only mode's existing "flights can extend the range"
   // behavior rather than narrowing it to match the SQL function.
-  const range = getTripDateRange(trip.legs, trip.flights);
+  const range = getTripDateRange(trip.legs, trip.flights, trip.stays);
   const cities = [...trip.legs]
     .filter((leg) => leg.city.trim())
     .sort((a, b) => a.startDate.localeCompare(b.startDate))

@@ -51,9 +51,9 @@ describe('detectActivityOverlap', () => {
     expect(errors).toEqual([{ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'a2' }]);
   });
 
-  it('ignores activities on a different date even at the same time', () => {
-    const candidate = makeActivity({ id: 'a1', date: '2026-09-05', time: '15:00', durationMinutes: 120 });
-    const other = makeActivity({ id: 'a2', date: '2026-09-06', time: '15:00', durationMinutes: 120 });
+  it('does not conflict with an activity a full day away, even at the same clock time', () => {
+    const candidate = makeActivity({ id: 'a1', date: '2026-09-05', time: '15:00', durationMinutes: 120 }); // ends 17:00 on the 5th
+    const other = makeActivity({ id: 'a2', date: '2026-09-06', time: '15:00', durationMinutes: 120 }); // starts 15:00 on the 6th — no real overlap
     expect(detectActivityOverlap(candidate, [other])).toEqual([]);
   });
 
@@ -137,8 +137,43 @@ describe('detectActivityOverlap', () => {
   });
 
   it('handles a candidate that spans midnight-adjacent minutes correctly within the same day', () => {
-    const candidate = makeActivity({ id: 'a1', time: '23:00', durationMinutes: 90 }); // 23:00-24:30 (clock overflow, still fine as raw minutes)
+    const candidate = makeActivity({ id: 'a1', time: '23:00', durationMinutes: 90 }); // 23:00-00:30 the next day
     const other = makeActivity({ id: 'a2', time: '23:59', durationMinutes: 10 });
     expect(detectActivityOverlap(candidate, [other])).toEqual([{ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'a2' }]);
+  });
+
+  describe('real cross-midnight chronology (activities on different calendar dates)', () => {
+    it('flags a conflict when a span crossing midnight overlaps an activity starting after midnight the next day', () => {
+      // 23:30 + 90min on the 5th ends 01:00 on the 6th — genuinely overlaps a 00:30 start on the 6th.
+      const candidate = makeActivity({ id: 'a1', date: '2026-09-05', time: '23:30', durationMinutes: 90 });
+      const other = makeActivity({ id: 'a2', date: '2026-09-06', time: '00:30', durationMinutes: 30 });
+      const errors = detectActivityOverlap(candidate, [other]);
+      expect(errors).toEqual([{ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'a2' }]);
+    });
+
+    it('is symmetric: the next-day activity also reports the conflict when checked as the candidate', () => {
+      const candidate = makeActivity({ id: 'a2', date: '2026-09-06', time: '00:30', durationMinutes: 30 });
+      const other = makeActivity({ id: 'a1', date: '2026-09-05', time: '23:30', durationMinutes: 90 });
+      const errors = detectActivityOverlap(candidate, [other]);
+      expect(errors).toEqual([{ code: 'TIME_OVERLAP', field: 'time', conflictingId: 'a1' }]);
+    });
+
+    it('allows back-to-back activities across midnight: 23:00–24:00 on day 1 then 00:00–01:00 on day 2', () => {
+      const candidate = makeActivity({ id: 'a1', date: '2026-09-05', time: '23:00', durationMinutes: 60 }); // ends exactly at midnight
+      const other = makeActivity({ id: 'a2', date: '2026-09-06', time: '00:00', durationMinutes: 60 });
+      expect(detectActivityOverlap(candidate, [other])).toEqual([]);
+    });
+
+    it('does not conflict when a span crossing midnight ends before the next-day activity starts', () => {
+      const candidate = makeActivity({ id: 'a1', date: '2026-09-05', time: '23:30', durationMinutes: 30 }); // ends 00:00 on the 6th
+      const other = makeActivity({ id: 'a2', date: '2026-09-06', time: '01:00', durationMinutes: 30 });
+      expect(detectActivityOverlap(candidate, [other])).toEqual([]);
+    });
+
+    it('still ignores all-day activities on the adjacent date, even when a timed span crosses into it', () => {
+      const candidate = makeActivity({ id: 'a1', date: '2026-09-05', time: '23:30', durationMinutes: 90 });
+      const allDayOther = makeActivity({ id: 'a2', date: '2026-09-06', allDay: true, time: undefined, durationMinutes: undefined });
+      expect(detectActivityOverlap(candidate, [allDayOther])).toEqual([]);
+    });
   });
 });

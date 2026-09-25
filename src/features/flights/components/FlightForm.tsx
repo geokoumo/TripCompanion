@@ -12,6 +12,7 @@ import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateId } from '../../../shared/lib/id';
 import { matchAirlineDomain } from '../lib/airlineDomains';
 import { checkFlightTimeOrder } from '../lib/flightTime';
+import { validateFlight } from '../../../domain';
 import { hasParsedFields, parseFlightText } from '../lib/parseFlightText';
 import { getRecentValues, rememberRecentValue } from '../lib/recentValues';
 import { lookupAirportTimezone, MANUAL_TIMEZONE_OPTIONS, rememberAirportTimezone, resolveTimezone, timezoneDisplayLabel } from '../lib/timezones';
@@ -94,15 +95,16 @@ export function FlightForm({ trip, updateTrip, initial, onClose, onSave, onDelet
   const timeCheck = flight.depDate && flight.depTime && flight.arrDate && flight.arrTime ? checkFlightTimeOrder(flight) : null;
 
   const handleSave = () => {
-    if (!flight.airline.trim() || !flight.flightNumber.trim() || !flight.depAirport.trim() || !flight.arrAirport.trim()) {
+    const errors = validateFlight(flight, timeCheck ?? undefined);
+    if (errors.some((e) => ['airline', 'flightNumber', 'depAirport', 'arrAirport'].includes(e.field))) {
       showToast('Missing flight details — airline, number, departure, arrival.', { variant: 'error' });
       return;
     }
-    if (!flight.depDate || !flight.depTime || !flight.arrDate || !flight.arrTime) {
+    if (errors.some((e) => ['depDate', 'depTime', 'arrDate', 'arrTime'].includes(e.field))) {
       showToast('Missing flight details — number, departure, arrival.', { variant: 'error' });
       return;
     }
-    if (timeCheck && !timeCheck.unresolvedTimezone && !timeCheck.isValid) {
+    if (errors.some((e) => e.code === 'FLIGHT_TIME_ORDER')) {
       showToast('Arrival must be after departure (based on time zones).', { variant: 'error' });
       return;
     }

@@ -50,7 +50,7 @@ function EventBlock({ label, tone, moment, today, nowTime }: { label: string; to
 
 export function OverviewTab({ trip, updateTrip, onOpenTripHealth }: OverviewTabProps) {
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
-  const range = getTripDateRange(trip.legs, trip.flights);
+  const range = getTripDateRange(trip.legs, trip.flights, trip.stays);
   const today = todayStr();
   const nowTime = nowTimeStr();
   const status = getTripStatus(range);

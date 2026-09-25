@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getTripDateRange } from './lib/dateRange';
 import type { Flight } from '../flights/types';
+import type { Stay } from '../stays/types';
 import type { Leg } from './types';
 
 function leg(overrides: Partial<Leg> = {}): Leg {
@@ -19,6 +20,19 @@ function flight(overrides: Partial<Flight> = {}): Flight {
     arrDate: '2026-09-05',
     arrTime: '12:00',
     status: 'scheduled',
+    ...overrides,
+  };
+}
+
+function stay(overrides: Partial<Stay> = {}): Stay {
+  return {
+    id: 's1',
+    name: 'Hotel Roma',
+    address: 'Via Roma 1',
+    checkinDate: '2026-09-05',
+    checkinTime: '14:00',
+    checkoutDate: '2026-09-08',
+    checkoutTime: '11:00',
     ...overrides,
   };
 }
@@ -45,6 +59,29 @@ describe('getTripDateRange', () => {
 
   it('ignores legs with blank dates rather than letting them collapse the range', () => {
     const range = getTripDateRange([leg({ startDate: '', endDate: '' }), leg({ id: 'l2', startDate: '2026-09-05', endDate: '2026-09-08' })]);
+    expect(range).toEqual({ startDate: '2026-09-05', endDate: '2026-09-08' });
+  });
+
+  it('extends the range earlier when a stay checks in before the first leg starts', () => {
+    const range = getTripDateRange(
+      [leg({ startDate: '2026-09-05', endDate: '2026-09-08' })],
+      [],
+      [stay({ checkinDate: '2026-09-03', checkoutDate: '2026-09-05' })],
+    );
+    expect(range?.startDate).toBe('2026-09-03');
+  });
+
+  it('extends the range later when a stay checks out after the last leg ends', () => {
+    const range = getTripDateRange(
+      [leg({ startDate: '2026-09-05', endDate: '2026-09-08' })],
+      [],
+      [stay({ checkinDate: '2026-09-08', checkoutDate: '2026-09-10' })],
+    );
+    expect(range?.endDate).toBe('2026-09-10');
+  });
+
+  it('derives a range from a stay alone when there are no legs or flights', () => {
+    const range = getTripDateRange([], [], [stay({ checkinDate: '2026-09-05', checkoutDate: '2026-09-08' })]);
     expect(range).toEqual({ startDate: '2026-09-05', endDate: '2026-09-08' });
   });
 });

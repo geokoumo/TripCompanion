@@ -33,7 +33,7 @@ const emptyExpense = (trip: Trip, travelers: Traveler[]): Expense => ({
   amount: 0,
   currency: trip.homeCurrency,
   categoryId: '',
-  date: getTripDateRange(trip.legs, trip.flights)?.startDate ?? '',
+  date: getTripDateRange(trip.legs, trip.flights, trip.stays)?.startDate ?? '',
   paidBy: travelers[0]?.id ?? '',
   splitAmong: travelers.map((t) => t.id),
 });
@@ -43,7 +43,7 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [showMore, setShowMore] = useState(Boolean(initial?.link));
-  const range = getTripDateRange(trip.legs, trip.flights);
+  const range = getTripDateRange(trip.legs, trip.flights, trip.stays);
 
   const knownCurrencies = Array.from(new Set([trip.homeCurrency, ...trip.legs.map((l) => l.currency)]));
   const [creatingCurrency, setCreatingCurrency] = useState(() => !knownCurrencies.includes(expense.currency));

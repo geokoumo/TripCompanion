@@ -38,7 +38,7 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
   const [manageTravelersOpen, setManageTravelersOpen] = useState(false);
   const coverPhotoInputRef = useRef<HTMLInputElement>(null);
-  const range = getTripDateRange(trip.legs, trip.flights);
+  const range = getTripDateRange(trip.legs, trip.flights, trip.stays);
 
   const handleCoverPhotoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

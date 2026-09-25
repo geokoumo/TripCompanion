@@ -5,6 +5,7 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { flightRelatedTo, retagDocuments } from '../../documents/lib/relatedTo';
 import type { Flight } from '../types';
 import { FlightCard } from './FlightCard';
 import { FlightDetailView } from './FlightDetailView';
@@ -28,8 +29,10 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
   const save = async (flight: Flight) => {
     try {
       await updateTrip((t) => {
-        const exists = t.flights.some((f) => f.id === flight.id);
-        return { ...t, flights: exists ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight] };
+        const existing = t.flights.find((f) => f.id === flight.id);
+        const flights = existing ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight];
+        const documents = existing ? retagDocuments(t.documents, flightRelatedTo(existing), flightRelatedTo(flight)) : t.documents;
+        return { ...t, flights, documents };
       });
       showToast('Flight saved.');
       setEditing(null);
@@ -39,8 +42,8 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
     }
   };
 
-  const remove = (id: string) => {
-    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id });
+  const remove = (flight: Flight) => {
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id: flight.id, clearDocumentsRelatedTo: flightRelatedTo(flight) });
     setPendingDelete(null);
     setEditing(null);
   };
@@ -76,7 +79,7 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
         <DeleteConfirmSheet
           itemName={`${pendingDelete.airline} ${pendingDelete.flightNumber}`}
           onCancel={() => setPendingDelete(null)}
-          onConfirm={() => remove(pendingDelete.id)}
+          onConfirm={() => remove(pendingDelete)}
         />
       )}
 

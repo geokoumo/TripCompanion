@@ -1,7 +1,7 @@
 import { BOOKING_ITEM_TO_STOP_TYPE, type BookingItemTypeId } from '../../../config/constants';
 import { generateId } from '../../../shared/lib/id';
 import type { ItineraryStop } from '../../itinerary/types';
-import { computeOccupiedRanges, findConflict, formatRangeLabel } from '../../itinerary/lib/occupiedRanges';
+import { describeActivityError, validateStopForSave } from '../../itinerary/lib/activityValidation';
 import type { Trip } from '../../trips/types';
 import type { BookingItem } from '../types';
 
@@ -17,9 +17,12 @@ export type LinkedStopResult = { stop: ItineraryStop } | { conflictMessage: stri
 /**
  * Builds the itinerary stop a booking item's "Add to itinerary" toggle
  * pre-fills — same manual-entry philosophy as everything else, just copying
- * over data already typed into the booking form. Still goes through the
- * Round 8 hard-block: if the slot is already occupied, this refuses to
- * create an overlapping stop rather than silently bypassing that rule.
+ * over data already typed into the booking form. Runs through the exact
+ * same canonical validateStopForSave a manually-created or idea-created
+ * stop goes through (date range, time/duration, price/currency, location,
+ * and overlap against the rest of the itinerary) rather than a narrower,
+ * booking-specific check — so a booking-derived stop can never slip past a
+ * rule a manual one would be blocked by.
  */
 export function buildLinkedItineraryStop(trip: Trip, item: BookingItem): LinkedStopResult {
   if (!item.date || !item.startTime) {
@@ -28,12 +31,6 @@ export function buildLinkedItineraryStop(trip: Trip, item: BookingItem): LinkedS
 
   const startMin = toMinutes(item.startTime);
   const durationMinutes = item.endTime ? Math.max(toMinutes(item.endTime) - startMin, 15) : DEFAULT_DURATION_MINUTES;
-
-  const occupied = computeOccupiedRanges({ date: item.date, stops: trip.itineraryStops, flights: trip.flights, stays: trip.stays });
-  const conflict = findConflict(startMin, durationMinutes, occupied);
-  if (conflict) {
-    return { conflictMessage: `Couldn't add to itinerary — it overlaps with "${conflict.label}" ${formatRangeLabel(conflict)}.` };
-  }
 
   const stop: ItineraryStop = {
     id: generateId(),
@@ -45,8 +42,15 @@ export function buildLinkedItineraryStop(trip: Trip, item: BookingItem): LinkedS
     title: item.name,
     type: BOOKING_ITEM_TO_STOP_TYPE[item.type as BookingItemTypeId],
     location: item.location ?? undefined,
+    price: item.price ?? undefined,
+    currency: item.currency ?? undefined,
     travelerIds: [],
     done: false,
   };
+
+  const errors = validateStopForSave(stop, trip, trip.itineraryStops);
+  if (errors.length > 0) {
+    return { conflictMessage: `Couldn't add to itinerary — ${describeActivityError(errors[0]!, trip.itineraryStops)}` };
+  }
   return { stop };
 }

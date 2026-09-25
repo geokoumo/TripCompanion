@@ -219,6 +219,15 @@ function mapDomainError(error: DomainError, trip: Trip): TripHealthWarning {
         navigationTarget: 'stays',
       };
     }
+
+    case 'FLIGHT_TIME_ORDER':
+      // validateTrip() never validates flights today (toDomainTrip maps
+      // flights: [] — see its doc comment), so this code can't actually be
+      // produced by anything mapDomainError is called on. Kept as an
+      // explicit case (rather than a silent fallthrough) so this switch
+      // stays exhaustive over DomainErrorCode; wiring validateFlight into
+      // Trip Health is a separate, not-yet-made product decision.
+      throw new Error('FLIGHT_TIME_ORDER is not produced by validateTrip() and has no Trip Health mapping yet.');
   }
 }
 

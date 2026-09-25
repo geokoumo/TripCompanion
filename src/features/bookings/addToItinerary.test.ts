@@ -134,4 +134,47 @@ describe('buildLinkedItineraryStop', () => {
     const result = buildLinkedItineraryStop(t, item);
     expect('stop' in result).toBe(true);
   });
+
+  // These four cases exercise the canonical validateStopForSave path directly
+  // (item E: the same validation manually-created and idea-created stops go
+  // through, not a narrower booking-specific check) — date range, overlap,
+  // price, and location all route through the one shared validator.
+  describe('routes through the canonical itinerary-stop validation (same as manual/idea stops)', () => {
+    it('rejects a date outside the trip\'s derived range', () => {
+      const t = trip({ legs: [{ id: 'l1', city: 'Rome', country: 'Italy', startDate: '2026-09-05', endDate: '2026-09-08', currency: 'EUR' }] });
+      const item = bookingItem({ date: '2026-12-25', startTime: '10:00' });
+      const result = buildLinkedItineraryStop(t, item);
+      expect(result).toEqual({ conflictMessage: expect.stringContaining('outside your trip') });
+    });
+
+    it('rejects an overlap with an existing itinerary stop via the canonical overlap detector', () => {
+      const t = trip({
+        itineraryStops: [
+          { id: 'existing', date: '2026-09-10', time: '10:00', allDay: false, durationMinutes: 60, title: 'Existing stop', type: 'sight', travelerIds: [], done: false },
+        ],
+      });
+      const item = bookingItem({ date: '2026-09-10', startTime: '10:30', endTime: '11:00' });
+      const result = buildLinkedItineraryStop(t, item);
+      expect(result).toEqual({ conflictMessage: expect.stringContaining('Existing stop') });
+    });
+
+    it('rejects a negative price', () => {
+      const item = bookingItem({ date: '2026-09-10', startTime: '10:00', price: -5, currency: 'EUR' });
+      const result = buildLinkedItineraryStop(trip(), item);
+      expect(result).toEqual({ conflictMessage: expect.stringContaining('valid price') });
+    });
+
+    it('rejects a blank (whitespace-only) location', () => {
+      const item = bookingItem({ date: '2026-09-10', startTime: '10:00', location: '   ' });
+      const result = buildLinkedItineraryStop(trip(), item);
+      expect(result).toEqual({ conflictMessage: expect.stringContaining('Location') });
+    });
+
+    it('carries the booking item\'s price and currency onto the created stop', () => {
+      const item = bookingItem({ date: '2026-09-10', startTime: '10:00', price: 42, currency: 'EUR' });
+      const result = buildLinkedItineraryStop(trip(), item);
+      expect('stop' in result && result.stop.price).toBe(42);
+      expect('stop' in result && result.stop.currency).toBe('EUR');
+    });
+  });
 });

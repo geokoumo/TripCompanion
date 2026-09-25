@@ -10,7 +10,7 @@ import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
 import { describeCard } from '../../../shared/lib/accessibleLabel';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { upsertBookingItem } from '../../../data/repository/bookingRepository';
-import { flightRelatedTo, stayRelatedTo, bookingItemRelatedTo } from '../../documents/lib/relatedTo';
+import { flightRelatedTo, stayRelatedTo, bookingItemRelatedTo, retagDocuments } from '../../documents/lib/relatedTo';
 import { FlightDetailView } from '../../flights/components/FlightDetailView';
 import { FlightForm } from '../../flights/components/FlightForm';
 import { FLIGHT_STATUS_TONE } from '../../flights/lib/statusTone';
@@ -43,6 +43,8 @@ interface PendingDelete {
   kind: 'flight' | 'stay' | 'booking';
   id: string;
   name: string;
+  /** The record's current documents.relatedTo label — see documents/lib/relatedTo.ts — so a confirmed delete can detach its documents instead of orphaning them. */
+  relatedTo: string;
 }
 
 /**
@@ -123,20 +125,23 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
   };
 
   const saveFlight = async (flight: Flight) => {
-    await updateTrip((t) => ({
-      ...t,
-      flights: t.flights.some((f) => f.id === flight.id) ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight],
-    }));
+    await updateTrip((t) => {
+      const existing = t.flights.find((f) => f.id === flight.id);
+      const flights = existing ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight];
+      const documents = existing ? retagDocuments(t.documents, flightRelatedTo(existing), flightRelatedTo(flight)) : t.documents;
+      return { ...t, flights, documents };
+    });
     showToast('Flight saved.');
     setEditingFlight(null);
   };
 
   const saveStay = async (stay: Stay) => {
     await updateTrip((t) => {
-      const exists = t.stays.some((s) => s.id === stay.id);
-      const stays = exists ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
+      const existing = t.stays.find((s) => s.id === stay.id);
+      const stays = existing ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
       const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
-      return { ...t, stays, rememberedLocations };
+      const documents = existing ? retagDocuments(t.documents, stayRelatedTo(existing), stayRelatedTo(stay)) : t.documents;
+      return { ...t, stays, rememberedLocations, documents };
     });
     showToast('Stay saved.');
     setEditingStay(null);
@@ -163,7 +168,7 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
   const confirmDelete = () => {
     if (!pendingDelete) return;
     const arrayKey = pendingDelete.kind === 'flight' ? 'flights' : pendingDelete.kind === 'stay' ? 'stays' : 'bookingItems';
-    deleteEntityWithUndo({ updateTrip, showToast, arrayKey, id: pendingDelete.id });
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey, id: pendingDelete.id, clearDocumentsRelatedTo: pendingDelete.relatedTo });
     setPendingDelete(null);
     setEditingFlight(null);
     setEditingStay(null);
@@ -245,7 +250,14 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
           initial={editingFlight}
           onClose={() => setEditingFlight(null)}
           onSave={(f) => saveFlight(f)}
-          onDelete={() => setPendingDelete({ kind: 'flight', id: editingFlight.id, name: `${editingFlight.airline} ${editingFlight.flightNumber}` })}
+          onDelete={() =>
+            setPendingDelete({
+              kind: 'flight',
+              id: editingFlight.id,
+              name: `${editingFlight.airline} ${editingFlight.flightNumber}`,
+              relatedTo: flightRelatedTo(editingFlight),
+            })
+          }
         />
       )}
       {editingStay && (
@@ -257,7 +269,7 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
           recentLocations={trip.rememberedLocations}
           onClose={() => setEditingStay(null)}
           onSave={(s) => saveStay(s)}
-          onDelete={() => setPendingDelete({ kind: 'stay', id: editingStay.id, name: editingStay.name })}
+          onDelete={() => setPendingDelete({ kind: 'stay', id: editingStay.id, name: editingStay.name, relatedTo: stayRelatedTo(editingStay) })}
         />
       )}
       {editingBooking && (
@@ -268,7 +280,9 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
           initial={editingBooking}
           onClose={() => setEditingBooking(null)}
           onSave={(item, addToItinerary) => saveBooking(item, addToItinerary)}
-          onDelete={() => setPendingDelete({ kind: 'booking', id: editingBooking.id, name: editingBooking.name })}
+          onDelete={() =>
+            setPendingDelete({ kind: 'booking', id: editingBooking.id, name: editingBooking.name, relatedTo: bookingItemRelatedTo(editingBooking) })
+          }
         />
       )}
 

@@ -74,4 +74,76 @@ describe('deleteEntityWithUndo', () => {
 
     expect(showToast).toHaveBeenCalledWith('Flight removed.', expect.anything());
   });
+
+  // Item F: deleting an entity that has attachments must preserve the
+  // document (never delete it) while clearing its stale relatedTo, since
+  // the deleted entity's own View Details — the only place the old label
+  // was matched against — no longer exists.
+  describe('clearDocumentsRelatedTo (item F: document preservation on delete)', () => {
+    function tripWithDoc(): Trip {
+      const t = makeTrip();
+      return { ...t, documents: [{ id: 'd1', category: 'boarding_pass', title: 'ticket.pdf', relatedTo: 'ATH → FCO flight', fileType: 'pdf', storagePath: 'p', uploadedAt: '2026-09-01' }] };
+    }
+
+    it('preserves the document and clears its relatedTo when the source flight is deleted', async () => {
+      let trip = tripWithDoc();
+      const updateTrip = vi.fn(async (updater: (t: Trip) => Trip) => {
+        trip = updater(trip);
+      });
+      const showToast = vi.fn();
+
+      deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id: 'f1', clearDocumentsRelatedTo: 'ATH → FCO flight' });
+      await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(1));
+
+      expect(trip.flights).toEqual([]);
+      expect(trip.documents).toHaveLength(1);
+      expect(trip.documents[0]!.relatedTo).toBeUndefined();
+      expect(trip.documents[0]!.id).toBe('d1');
+    });
+
+    it('leaves documents with a different relatedTo untouched', async () => {
+      let trip: Trip = { ...tripWithDoc(), documents: [...tripWithDoc().documents, { id: 'd2', category: 'other', title: 'unrelated.pdf', relatedTo: 'Some Hotel', fileType: 'pdf', storagePath: 'p2', uploadedAt: '2026-09-01' }] };
+      const updateTrip = vi.fn(async (updater: (t: Trip) => Trip) => {
+        trip = updater(trip);
+      });
+      const showToast = vi.fn();
+
+      deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id: 'f1', clearDocumentsRelatedTo: 'ATH → FCO flight' });
+      await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(1));
+
+      expect(trip.documents.find((d) => d.id === 'd2')?.relatedTo).toBe('Some Hotel');
+    });
+
+    it('re-attaches the detached document to the restored entity when undo is invoked', async () => {
+      let trip = tripWithDoc();
+      const updateTrip = vi.fn(async (updater: (t: Trip) => Trip) => {
+        trip = updater(trip);
+      });
+      const showToast = vi.fn();
+
+      deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id: 'f1', clearDocumentsRelatedTo: 'ATH → FCO flight' });
+      await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(1));
+      expect(trip.documents[0]!.relatedTo).toBeUndefined();
+
+      const [, options] = showToast.mock.calls[0]!;
+      options.action.onClick();
+      await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(2));
+
+      expect(trip.flights).toHaveLength(1);
+      expect(trip.documents[0]!.relatedTo).toBe('ATH → FCO flight');
+    });
+
+    it('never deletes the document itself, only its relatedTo tag', async () => {
+      let trip = tripWithDoc();
+      const updateTrip = vi.fn(async (updater: (t: Trip) => Trip) => {
+        trip = updater(trip);
+      });
+      const showToast = vi.fn();
+
+      deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id: 'f1', clearDocumentsRelatedTo: 'ATH → FCO flight' });
+      await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(1));
+
+      expect(trip.documents.map((d) => d.id)).toEqual(['d1']);
+    });
+  });
 });

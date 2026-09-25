@@ -4,6 +4,7 @@ import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { retagDocuments, stayRelatedTo } from '../../documents/lib/relatedTo';
 import type { Trip } from '../../trips/types';
 import { addRememberedLocation } from '../../trips/lib/rememberedLocations';
 import { dateTimeRangesOverlap } from '../lib/overlap';
@@ -48,10 +49,11 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
   const save = async (stay: Stay) => {
     try {
       await updateTrip((t) => {
-        const exists = t.stays.some((s) => s.id === stay.id);
-        const stays = exists ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
+        const existing = t.stays.find((s) => s.id === stay.id);
+        const stays = existing ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
         const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
-        return { ...t, stays, rememberedLocations };
+        const documents = existing ? retagDocuments(t.documents, stayRelatedTo(existing), stayRelatedTo(stay)) : t.documents;
+        return { ...t, stays, rememberedLocations, documents };
       });
       showToast('Stay saved.');
       setEditing(null);
@@ -61,8 +63,8 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
     }
   };
 
-  const remove = (id: string) => {
-    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'stays', id });
+  const remove = (stay: Stay) => {
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'stays', id: stay.id, clearDocumentsRelatedTo: stayRelatedTo(stay) });
     setPendingDelete(null);
     setEditing(null);
   };
@@ -100,7 +102,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
         <DeleteConfirmSheet
           itemName={pendingDelete.name}
           onCancel={() => setPendingDelete(null)}
-          onConfirm={() => remove(pendingDelete.id)}
+          onConfirm={() => remove(pendingDelete)}
         />
       )}
 

@@ -16,4 +16,5 @@ export { validateLocation, type LocationOptions } from './validateLocation';
 export { detectActivityOverlap } from './detectActivityOverlap';
 export { detectStayOverlap } from './detectStayOverlap';
 export { validateActivity, type ActivityValidationContext } from './validateActivity';
+export { validateFlight, type FlightChronology } from './validateFlight';
 export { validateTrip } from './validateTrip';

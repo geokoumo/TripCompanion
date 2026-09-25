@@ -18,10 +18,11 @@ function makeStop(overrides: Partial<ItineraryStop> = {}): ItineraryStop {
   };
 }
 
-function makeTrip(overrides: Partial<Pick<Trip, 'legs' | 'flights'>> = {}): Pick<Trip, 'legs' | 'flights'> {
+function makeTrip(overrides: Partial<Pick<Trip, 'legs' | 'flights' | 'stays'>> = {}): Pick<Trip, 'legs' | 'flights' | 'stays'> {
   return {
     legs: [{ id: 'l1', city: 'Rome', country: 'Italy', startDate: '2026-09-05', endDate: '2026-09-12', currency: 'EUR', exchangeRateToHome: null }],
     flights: [],
+    stays: [],
     ...overrides,
   };
 }
@@ -63,7 +64,14 @@ describe('tripActivityRange', () => {
   });
 
   it('returns null when there is nothing to derive a range from', () => {
-    expect(tripActivityRange({ legs: [], flights: [] })).toBeNull();
+    expect(tripActivityRange({ legs: [], flights: [], stays: [] })).toBeNull();
+  });
+
+  it('extends the range to include a stay (item A: stay-inclusive trip range)', () => {
+    const range = tripActivityRange(
+      makeTrip({ stays: [{ id: 's1', name: 'Hotel', address: 'Via Roma', checkinDate: '2026-09-04', checkinTime: '14:00', checkoutDate: '2026-09-05', checkoutTime: '11:00' }] }),
+    );
+    expect(range).toEqual({ startDate: '2026-09-04', endDate: '2026-09-12' });
   });
 });
 

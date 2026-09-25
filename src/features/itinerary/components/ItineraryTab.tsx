@@ -58,7 +58,7 @@ function buildDayRange(startDate: string, endDate: string): string[] {
 export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp, onSelectedDateChange }: ItineraryTabProps) {
   const { showToast } = useToast();
   const { getFullTrip } = useTripsContext();
-  const range = getTripDateRange(trip.legs, trip.flights);
+  const range = getTripDateRange(trip.legs, trip.flights, trip.stays);
   const days = useMemo(() => (range ? buildDayRange(range.startDate, range.endDate) : []), [range?.startDate, range?.endDate]);
   const today = todayStr();
   const defaultDate = days.includes(today) ? today : (days[0] ?? today);

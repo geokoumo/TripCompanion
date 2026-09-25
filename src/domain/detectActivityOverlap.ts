@@ -1,8 +1,9 @@
 import type { DomainError } from './errors';
 import type { Activity } from './schemas';
-import { rangesOverlap } from './lib/dateTime';
+import { rangesOverlap, toComparableMs } from './lib/dateTime';
 
 interface TimeSpan {
+  /** Absolute instant in ms (see toComparableMs) — comparable across different calendar dates, not just within one day. */
   start: number;
   end: number;
   /** True when this activity has a time but no duration — a specific moment rather than a span. See activitySpan(). */
@@ -10,8 +11,12 @@ interface TimeSpan {
 }
 
 /**
- * The minute-of-day span an activity occupies, or null when it doesn't
- * participate in overlap checking at all (all-day, or missing/invalid time).
+ * The absolute-time span an activity occupies, or null when it doesn't
+ * participate in overlap checking at all (all-day, or missing/invalid
+ * date/time). Expressed via toComparableMs rather than minutes-since-midnight
+ * so a span that runs past midnight (e.g. 23:30 + 90min) is comparable
+ * against an activity on the *next* calendar date, not just ones sharing the
+ * same date field.
  *
  * Duration stays optional by product design (StopForm labels it "DURATION
  * (OPTIONAL)") — plenty of real activities are a specific moment, not a
@@ -20,16 +25,15 @@ interface TimeSpan {
  * skipping it would silently make it immune to conflict detection, which
  * is the bug this fixes. No duration is ever invented on its behalf.
  */
-function activitySpan(activity: Pick<Activity, 'allDay' | 'time' | 'durationMinutes'>): TimeSpan | null {
+function activitySpan(activity: Pick<Activity, 'allDay' | 'date' | 'time' | 'durationMinutes'>): TimeSpan | null {
   if (activity.allDay) return null;
   if (!activity.time) return null;
 
-  const [hours, minutes] = activity.time.split(':').map(Number);
-  if (hours === undefined || minutes === undefined || Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+  const start = toComparableMs(activity.date, activity.time);
+  if (Number.isNaN(start)) return null;
 
-  const start = hours * 60 + minutes;
   const hasDuration = activity.durationMinutes != null && activity.durationMinutes > 0;
-  return hasDuration ? { start, end: start + activity.durationMinutes!, isPoint: false } : { start, end: start, isPoint: true };
+  return hasDuration ? { start, end: start + activity.durationMinutes! * 60_000, isPoint: false } : { start, end: start, isPoint: true };
 }
 
 /**
@@ -52,7 +56,10 @@ function spansConflict(a: TimeSpan, b: TimeSpan): boolean {
 
 /**
  * Finds every activity in `existingActivities` that time-conflicts with
- * `candidate` on the same calendar date.
+ * `candidate`, using real chronological instants rather than same-date
+ * matching — a span that crosses midnight (e.g. 23:30 + 90min, ending 01:00
+ * the next day) correctly conflicts with an activity starting at 00:30 on
+ * that next calendar date.
  *
  * - `candidate` is always excluded from the comparison by id, so passing
  *   the full current activity list (including the one being edited) is
@@ -74,7 +81,6 @@ export function detectActivityOverlap(candidate: Activity, existingActivities: A
   const errors: DomainError[] = [];
   for (const other of existingActivities) {
     if (other.id === candidate.id) continue;
-    if (other.date !== candidate.date) continue;
 
     const otherSpan = activitySpan(other);
     if (!otherSpan) continue;

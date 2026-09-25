@@ -18,7 +18,8 @@ export type DomainErrorCode =
   | 'STAY_OVERLAP'
   | 'INVALID_PRICE'
   | 'INVALID_CURRENCY'
-  | 'INVALID_LOCATION';
+  | 'INVALID_LOCATION'
+  | 'FLIGHT_TIME_ORDER';
 
 interface DomainErrorBase<Code extends DomainErrorCode> {
   code: Code;
@@ -48,6 +49,8 @@ export interface StayOverlapError extends DomainErrorBase<'STAY_OVERLAP'> {
 export interface InvalidPriceError extends DomainErrorBase<'INVALID_PRICE'> {}
 export interface InvalidCurrencyError extends DomainErrorBase<'INVALID_CURRENCY'> {}
 export interface InvalidLocationError extends DomainErrorBase<'INVALID_LOCATION'> {}
+/** Arrival is not strictly after departure, based on a timezone-aware chronology check — see validateFlight. */
+export interface FlightTimeOrderError extends DomainErrorBase<'FLIGHT_TIME_ORDER'> {}
 
 export type DomainError =
   | MissingRequiredDataError
@@ -59,7 +62,8 @@ export type DomainError =
   | StayOverlapError
   | InvalidPriceError
   | InvalidCurrencyError
-  | InvalidLocationError;
+  | InvalidLocationError
+  | FlightTimeOrderError;
 
 /** Stamps `entityId` onto every error — used when aggregating per-entity checks at the trip level. */
 export function withEntityId(errors: DomainError[], entityId: string): DomainError[] {

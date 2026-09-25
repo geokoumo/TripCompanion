@@ -25,8 +25,8 @@ export function toDomainActivity(stop: ItineraryStop): DomainActivity {
   };
 }
 
-export function tripActivityRange(trip: Pick<Trip, 'legs' | 'flights'>): DateRange | null {
-  return getTripDateRange(trip.legs, trip.flights);
+export function tripActivityRange(trip: Pick<Trip, 'legs' | 'flights' | 'stays'>): DateRange | null {
+  return getTripDateRange(trip.legs, trip.flights, trip.stays);
 }
 
 /**
@@ -37,7 +37,7 @@ export function tripActivityRange(trip: Pick<Trip, 'legs' | 'flights'>): DateRan
  * handled automatically: a stop with the same id as `stop` in
  * `existingStops` never conflicts against itself.
  */
-export function validateStopForSave(stop: ItineraryStop, trip: Pick<Trip, 'legs' | 'flights'>, existingStops: ItineraryStop[]): DomainError[] {
+export function validateStopForSave(stop: ItineraryStop, trip: Pick<Trip, 'legs' | 'flights' | 'stays'>, existingStops: ItineraryStop[]): DomainError[] {
   return validateActivity(toDomainActivity(stop), {
     tripRange: tripActivityRange(trip),
     existingActivities: existingStops.map(toDomainActivity),

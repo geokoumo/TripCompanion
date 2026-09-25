@@ -2,6 +2,7 @@ import { BOOKING_ITEM_TYPES } from '../../../config/constants';
 import type { BookingItem } from '../../bookings/types';
 import type { Flight } from '../../flights/types';
 import type { Stay } from '../../stays/types';
+import type { Document } from '../types';
 
 /**
  * The single source of truth for the free-text `documents.relatedTo` label
@@ -23,4 +24,17 @@ export function stayRelatedTo(stay: Pick<Stay, 'name'>): string {
 export function bookingItemRelatedTo(item: Pick<BookingItem, 'name' | 'type'>): string {
   const config = BOOKING_ITEM_TYPES.find((t) => t.id === item.type);
   return item.name || config?.singular || 'Booking';
+}
+
+/**
+ * Repoints every document tagged with the old `from` label onto the new
+ * `to` label, so renaming a flight/stay/booking item (which changes what
+ * flightRelatedTo/stayRelatedTo/bookingItemRelatedTo compute for it) never
+ * silently orphans its attachments from that record's own View Details —
+ * see ItemDocumentsSection/AttachmentsField, both of which look documents
+ * up by an exact relatedTo match. A no-op when the label hasn't changed.
+ */
+export function retagDocuments(documents: Document[], from: string, to: string): Document[] {
+  if (from === to) return documents;
+  return documents.map((d) => (d.relatedTo === from ? { ...d, relatedTo: to } : d));
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BOOKING_ITEM_TYPES, type BookingItemTypeId, type DocumentCategoryId } from '../../../config/constants';
-import { validateActivityDate } from '../../../domain';
+import { validateActivityDate, validatePriceAndCurrency } from '../../../domain';
 import { Button } from '../../../shared/components/Button';
 import { DateField } from '../../../shared/components/DateField';
 import { TimeField } from '../../../shared/components/TimeField';
@@ -79,7 +79,7 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
         initial?.notes,
     ),
   );
-  const range = getTripDateRange(trip.legs, trip.flights);
+  const range = getTripDateRange(trip.legs, trip.flights, trip.stays);
   const config = BOOKING_ITEM_TYPES.find((t) => t.id === type)!;
 
   const update = <K extends keyof BookingItem>(key: K, value: BookingItem[K]) => setItem((prev) => ({ ...prev, [key]: value }));
@@ -93,7 +93,10 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
   // so an already-saved item whose date predates this constraint can't be
   // silently re-saved as-is; the same domain rule Add/Edit Activity uses.
   const dateValid = !item.date || validateActivityDate(item.date, range).length === 0;
-  const canSave = item.name.trim().length > 0 && timeOrderValid && dateValid;
+  // Currency falls back to the trip's home currency the same way the field below displays it —
+  // a price typed without touching the currency field must not be treated as missing a currency.
+  const priceValid = validatePriceAndCurrency({ price: item.price, currency: item.currency ?? trip.homeCurrency }).length === 0;
+  const canSave = item.name.trim().length > 0 && timeOrderValid && dateValid && priceValid;
   const handleSave = () => run(() => onSave(item, addToItinerary)).catch(() => {});
 
   return (
@@ -219,6 +222,7 @@ export function BookingItemForm({ type, trip, updateTrip, initial, addToItinerar
               onChange={(e) => update('currency', e.target.value.toUpperCase())}
             />
           </FieldRow>
+          {!priceValid && <p className={styles.conflictNote}>Enter a valid price (0 or more) and a 3-letter currency code.</p>}
 
           <TextField label="Booking reference" value={item.bookingReference ?? ''} onChange={(e) => update('bookingReference', e.target.value)} />
           <TextAreaField label="Notes" value={item.notes ?? ''} onChange={(e) => update('notes', e.target.value)} />
