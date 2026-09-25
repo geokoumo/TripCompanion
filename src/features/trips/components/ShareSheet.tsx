@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Button } from '../../../shared/components/Button';
 import { Modal } from '../../../shared/components/Modal';
 import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateShareToken } from '../../../shared/lib/id';
+import { saveTripPatch } from '../lib/saveTripPatch';
 import { TRIP_TABS, type Trip, type TripTab } from '../types';
 import styles from './ShareSheet.module.css';
 
@@ -23,6 +25,7 @@ interface ShareSheetProps {
 }
 
 export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
+  const { getFullTrip } = useTripsContext();
   const { showToast } = useToast();
   const [selected, setSelected] = useState<Set<TripTab>>(new Set(trip.shareSettings.includedTabs.length ? trip.shareSettings.includedTabs : ['overview']));
   const [shareToken, setShareToken] = useState(trip.shareSettings.shareToken);
@@ -44,10 +47,13 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
     void run(async () => {
       const token = generateShareToken();
       try {
-        await onSave({
-          ...trip,
-          shareSettings: { enabled: true, includedTabs: [...selected], shareToken: token },
-        });
+        await saveTripPatch(
+          trip.id,
+          trip,
+          { shareSettings: { enabled: true, includedTabs: [...selected], shareToken: token } },
+          getFullTrip,
+          onSave,
+        );
         setShareToken(token);
       } catch {
         showToast("Couldn't create the link. Try again.", { variant: 'error' });

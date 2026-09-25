@@ -1,9 +1,21 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '../../../app/providers/ToastProvider';
 import type { Trip } from '../types';
 import { ShareSheet } from './ShareSheet';
+
+// ShareSheet now re-reads the trip via getFullTrip before saving a share
+// link (see saveTripPatch) — same mocking pattern used elsewhere for this context.
+const { getFullTripMock } = vi.hoisted(() => ({ getFullTripMock: vi.fn() }));
+vi.mock('../../../app/providers/TripsProvider', () => ({
+  useTripsContext: () => ({ getFullTrip: getFullTripMock }),
+}));
+
+beforeEach(() => {
+  getFullTripMock.mockReset();
+  getFullTripMock.mockResolvedValue(undefined); // falls back to the trip prop, same as the app's own fallback
+});
 
 function makeTrip(overrides: Partial<Trip> = {}): Trip {
   return {

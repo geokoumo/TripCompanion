@@ -1,10 +1,22 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
 import type { Trip } from '../types';
 
+// EditDescriptionSheet now re-reads the trip via getFullTrip before saving
+// (see saveTripPatch) — same mocking pattern used elsewhere for this context.
+const { getFullTripMock } = vi.hoisted(() => ({ getFullTripMock: vi.fn() }));
+vi.mock('../../../app/providers/TripsProvider', () => ({
+  useTripsContext: () => ({ getFullTrip: getFullTripMock }),
+}));
+
 const trip = { id: 't1', title: 'Japan', description: 'Old description' } as Trip;
+
+beforeEach(() => {
+  getFullTripMock.mockReset();
+  getFullTripMock.mockResolvedValue(trip);
+});
 
 function deferred<T>() {
   let resolve!: (value: T) => void;

@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { Button } from '../../../shared/components/Button';
 import { TextAreaField } from '../../../shared/components/Field';
 import { Modal } from '../../../shared/components/Modal';
 import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
+import { saveTripPatch } from '../lib/saveTripPatch';
 import type { Trip } from '../types';
 
 interface EditDescriptionSheetProps {
@@ -13,6 +15,7 @@ interface EditDescriptionSheetProps {
 
 /** The trip's settings/edit surface for Round 9's description field — reachable from the "..." menu, on Home and in-trip alike. */
 export function EditDescriptionSheet({ trip, onClose, onSave }: EditDescriptionSheetProps) {
+  const { getFullTrip } = useTripsContext();
   const [description, setDescription] = useState(trip.description ?? '');
   const { saving, run } = useSavingGuard();
 
@@ -20,7 +23,7 @@ export function EditDescriptionSheet({ trip, onClose, onSave }: EditDescriptionS
   // behavior) would show "success" for a write that could still fail.
   const save = () =>
     run(async () => {
-      await onSave({ ...trip, description: description.trim() || undefined });
+      await saveTripPatch(trip.id, trip, { description: description.trim() || undefined }, getFullTrip, onSave);
       onClose();
     }).catch(() => {});
 

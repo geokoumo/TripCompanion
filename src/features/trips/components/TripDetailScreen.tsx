@@ -12,6 +12,7 @@ import { BudgetTab } from '../../budget/components/BudgetTab';
 import { ChecklistTab } from '../../checklist/components/ChecklistTab';
 import { useTrip } from '../hooks/useTrip';
 import { cloneTripForDuplication } from '../lib/cloneTripForDuplication';
+import { saveTripPatch } from '../lib/saveTripPatch';
 import type { Trip, TripTab } from '../types';
 import type { AddToTripDestination } from '../../bookings/lib/bookingGridConfig';
 import { InTripBottomNav } from './InTripBottomNav';
@@ -45,7 +46,7 @@ export function TripDetailScreen({
   onConsumePendingBookingSubView,
 }: TripDetailScreenProps) {
   const { trip, loading, updateTrip, saveTrip } = useTrip(tripId);
-  const { deleteTrip, saveTrip: saveTripToContext } = useTripsContext();
+  const { deleteTrip, saveTrip: saveTripToContext, getFullTrip } = useTripsContext();
   const { showToast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showTripHealth, setShowTripHealth] = useState(false);
@@ -107,7 +108,7 @@ export function TripDetailScreen({
           <TripHeader
             trip={trip}
             onBack={onBack}
-            onArchiveToggle={() => void saveTrip({ ...trip, archived: !trip.archived })}
+            onArchiveToggle={() => void saveTripPatch(trip.id, trip, (fresh) => ({ archived: !fresh.archived }), getFullTrip, saveTrip)}
             onDuplicate={() => void duplicateTrip()}
             onDeleteRequest={() => setConfirmDelete(true)}
             onSaveTrip={(updated) => saveTrip(updated)}

@@ -3,9 +3,11 @@ import { ShareSheetLazy } from '../../../app/lazyScreens';
 import { ScreenLoadingFallback } from '../../../app/ScreenLoadingFallback';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
+import { saveTripPatch } from '../lib/saveTripPatch';
 import { downloadTripAsJson } from '../lib/tripFile';
 import type { Trip } from '../types';
 import { ManageTravelersSheet } from '../../travelers/components/ManageTravelersSheet';
@@ -30,6 +32,7 @@ interface TripHeaderProps {
 export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip, hideDates = false }: TripHeaderProps) {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { getFullTrip } = useTripsContext();
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
@@ -48,9 +51,12 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
     }
     try {
       const newPath = user ? await uploadTripFile(user.id, trip.id, file) : await readAsDataUrl(file);
-      const oldPath = trip.coverPhotoPath;
-      await onSaveTrip({ ...trip, coverPhotoPath: newPath });
-      if (oldPath && !isLocalDataUrl(oldPath)) void deleteTripFile(oldPath);
+      // The path to clean up afterward is the fresh trip's own cover photo,
+      // not this component's (possibly stale) prop — if another tab/device
+      // already changed it since this screen loaded, that's the real old
+      // object to remove, not whatever this component last rendered.
+      const fresh = await saveTripPatch(trip.id, trip, { coverPhotoPath: newPath }, getFullTrip, onSaveTrip);
+      if (fresh.coverPhotoPath && !isLocalDataUrl(fresh.coverPhotoPath)) void deleteTripFile(fresh.coverPhotoPath);
       showToast('Cover photo updated.');
     } catch {
       showToast('Upload failed. Try again.', { variant: 'error' });
