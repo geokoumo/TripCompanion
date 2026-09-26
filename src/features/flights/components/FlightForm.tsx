@@ -25,7 +25,7 @@ import styles from './FlightForm.module.css';
 
 interface FlightFormProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   initial?: Flight;
   onClose: () => void;
   onSave: (flight: Flight) => void | Promise<void>;

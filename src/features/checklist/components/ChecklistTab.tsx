@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { generateId } from '../../../shared/lib/id';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { assertExists } from '../../../shared/lib/updateTripAbort';
 import type { Trip } from '../../trips/types';
 import { saveMasterTemplate } from '../lib/templates';
 import type { ChecklistItem } from '../types';
@@ -13,7 +14,7 @@ import { useToast } from '../../../app/providers/ToastProvider';
 
 interface ChecklistTabProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
 }
 
 export function ChecklistTab({ trip, updateTrip }: ChecklistTabProps) {
@@ -38,16 +39,17 @@ export function ChecklistTab({ trip, updateTrip }: ChecklistTabProps) {
   }
 
   const toggle = (id: string) =>
-    void updateTrip((t) => ({
-      ...t,
-      checklistItems: t.checklistItems.map((i) => (i.id === id ? { ...i, done: !i.done } : i)),
-    }));
+    void updateTrip((t) => {
+      assertExists(t.checklistItems, id, 'This item was already deleted elsewhere.');
+      return { ...t, checklistItems: t.checklistItems.map((i) => (i.id === id ? { ...i, done: !i.done } : i)) };
+    });
 
   const remove = (id: string) => deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'checklistItems', id });
 
   const addItem = async (values: Pick<ChecklistItem, 'text' | 'category' | 'quantity'>) => {
     const item: ChecklistItem = { id: generateId(), travelerId: activeTravelerId, done: false, ...values };
-    await updateTrip((t) => ({ ...t, checklistItems: [...t.checklistItems, item] }));
+    const result = await updateTrip((t) => ({ ...t, checklistItems: [...t.checklistItems, item] }));
+    if (result && !result.ok) return;
     setAdding(false);
   };
 

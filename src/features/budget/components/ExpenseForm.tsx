@@ -18,7 +18,7 @@ interface ExpenseFormProps {
   trip: Trip;
   categories: BudgetCategory[];
   travelers: Traveler[];
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   initial?: Expense;
   onClose: () => void;
   onSave: (expense: Expense) => void | Promise<void>;
@@ -59,7 +59,8 @@ export function ExpenseForm({ trip, categories, travelers, updateTrip, initial, 
     if (!name) return;
     const color = CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length]!;
     const category: BudgetCategory = { id: generateId(), name, color };
-    await updateTrip((t) => ({ ...t, budgetCategories: [...t.budgetCategories, category] }));
+    const result = await updateTrip((t) => ({ ...t, budgetCategories: [...t.budgetCategories, category] }));
+    if (result && !result.ok) return;
     update('categoryId', category.id);
     setCreatingCategory(false);
     setNewCategoryName('');

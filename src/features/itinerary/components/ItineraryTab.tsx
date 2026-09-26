@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useTripsContext } from '../../../app/providers/TripsProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
@@ -7,6 +6,7 @@ import { StampToggle } from '../../../shared/components/StampToggle';
 import { dayNumber, weekdayShort, todayStr, formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { generateId } from '../../../shared/lib/id';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { assertExists, UpdateAbortedError } from '../../../shared/lib/updateTripAbort';
 import { upsertItineraryStop } from '../../../data/repository/activityRepository';
 import { FlightDetailView } from '../../flights/components/FlightDetailView';
 import { FlightForm } from '../../flights/components/FlightForm';
@@ -37,7 +37,7 @@ const VIEW_OPTIONS: { id: ItineraryView; label: string }[] = [
 
 interface ItineraryTabProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   /** Lifted to the parent so it survives this tab unmounting on tab switch — see TripDetailScreen. */
   selectedDate: string | null;
   onSelectedDateChange: (date: string) => void;
@@ -57,7 +57,6 @@ function buildDayRange(startDate: string, endDate: string): string[] {
 
 export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp, onSelectedDateChange }: ItineraryTabProps) {
   const { showToast } = useToast();
-  const { getFullTrip } = useTripsContext();
   const range = getTripDateRange(trip.legs, trip.flights, trip.stays);
   const days = useMemo(() => (range ? buildDayRange(range.startDate, range.endDate) : []), [range?.startDate, range?.endDate]);
   const today = todayStr();
@@ -96,22 +95,27 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
     [trip.flights, trip.stays],
   );
 
+  // Reached only from an auto-pulled itinerary checkpoint's Edit action —
+  // always an edit of a flight/stay that already exists (Flights/Stays own
+  // creating new ones), so a fresh trip missing it means another
+  // session already deleted it — never silently recreate it as "new".
   const saveFlight = async (flight: Flight) => {
-    await updateTrip((t) => ({
-      ...t,
-      flights: t.flights.some((f) => f.id === flight.id) ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight],
-    }));
+    const result = await updateTrip((t) => {
+      assertExists(t.flights, flight.id, 'This flight was already deleted elsewhere.');
+      return { ...t, flights: t.flights.map((f) => (f.id === flight.id ? flight : f)) };
+    });
+    if (result && !result.ok) return;
     showToast('Flight saved.');
     setEditingFlight(null);
   };
 
   const saveStay = async (stay: Stay) => {
-    await updateTrip((t) => {
-      const exists = t.stays.some((s) => s.id === stay.id);
-      const stays = exists ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
+    const result = await updateTrip((t) => {
+      assertExists(t.stays, stay.id, 'This stay was already deleted elsewhere.');
       const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
-      return { ...t, stays, rememberedLocations };
+      return { ...t, stays: t.stays.map((s) => (s.id === stay.id ? stay : s)), rememberedLocations };
     });
+    if (result && !result.ok) return;
     showToast('Stay saved.');
     setEditingStay(null);
   };
@@ -129,24 +133,28 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
     .filter(Boolean)
     .join(' · ');
 
-  // Final gate before writing: re-fetches the trip fresh (Supabase, not
-  // whatever's been sitting in this tab's memory) and revalidates against
-  // that, so a conflict introduced from another tab/device since this form
-  // was opened is still caught. The form itself already ran the same check
-  // against in-memory data for instant feedback (see StopForm.handleSave) —
-  // this is the authoritative repeat, not the only one.
+  // Validation and mutation now share the exact same fresh trip snapshot —
+  // the one updateTrip itself fetches (Supabase, not whatever's been
+  // sitting in this tab's memory) immediately before applying this updater
+  // — instead of a separate getFullTrip call here followed moments later by
+  // updateTrip's own fresh read. Two independent fresh reads would leave a
+  // race window between them; one shared snapshot closes it. The form
+  // itself already ran the same check against in-memory data for instant
+  // feedback (see StopForm.handleSave) — this is the authoritative repeat.
   const saveStop = async (stop: ItineraryStop) => {
-    const freshTrip = (await getFullTrip(trip.id)) ?? trip;
-    const errors = validateStopForSave(stop, freshTrip, freshTrip.itineraryStops);
-    if (errors.length > 0) {
-      showToast(describeActivityError(errors[0]!, freshTrip.itineraryStops, freshTrip.flights, freshTrip.stays), { variant: 'error' });
-      return;
-    }
-
-    // Deliberately NOT feeding stop.location into rememberedLocations — see
-    // recentStopLocations.ts: that pool backs StayForm's address suggestions,
-    // and a casual activity location doesn't belong there.
-    await updateTrip((t) => upsertItineraryStop(t, stop));
+    const isEdit = editingStop !== null;
+    const result = await updateTrip((t) => {
+      if (isEdit) assertExists(t.itineraryStops, stop.id, 'This stop was already deleted elsewhere.');
+      const errors = validateStopForSave(stop, t, t.itineraryStops);
+      if (errors.length > 0) {
+        throw new UpdateAbortedError(describeActivityError(errors[0]!, t.itineraryStops, t.flights, t.stays), 'error');
+      }
+      // Deliberately NOT feeding stop.location into rememberedLocations —
+      // see recentStopLocations.ts: that pool backs StayForm's address
+      // suggestions, and a casual activity location doesn't belong there.
+      return upsertItineraryStop(t, stop);
+    });
+    if (result && !result.ok) return;
     showToast('Stop saved.');
     setEditingStop(null);
     setCreatingStop(false);
@@ -162,13 +170,13 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
   const removeIdea = (id: string) => deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'ideas', id });
 
   // An assigned Idea becomes a real Stop, so it must clear exactly the same
-  // gate a manually created/edited Stop does — same validateStopForSave call,
-  // same fresh-trip refetch as saveStop above (so a conflict introduced by
-  // another tab/device since the Idea was opened is still caught), same
-  // upsertItineraryStop repository helper, same error surface. Building the
-  // Stop and writing it directly, with no validation at all, was the bug
-  // this closes — a rejected assignment must leave the Idea in place and
-  // persist nothing.
+  // gate a manually created/edited Stop does — same validateStopForSave
+  // call, same one-fresh-snapshot pattern as saveStop above (so a conflict
+  // introduced by another tab/device since the Idea was opened is still
+  // caught), same upsertItineraryStop repository helper, same error
+  // surface. Building the Stop and writing it directly, with no validation
+  // at all, was the bug this closes — a rejected assignment must leave the
+  // Idea in place and persist nothing.
   const assignIdeaToDay = async (idea: Idea) => {
     const date = idea.suggestedDate ?? selectedDate;
     const time = '12:00';
@@ -187,17 +195,14 @@ export function ItineraryTab({ trip, updateTrip, selectedDate: selectedDateProp,
       done: false,
     };
 
-    const freshTrip = (await getFullTrip(trip.id)) ?? trip;
-    const errors = validateStopForSave(stop, freshTrip, freshTrip.itineraryStops);
-    if (errors.length > 0) {
-      showToast(describeActivityError(errors[0]!, freshTrip.itineraryStops, freshTrip.flights, freshTrip.stays), { variant: 'error' });
-      return;
-    }
-
-    await updateTrip((t) => ({
-      ...upsertItineraryStop(t, stop),
-      ideas: t.ideas.filter((i) => i.id !== idea.id),
-    }));
+    const result = await updateTrip((t) => {
+      const errors = validateStopForSave(stop, t, t.itineraryStops);
+      if (errors.length > 0) {
+        throw new UpdateAbortedError(describeActivityError(errors[0]!, t.itineraryStops, t.flights, t.stays), 'error');
+      }
+      return { ...upsertItineraryStop(t, stop), ideas: t.ideas.filter((i) => i.id !== idea.id) };
+    });
+    if (result && !result.ok) return;
     showToast(`Added to ${formatDateNoYear(date)} at ${time}.`);
   };
 

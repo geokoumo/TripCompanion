@@ -3,29 +3,25 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../../../app/providers/AuthProvider';
+import { UpdateAbortedError } from '../../../shared/lib/updateTripAbort';
 import type { Flight } from '../../flights/types';
 import type { Stay } from '../../stays/types';
 import type { Trip } from '../../trips/types';
 import { ItineraryTab } from './ItineraryTab';
 import type { Idea, ItineraryStop } from '../types';
 
-// A stable, per-test-controllable pair rather than a fresh `vi.fn()` per
-// `useTripsContext()`/`useToast()` call, so tests can both assert on calls
-// and drive getFullTrip's resolved value (the Ideas-assignment tests below
-// need a fresh trip that diverges from the one passed as a prop).
-const { getFullTripMock, showToastMock } = vi.hoisted(() => ({
-  getFullTripMock: vi.fn(),
+// A stable, per-test-controllable spy rather than a fresh `vi.fn()` per
+// `useToast()` call, so tests can assert on the toasts the stateful harness's
+// fake updateTrip raises when it catches an UpdateAbortedError — the same
+// thing the real useTrip.updateTrip does (see useTrip.ts).
+const { showToastMock } = vi.hoisted(() => ({
   showToastMock: vi.fn(),
-}));
-vi.mock('../../../app/providers/TripsProvider', () => ({
-  useTripsContext: () => ({ getFullTrip: getFullTripMock }),
 }));
 vi.mock('../../../app/providers/ToastProvider', () => ({
   useToast: () => ({ showToast: showToastMock }),
 }));
 
 beforeEach(() => {
-  getFullTripMock.mockReset();
   showToastMock.mockReset();
 });
 
@@ -131,23 +127,49 @@ function makeIdea(overrides: Partial<Idea> = {}): Idea {
 // applies each updateTrip updater to it — needed to observe, at the DOM
 // level, whether a rejected Idea assignment truly leaves the Idea in place
 // and an accepted one truly persists the Stop and drops the Idea.
-function ItineraryTabStatefulHarness({ initialTrip, onTripChange }: { initialTrip: Trip; onTripChange?: (t: Trip) => void }) {
+//
+// `freshOverride`, when given, stands in for "what the server actually has"
+// diverging from this harness's own local `trip` state — simulating a
+// conflict added by another tab/device since this screen loaded. The real
+// useTrip.updateTrip fetches this fresh copy itself (see useTrip.ts) instead
+// of mutating on top of a stale local snapshot; this fake mirrors exactly
+// that base-selection and, like the real hook, catches an UpdateAbortedError
+// the updater throws (see updateTripAbort.ts) by toasting its message and
+// leaving the trip as that fresh copy rather than applying anything.
+function ItineraryTabStatefulHarness({
+  initialTrip,
+  freshOverride,
+  onTripChange,
+}: {
+  initialTrip: Trip;
+  freshOverride?: Trip;
+  onTripChange?: (t: Trip) => void;
+}) {
   const [trip, setTrip] = useState(initialTrip);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const updateTrip = async (updater: (t: Trip) => Trip) => {
-    setTrip((prev) => {
-      const next = updater(prev);
+  const updateTrip = async (updater: (t: Trip) => Trip): Promise<{ ok: boolean }> => {
+    const base = freshOverride ?? trip;
+    try {
+      const next = updater(base);
+      setTrip(next);
       onTripChange?.(next);
-      return next;
-    });
+      return { ok: true };
+    } catch (err) {
+      if (err instanceof UpdateAbortedError) {
+        showToastMock(err.message, { variant: err.variant });
+        setTrip(base);
+        return { ok: false };
+      }
+      throw err;
+    }
   };
   return <ItineraryTab trip={trip} updateTrip={updateTrip} selectedDate={selectedDate} onSelectedDateChange={setSelectedDate} />;
 }
 
-function renderStatefulTab(trip: Trip, onTripChange?: (t: Trip) => void) {
+function renderStatefulTab(trip: Trip, onTripChange?: (t: Trip) => void, freshOverride?: Trip) {
   render(
     <AuthProvider>
-      <ItineraryTabStatefulHarness initialTrip={trip} onTripChange={onTripChange} />
+      <ItineraryTabStatefulHarness initialTrip={trip} freshOverride={freshOverride} onTripChange={onTripChange} />
     </AuthProvider>,
   );
 }
@@ -386,7 +408,6 @@ describe('ItineraryTab — Idea assignment obeys the same Stop validation as man
   const AFTER_TRIP_END = `${FUTURE_YEAR}-09-25`;
 
   it('1. a valid Idea on a valid day is assigned: the Stop is created and the Idea is removed', async () => {
-    getFullTripMock.mockResolvedValue(undefined); // no divergence — falls back to the current in-memory trip, same as saveStop's own fallback
     const idea = makeIdea({ suggestedDate: DAY16 });
     renderStatefulTab(makeTrip({ ideas: [idea] }));
     const user = userEvent.setup();
@@ -402,7 +423,6 @@ describe('ItineraryTab — Idea assignment obeys the same Stop validation as man
   });
 
   it('2. an Idea suggested before the trip start is rejected: no Stop is created, and the Idea stays', async () => {
-    getFullTripMock.mockResolvedValue(undefined);
     const idea = makeIdea({ suggestedDate: BEFORE_TRIP_START });
     renderStatefulTab(makeTrip({ ideas: [idea] }));
     const user = userEvent.setup();
@@ -414,7 +434,6 @@ describe('ItineraryTab — Idea assignment obeys the same Stop validation as man
   });
 
   it('3. an Idea suggested after the trip end is rejected the same way', async () => {
-    getFullTripMock.mockResolvedValue(undefined);
     const idea = makeIdea({ suggestedDate: AFTER_TRIP_END });
     renderStatefulTab(makeTrip({ ideas: [idea] }));
     const user = userEvent.setup();
@@ -434,7 +453,6 @@ describe('ItineraryTab — Idea assignment obeys the same Stop validation as man
   // applies equally here because both paths share that one function.
 
   it('6. an Idea that would overlap an existing activity is rejected — same overlap rule as manual Stops', async () => {
-    getFullTripMock.mockResolvedValue(undefined);
     const idea = makeIdea({ suggestedDate: DAY16 });
     const conflicting = makeStop({ id: 'conflict1', date: DAY16, time: '12:00', durationMinutes: 30 });
     renderStatefulTab(makeTrip({ ideas: [idea], itineraryStops: [makeStop(), conflicting] }));
@@ -447,7 +465,6 @@ describe('ItineraryTab — Idea assignment obeys the same Stop validation as man
   });
 
   it('7. an Idea assigned next to (not overlapping) another activity succeeds', async () => {
-    getFullTripMock.mockResolvedValue(undefined);
     const idea = makeIdea({ suggestedDate: DAY16 });
     // Ends 11:00; the assignment lands at 12:00 — adjacent, not overlapping.
     const neighbor = makeStop({ id: 'neighbor1', date: DAY16, time: '10:00', durationMinutes: 60 });
@@ -468,19 +485,16 @@ describe('ItineraryTab — Idea assignment obeys the same Stop validation as man
     // assigned. The stale local trip has no idea this exists.
     const freshConflicting = makeStop({ id: 'conflict-from-elsewhere', date: DAY16, time: '12:00', durationMinutes: 30 });
     const freshTrip: Trip = { ...localTrip, itineraryStops: [...localTrip.itineraryStops, freshConflicting] };
-    getFullTripMock.mockResolvedValue(freshTrip);
 
-    renderStatefulTab(localTrip);
+    renderStatefulTab(localTrip, undefined, freshTrip);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /On 16 Sep/ }));
 
     await waitFor(() => expect(showToastMock).toHaveBeenCalledWith(expect.stringContaining('overlaps with'), { variant: 'error' }));
     expect(screen.getByText('Ramen crawl')).toBeInTheDocument();
-    expect(getFullTripMock).toHaveBeenCalledWith('t1');
   });
 
   it('9 & 10. a failed assignment never removes the Idea and never persists a Stop', async () => {
-    getFullTripMock.mockResolvedValue(undefined);
     const idea = makeIdea({ suggestedDate: BEFORE_TRIP_START });
     renderStatefulTab(makeTrip({ ideas: [idea] }));
     const user = userEvent.setup();
@@ -493,7 +507,6 @@ describe('ItineraryTab — Idea assignment obeys the same Stop validation as man
   });
 
   it('11. a successful assignment writes a trip whose data survives being reloaded fresh', async () => {
-    getFullTripMock.mockResolvedValue(undefined);
     const idea = makeIdea({ suggestedDate: DAY16 });
     let persisted: Trip | undefined;
     renderStatefulTab(makeTrip({ ideas: [idea] }), (t) => {

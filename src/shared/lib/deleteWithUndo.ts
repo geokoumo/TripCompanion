@@ -1,17 +1,20 @@
 import { documentBelongsToSource } from '../../features/documents/lib/relatedTo';
 import type { DocumentSourceType } from '../../features/documents/types';
 import type { Trip } from '../../features/trips/types';
+import { UpdateAbortedError } from './updateTripAbort';
 
 type ArrayFieldKeys = {
   [K in keyof Trip]: Trip[K] extends { id: string }[] ? K : never;
 }[keyof Trip];
 
 interface DeleteWithUndoParams<K extends ArrayFieldKeys> {
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   showToast: (text: string, options?: { variant?: 'neutral' | 'warn' | 'error'; action?: { label: string; onClick: () => void } }) => void;
   arrayKey: K;
   id: string;
   deletedMessage?: string;
+  /** Shown instead of `deletedMessage` when the target is already gone (e.g. another tab deleted it first) — nothing was deleted here, so the normal undo-toast copy would be misleading. */
+  alreadyDeletedMessage?: string;
   /**
    * The deleted entity's current documents.relatedTo label (see
    * documents/lib/relatedTo.ts) — pass this for entity types that can have
@@ -43,6 +46,7 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
   arrayKey,
   id,
   deletedMessage = 'Deleted.',
+  alreadyDeletedMessage = 'Already deleted elsewhere.',
   clearDocumentsRelatedTo,
   clearDocumentsSourceType,
   clearDocumentsSourceId,
@@ -52,10 +56,18 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
   void (async () => {
     let snapshot: { id: string } | undefined;
     const detached: { id: string; sourceType?: DocumentSourceType; sourceId?: string }[] = [];
-    await updateTrip((t) => {
+    const result = await updateTrip((t) => {
       const record = t as unknown as Record<string, { id: string }[]>;
       const list = record[key]!;
-      snapshot = list.find((item) => item.id === id);
+      const found = list.find((item) => item.id === id);
+      if (!found) {
+        // Already gone — another tab/session deleted it first. Never
+        // silently no-op as if this delete had happened; the fresh trip
+        // (t) is left untouched and the caller finds out via the aborted
+        // result below.
+        throw new UpdateAbortedError(alreadyDeletedMessage, 'neutral');
+      }
+      snapshot = found;
       const documents = clearDocumentsRelatedTo
         ? t.documents.map((d) => {
             const matches =
@@ -69,6 +81,11 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
         : t.documents;
       return { ...t, [key]: list.filter((item) => item.id !== id), documents };
     });
+    // Falsy/absent `.ok` (a test double resolving plain `undefined`) is
+    // treated as success — only an explicit `{ ok: false }` aborts. The
+    // real useTrip.updateTrip already showed a toast for this outcome
+    // (trip-deleted, or the already-deleted-elsewhere one thrown above).
+    if (result && !result.ok) return;
 
     showToast(deletedMessage, {
       variant: 'neutral',
@@ -79,6 +96,14 @@ export function deleteEntityWithUndo<K extends ArrayFieldKeys>({
           void updateTrip((t) => {
             const record = t as unknown as Record<string, { id: string }[]>;
             const list = record[key]!;
+            if (list.some((item) => item.id === snapshot!.id)) {
+              // Another session independently recreated an entity with this
+              // same id while the undo toast was up — restoring the
+              // snapshot on top would duplicate or overwrite it. Never
+              // reconstruct against a stale array: this whole check runs
+              // against the fresh `t` updateTrip just handed us.
+              throw new UpdateAbortedError("Couldn't undo — this item already exists.", 'neutral');
+            }
             const byId = new Map(detached.map((d) => [d.id, d]));
             const documents = detached.length
               ? t.documents.map((d) => {

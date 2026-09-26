@@ -7,6 +7,7 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { StampBadge } from '../../../shared/components/StampBadge';
 import { TicketIcon } from '../../../shared/components/icons';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { assertExists } from '../../../shared/lib/updateTripAbort';
 import { describeCard } from '../../../shared/lib/accessibleLabel';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { upsertBookingItem } from '../../../data/repository/bookingRepository';
@@ -59,7 +60,7 @@ interface PendingDelete {
  * dedicated Flights/Stays/BookingItemsListScreen tabs already read and
  * write, reusing their own View/Edit/Delete components verbatim.
  */
-export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (updater: (t: Trip) => Trip) => Promise<void> }) {
+export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void> }) {
   const { showToast } = useToast();
 
   const [viewingFlight, setViewingFlight] = useState<Flight | null>(null);
@@ -126,8 +127,10 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
   };
 
   const saveFlight = async (flight: Flight) => {
+    const isEdit = editingFlight !== null;
     let outOfRangeMessage: string | null = null;
-    await updateTrip((t) => {
+    const result = await updateTrip((t) => {
+      if (isEdit) assertExists(t.flights, flight.id, 'This flight was already deleted elsewhere.');
       const existing = t.flights.find((f) => f.id === flight.id);
       const flights = existing ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight];
       const documents = existing ? retagDocuments(t.documents, 'flight', flight.id, flightRelatedTo(existing), flightRelatedTo(flight)) : t.documents;
@@ -135,14 +138,17 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
       outOfRangeMessage = outOfRangeStopsMessage(findStopsOutOfRange(next)); // F-05
       return next;
     });
+    if (result && !result.ok) return;
     showToast('Flight saved.');
     if (outOfRangeMessage) showToast(outOfRangeMessage, { variant: 'warn' });
     setEditingFlight(null);
   };
 
   const saveStay = async (stay: Stay) => {
+    const isEdit = editingStay !== null;
     let outOfRangeMessage: string | null = null;
-    await updateTrip((t) => {
+    const result = await updateTrip((t) => {
+      if (isEdit) assertExists(t.stays, stay.id, 'This stay was already deleted elsewhere.');
       const existing = t.stays.find((s) => s.id === stay.id);
       const stays = existing ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
       const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
@@ -151,30 +157,36 @@ export function BookingsHub({ trip, updateTrip }: { trip: Trip; updateTrip: (upd
       outOfRangeMessage = outOfRangeStopsMessage(findStopsOutOfRange(next)); // F-05
       return next;
     });
+    if (result && !result.ok) return;
     showToast('Stay saved.');
     if (outOfRangeMessage) showToast(outOfRangeMessage, { variant: 'warn' });
     setEditingStay(null);
   };
 
   const saveBooking = async (item: BookingItem, addToItinerary: boolean) => {
+    const isEdit = editingBooking !== null;
     // The booking item itself must always persist — a failed itinerary
     // side-effect (F-02/F-19) is never a reason to lose the user's edit, and
     // a stop that couldn't be added is reported on its own rather than
     // stacked with a "saved" toast the user would have to reconcile.
-    let stopToAdd: Trip['itineraryStops'][number] | undefined;
     let itineraryError: string | undefined;
-    if (addToItinerary) {
-      const result = buildLinkedItineraryStop(trip, item);
-      if ('conflictMessage' in result) {
-        itineraryError = result.conflictMessage;
-      } else {
-        stopToAdd = result.stop;
+    const result = await updateTrip((t) => {
+      if (isEdit) assertExists(t.bookingItems, item.id, 'This booking was already deleted elsewhere.');
+      // Conflict-checked against the fresh trip updateTrip just fetched, not
+      // the stale `trip` prop this screen opened with.
+      let stopToAdd: Trip['itineraryStops'][number] | undefined;
+      if (addToItinerary) {
+        const linked = buildLinkedItineraryStop(t, item);
+        if ('conflictMessage' in linked) {
+          itineraryError = linked.conflictMessage;
+        } else {
+          stopToAdd = linked.stop;
+        }
       }
-    }
-    await updateTrip((t) => {
       const withItem = upsertBookingItem(t, item);
       return { ...withItem, itineraryStops: stopToAdd ? [...t.itineraryStops, stopToAdd] : t.itineraryStops };
     });
+    if (result && !result.ok) return;
     showToast(itineraryError ?? `${BOOKING_ITEM_TYPES.find((t) => t.id === item.type)?.singular ?? 'Booking'} saved.`, itineraryError ? { variant: 'error' } : undefined);
     setEditingBooking(null);
   };

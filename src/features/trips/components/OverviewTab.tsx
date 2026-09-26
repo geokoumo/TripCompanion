@@ -20,7 +20,7 @@ import styles from './OverviewTab.module.css';
 
 interface OverviewTabProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   onOpenTripHealth: () => void;
 }
 

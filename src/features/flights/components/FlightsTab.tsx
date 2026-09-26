@@ -5,6 +5,7 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { assertExists } from '../../../shared/lib/updateTripAbort';
 import { flightRelatedTo, retagDocuments } from '../../documents/lib/relatedTo';
 import { findStopsOutOfRange, outOfRangeStopsMessage } from '../../itinerary/lib/outOfRangeStops';
 import type { Flight } from '../types';
@@ -14,7 +15,7 @@ import { FlightForm } from './FlightForm';
 
 interface FlightsTabProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
 }
 
 export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
@@ -28,9 +29,11 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
   const openFlight = useCallback((flight: Flight) => setViewing(flight), []);
 
   const save = async (flight: Flight) => {
+    const isEdit = editing !== null;
     let outOfRangeMessage: string | null = null;
     try {
-      await updateTrip((t) => {
+      const result = await updateTrip((t) => {
+        if (isEdit) assertExists(t.flights, flight.id, 'This flight was already deleted elsewhere.');
         const existing = t.flights.find((f) => f.id === flight.id);
         const flights = existing ? t.flights.map((f) => (f.id === flight.id ? flight : f)) : [...t.flights, flight];
         const documents = existing ? retagDocuments(t.documents, 'flight', flight.id, flightRelatedTo(existing), flightRelatedTo(flight)) : t.documents;
@@ -41,6 +44,7 @@ export function FlightsTab({ trip, updateTrip }: FlightsTabProps) {
         outOfRangeMessage = outOfRangeStopsMessage(findStopsOutOfRange(next));
         return next;
       });
+      if (result && !result.ok) return;
       showToast('Flight saved.');
       if (outOfRangeMessage) showToast(outOfRangeMessage, { variant: 'warn' });
       setEditing(null);

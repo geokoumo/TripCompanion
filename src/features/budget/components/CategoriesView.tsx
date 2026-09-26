@@ -9,7 +9,7 @@ import styles from './CategoriesView.module.css';
 
 interface CategoriesViewProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
 }
 
 export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
@@ -30,10 +30,16 @@ export function CategoriesView({ trip, updateTrip }: CategoriesViewProps) {
   }
 
   const addCategory = (name: string) => {
-    if (trip.budgetCategories.some((c) => c.name === name)) return;
-    const color = CATEGORY_COLORS[trip.budgetCategories.length % CATEGORY_COLORS.length]!;
-    const category: BudgetCategory = { id: generateId(), name, color };
-    void updateTrip((t) => ({ ...t, budgetCategories: [...t.budgetCategories, category] }));
+    // Checked and colored against the fresh trip updateTrip fetches, not
+    // this stale `trip` prop — otherwise a category added concurrently
+    // elsewhere with the same name wouldn't be seen, and the color index
+    // could collide with one it just assigned.
+    void updateTrip((t) => {
+      if (t.budgetCategories.some((c) => c.name === name)) return t;
+      const color = CATEGORY_COLORS[t.budgetCategories.length % CATEGORY_COLORS.length]!;
+      const category: BudgetCategory = { id: generateId(), name, color };
+      return { ...t, budgetCategories: [...t.budgetCategories, category] };
+    });
   };
 
   const saveBudget = () => {

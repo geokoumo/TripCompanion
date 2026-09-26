@@ -5,6 +5,7 @@ import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { assertExists } from '../../../shared/lib/updateTripAbort';
 import { upsertBookingItem } from '../../../data/repository/bookingRepository';
 import { bookingItemRelatedTo, documentBelongsToSource } from '../../documents/lib/relatedTo';
 import type { Trip } from '../../trips/types';
@@ -17,7 +18,7 @@ import { BookingItemForm } from './BookingItemForm';
 interface BookingItemsListScreenProps {
   type: BookingItemTypeId;
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
 }
 
 function sortKey(item: BookingItem): string {
@@ -35,29 +36,34 @@ export function BookingItemsListScreen({ type, trip, updateTrip }: BookingItemsL
   const items = trip.bookingItems.filter((b) => b.type === type).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
 
   const save = async (item: BookingItem, addToItinerary: boolean) => {
+    const isEdit = editing !== null;
     try {
       // The booking item itself must always persist — a failed itinerary
       // side-effect is never a reason to lose the user's edit (F-02), and a
       // stop that couldn't be added is reported on its own rather than
       // stacked with a "saved" toast (F-19).
-      let stopToAdd: Trip['itineraryStops'][number] | undefined;
       let itineraryError: string | undefined;
-      if (addToItinerary) {
-        const result = buildLinkedItineraryStop(trip, item);
-        if ('conflictMessage' in result) {
-          itineraryError = result.conflictMessage;
-        } else {
-          stopToAdd = result.stop;
+      const result = await updateTrip((t) => {
+        if (isEdit) assertExists(t.bookingItems, item.id, `This ${config.singular.toLowerCase()} was already deleted elsewhere.`);
+        // Conflict-checked against the fresh trip updateTrip just fetched,
+        // not the stale `trip` prop this screen opened with — otherwise a
+        // stop added elsewhere since then would never be seen here.
+        let stopToAdd: Trip['itineraryStops'][number] | undefined;
+        if (addToItinerary) {
+          const linked = buildLinkedItineraryStop(t, item);
+          if ('conflictMessage' in linked) {
+            itineraryError = linked.conflictMessage;
+          } else {
+            stopToAdd = linked.stop;
+          }
         }
-      }
-
-      await updateTrip((t) => {
         const withItem = upsertBookingItem(t, item);
         return {
           ...withItem,
           itineraryStops: stopToAdd ? [...t.itineraryStops, stopToAdd] : t.itineraryStops,
         };
       });
+      if (result && !result.ok) return;
       showToast(itineraryError ?? `${config.singular} saved.`, itineraryError ? { variant: 'error' } : undefined);
       setEditing(null);
       setCreating(false);

@@ -14,7 +14,7 @@ import type { BookingItem } from '../types';
 interface BookingItemDetailViewProps {
   item: BookingItem;
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   onClose: () => void;
   onEdit: () => void;
 }

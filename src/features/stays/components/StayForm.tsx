@@ -16,7 +16,7 @@ import type { Stay } from '../types';
 
 interface StayFormProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   initial?: Stay;
   existingStays: Stay[];
   recentLocations: string[];

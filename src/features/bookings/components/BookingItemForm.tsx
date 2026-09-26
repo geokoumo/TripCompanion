@@ -20,7 +20,7 @@ import styles from './BookingItemForm.module.css';
 interface BookingItemFormProps {
   type: BookingItemTypeId;
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   initial?: BookingItem;
   addToItineraryDefault?: boolean;
   onClose: () => void;

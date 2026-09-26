@@ -4,6 +4,7 @@ import { AvatarChip } from '../../../shared/components/AvatarChip';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { assertExists } from '../../../shared/lib/updateTripAbort';
 import { formatDateNoYear } from '../../../shared/lib/dateFormat';
 import { upsertExpense } from '../../../data/repository/expenseRepository';
 import type { Trip } from '../../trips/types';
@@ -14,7 +15,7 @@ import styles from './ExpensesView.module.css';
 
 interface ExpensesViewProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
 }
 
 export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
@@ -26,7 +27,12 @@ export function ExpensesView({ trip, updateTrip }: ExpensesViewProps) {
   const sorted = [...trip.expenses].sort((a, b) => b.date.localeCompare(a.date));
 
   const save = async (expense: Expense) => {
-    await updateTrip((t) => upsertExpense(t, expense));
+    const isEdit = editing !== null;
+    const result = await updateTrip((t) => {
+      if (isEdit) assertExists(t.expenses, expense.id, 'This expense was already deleted elsewhere.');
+      return upsertExpense(t, expense);
+    });
+    if (result && !result.ok) return;
     showToast('Expense logged.');
     setEditing(null);
     setCreating(false);

@@ -17,7 +17,7 @@ import styles from './FlightDetailView.module.css';
 interface FlightDetailViewProps {
   flight: Flight;
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   onClose: () => void;
   onEdit: () => void;
 }

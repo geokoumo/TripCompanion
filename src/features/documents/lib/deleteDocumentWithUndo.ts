@@ -1,5 +1,6 @@
 import { deleteTripFile, isLocalDataUrl } from '../../../data/storage/tripFilesBucket';
 import { removeDocument } from '../../../data/repository/documentRepository';
+import { assertExists, UpdateAbortedError } from '../../../shared/lib/updateTripAbort';
 import type { Trip } from '../../trips/types';
 import type { Document } from '../types';
 
@@ -31,14 +32,23 @@ const pendingCleanup = new Map<string, ReturnType<typeof setTimeout>>();
  */
 export async function deleteDocumentWithUndo(
   doc: Document,
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>,
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>,
   showToast: (text: string, options?: { variant?: 'neutral' | 'warn' | 'error'; action?: { label: string; onClick: () => void } }) => void,
 ): Promise<boolean> {
+  let result: { ok: boolean } | void;
   try {
-    await updateTrip((t) => removeDocument(t, doc.id));
+    result = await updateTrip((t) => {
+      assertExists(t.documents, doc.id, 'This document was already deleted elsewhere.');
+      return removeDocument(t, doc.id);
+    });
   } catch {
     return false;
   }
+  // A falsy/absent `.ok` (a test double resolving plain `undefined`) is
+  // treated as success — only an explicit `{ ok: false }` aborts. The real
+  // useTrip.updateTrip already showed a toast for this outcome (trip-deleted,
+  // or the already-deleted-elsewhere one from assertExists above).
+  if (result && !result.ok) return false;
 
   if (!isLocalDataUrl(doc.storagePath)) {
     const timer = setTimeout(() => {
@@ -58,7 +68,16 @@ export async function deleteDocumentWithUndo(
           clearTimeout(timer);
           pendingCleanup.delete(doc.id);
         }
-        void updateTrip((t) => (t.documents.some((d) => d.id === doc.id) ? t : { ...t, documents: [...t.documents, doc] }));
+        void updateTrip((t) => {
+          if (t.documents.some((d) => d.id === doc.id)) {
+            // Another session already re-added a document with this same id
+            // while the undo toast was up — restoring the snapshot on top
+            // would duplicate it. Runs against the fresh trip updateTrip
+            // just handed us, never a stale array.
+            throw new UpdateAbortedError("Couldn't undo — this item already exists.", 'neutral');
+          }
+          return { ...t, documents: [...t.documents, doc] };
+        });
       },
     },
   });

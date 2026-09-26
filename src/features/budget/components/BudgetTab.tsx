@@ -11,7 +11,7 @@ type View = 'overview' | 'categories' | 'expenses' | 'settleup';
 
 interface BudgetTabProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
 }
 
 /**

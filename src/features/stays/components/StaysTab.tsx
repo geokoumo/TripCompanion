@@ -4,6 +4,7 @@ import { Fab } from '../../../shared/components/Button';
 import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { deleteEntityWithUndo } from '../../../shared/lib/deleteWithUndo';
+import { assertExists } from '../../../shared/lib/updateTripAbort';
 import { retagDocuments, stayRelatedTo } from '../../documents/lib/relatedTo';
 import { findStopsOutOfRange, outOfRangeStopsMessage } from '../../itinerary/lib/outOfRangeStops';
 import type { Trip } from '../../trips/types';
@@ -16,7 +17,7 @@ import { StayForm } from './StayForm';
 
 interface StaysTabProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
 }
 
 function toRange(stay: Stay) {
@@ -48,9 +49,11 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
   const openStay = useCallback((stay: Stay) => setViewing(stay), []);
 
   const save = async (stay: Stay) => {
+    const isEdit = editing !== null;
     let outOfRangeMessage: string | null = null;
     try {
-      await updateTrip((t) => {
+      const result = await updateTrip((t) => {
+        if (isEdit) assertExists(t.stays, stay.id, 'This stay was already deleted elsewhere.');
         const existing = t.stays.find((s) => s.id === stay.id);
         const stays = existing ? t.stays.map((s) => (s.id === stay.id ? stay : s)) : [...t.stays, stay];
         const rememberedLocations = stay.address ? addRememberedLocation(t.rememberedLocations, stay.address) : t.rememberedLocations;
@@ -62,6 +65,7 @@ export function StaysTab({ trip, updateTrip }: StaysTabProps) {
         outOfRangeMessage = outOfRangeStopsMessage(findStopsOutOfRange(next));
         return next;
       });
+      if (result && !result.ok) return;
       showToast('Stay saved.');
       if (outOfRangeMessage) showToast(outOfRangeMessage, { variant: 'warn' });
       setEditing(null);

@@ -14,7 +14,7 @@ import styles from './StayDetailView.module.css';
 interface StayDetailViewProps {
   stay: Stay;
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   onClose: () => void;
   onEdit: () => void;
 }

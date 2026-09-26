@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { useTrip } from './useTrip';
+import { useTrip, type UpdateTripResult } from './useTrip';
 import type { Trip } from '../types';
 
 function deferred<T>() {
@@ -41,23 +41,37 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
 
 const getFullTripMock = vi.fn();
 const saveTripMock = vi.fn();
+const showToastMock = vi.fn();
 vi.mock('../../../app/providers/TripsProvider', () => ({
   useTripsContext: () => ({ getFullTrip: getFullTripMock, saveTrip: saveTripMock }),
+}));
+vi.mock('../../../app/providers/ToastProvider', () => ({
+  useToast: () => ({ showToast: showToastMock }),
 }));
 
 describe('useTrip — concurrent updateTrip calls', () => {
   it("does not let a second in-flight updateTrip silently overwrite the first one's change (stale-base race)", async () => {
     const initial = makeTrip();
-    getFullTripMock.mockResolvedValue(initial);
+    // Stateful, not a fixed mockResolvedValue: updateTrip now fresh-reads
+    // before every write, so this must reflect whatever the last successful
+    // save actually persisted — the same thing a real repository (localStorage
+    // re-read, Supabase re-fetch) would do — for the second queued call to
+    // see the first call's change.
+    let currentState = initial;
+    getFullTripMock.mockImplementation(() => Promise.resolve(currentState));
 
     // Simulates real save latency (e.g. a Supabase round trip): each call
     // gets its own controllable promise so more than one can be "in flight"
-    // at once, same as a real network write would be.
+    // at once, same as a real network write would be. currentState only
+    // updates once the save itself resolves, matching real persistence
+    // timing (a read started before a write resolves must not see it).
     const pending: ReturnType<typeof deferred<void>>[] = [];
-    saveTripMock.mockImplementation(() => {
+    saveTripMock.mockImplementation((next: Trip) => {
       const d = deferred<void>();
       pending.push(d);
-      return d.promise;
+      return d.promise.then(() => {
+        currentState = next;
+      });
     });
 
     const { result } = renderHook(() => useTrip('t1'));
@@ -66,8 +80,8 @@ describe('useTrip — concurrent updateTrip calls', () => {
     // Two independent actions fired back to back with neither awaited before
     // the next starts — exactly how a fire-and-forget updateTrip call from a
     // click handler is actually invoked (e.g. ChecklistTab's toggle()).
-    let firstDone!: Promise<void>;
-    let secondDone!: Promise<void>;
+    let firstDone!: Promise<UpdateTripResult>;
+    let secondDone!: Promise<UpdateTripResult>;
     act(() => {
       firstDone = result.current.updateTrip((t) => ({
         ...t,
@@ -109,8 +123,8 @@ describe('useTrip — concurrent updateTrip calls', () => {
     const { result } = renderHook(() => useTrip('t1'));
     await waitFor(() => expect(result.current.trip).not.toBeNull());
 
-    let firstDone!: Promise<void>;
-    let secondDone!: Promise<void>;
+    let firstDone!: Promise<UpdateTripResult>;
+    let secondDone!: Promise<UpdateTripResult>;
     act(() => {
       firstDone = result.current.updateTrip((t) => ({
         ...t,

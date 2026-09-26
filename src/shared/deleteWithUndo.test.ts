@@ -1,6 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 import { deleteEntityWithUndo } from './lib/deleteWithUndo';
+import { UpdateAbortedError } from './lib/updateTripAbort';
 import type { Trip } from '../features/trips/types';
+
+/** Mimics useTrip.updateTrip's own UpdateAbortedError handling (see useTrip.ts) closely enough to exercise deleteEntityWithUndo's abort paths without pulling in the whole hook — including showing the abort toast itself, exactly like the real hook does. */
+function fakeUpdateTrip(getTrip: () => Trip, setTrip: (t: Trip) => void, showToast: (text: string, options?: unknown) => void) {
+  return vi.fn(async (updater: (t: Trip) => Trip) => {
+    try {
+      const next = updater(getTrip());
+      setTrip(next);
+      return { ok: true as const };
+    } catch (err) {
+      if (err instanceof UpdateAbortedError) {
+        showToast(err.message, { variant: err.variant });
+        return { ok: false as const, reason: 'aborted' as const, message: err.message };
+      }
+      throw err;
+    }
+  });
+}
 
 function makeTrip(): Trip {
   return {
@@ -60,6 +78,58 @@ describe('deleteEntityWithUndo', () => {
     await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(2));
 
     expect(trip.flights).toEqual([original]);
+  });
+
+  it('deleting a target that is already gone (deleted elsewhere) shows a lightweight message, not the normal Deleted./Undo toast', async () => {
+    let trip = makeTrip();
+    const showToast = vi.fn();
+    const updateTrip = fakeUpdateTrip(
+      () => trip,
+      (t) => {
+        trip = t;
+      },
+      showToast,
+    );
+
+    // 'nope' doesn't exist on this trip's flights — simulates another
+    // session having already deleted it before this one got here.
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id: 'nope' });
+    await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(1));
+
+    expect(showToast).toHaveBeenCalledWith('Already deleted elsewhere.', expect.anything());
+    expect(showToast).not.toHaveBeenCalledWith('Deleted.', expect.anything());
+    // The trip itself is untouched — nothing here to filter out.
+    expect(trip.flights).toHaveLength(1);
+  });
+
+  it('undo refuses to restore an item when another session already recreated the same id, instead of duplicating or overwriting it', async () => {
+    let trip = makeTrip();
+    const showToast = vi.fn();
+    const updateTrip = fakeUpdateTrip(
+      () => trip,
+      (t) => {
+        trip = t;
+      },
+      showToast,
+    );
+
+    deleteEntityWithUndo({ updateTrip, showToast, arrayKey: 'flights', id: 'f1' });
+    await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(1));
+    expect(trip.flights).toEqual([]);
+
+    // Another session recreates an entity with the same id while the undo
+    // toast is still up.
+    trip = { ...trip, flights: [{ id: 'f1', airline: 'B', flightNumber: '2', depAirport: 'XYZ', depDate: '2026-09-06', depTime: '09:00', arrAirport: 'ABC', arrDate: '2026-09-06', arrTime: '11:00', status: 'scheduled' }] };
+
+    const [, options] = showToast.mock.calls[0]!;
+    options.action.onClick();
+    await vi.waitFor(() => expect(updateTrip).toHaveBeenCalledTimes(2));
+
+    expect(showToast).toHaveBeenCalledWith("Couldn't undo — this item already exists.", expect.anything());
+    // The recreated flight (airline 'B') survives untouched — not
+    // overwritten or duplicated by the stale snapshot (airline 'A').
+    expect(trip.flights).toHaveLength(1);
+    expect(trip.flights[0]!.airline).toBe('B');
   });
 
   it('uses a custom deleted message when one is given', async () => {

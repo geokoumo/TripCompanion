@@ -13,7 +13,7 @@ import styles from './AttachmentsField.module.css';
 
 interface AttachmentsFieldProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   /** Free-text label tying an uploaded document back to the record it was uploaded from — see documents/types.ts. */
   relatedTo: string;
   /** The record's own type + id (F-11) — stamped onto every newly-uploaded document alongside relatedTo, so matching stays correct even if the record is later renamed or its label collides with another. */
@@ -55,7 +55,8 @@ export function AttachmentsField({ trip, updateTrip, relatedTo, sourceType, sour
         storagePath,
         uploadedAt: new Date().toISOString(),
       };
-      await updateTrip((t) => ({ ...t, documents: [...t.documents, doc] }));
+      const result = await updateTrip((t) => ({ ...t, documents: [...t.documents, doc] }));
+      if (result && !result.ok) return;
       showToast('Attachment added.');
     } catch {
       showToast('Upload failed. Tap to retry.', { variant: 'error' });

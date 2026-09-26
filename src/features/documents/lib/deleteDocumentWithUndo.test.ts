@@ -1,7 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { deleteDocumentWithUndo } from './deleteDocumentWithUndo';
+import { UpdateAbortedError } from '../../../shared/lib/updateTripAbort';
 import type { Trip } from '../../trips/types';
 import type { Document } from '../types';
+
+/** Mimics useTrip.updateTrip's own UpdateAbortedError handling (see useTrip.ts) closely enough to exercise deleteDocumentWithUndo's abort paths without pulling in the whole hook — including showing the abort toast itself, exactly like the real hook does. */
+function fakeUpdateTrip(getTrip: () => Trip, setTrip: (t: Trip) => void, showToast: (text: string, options?: unknown) => void) {
+  return vi.fn(async (updater: (t: Trip) => Trip) => {
+    try {
+      const next = updater(getTrip());
+      setTrip(next);
+      return { ok: true as const };
+    } catch (err) {
+      if (err instanceof UpdateAbortedError) {
+        showToast(err.message, { variant: err.variant });
+        return { ok: false as const, reason: 'aborted' as const, message: err.message };
+      }
+      throw err;
+    }
+  });
+}
 
 const { deleteTripFile } = vi.hoisted(() => ({ deleteTripFile: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('../../../data/storage/tripFilesBucket', () => ({
@@ -120,6 +138,52 @@ describe('deleteDocumentWithUndo (F-09)', () => {
     await vi.advanceTimersByTimeAsync(10000);
 
     expect(deleteTripFile).not.toHaveBeenCalled();
+  });
+
+  it('returns false and shows a lightweight message (not the normal Deleted./Undo toast) when the document is already gone', async () => {
+    let trip = makeTrip([]); // doc never existed here — another session already deleted it
+    const doc = makeDoc();
+    const showToast = vi.fn();
+    const updateTrip = fakeUpdateTrip(
+      () => trip,
+      (t) => {
+        trip = t;
+      },
+      showToast,
+    );
+
+    const result = await deleteDocumentWithUndo(doc, updateTrip, showToast);
+
+    expect(result).toBe(false);
+    expect(showToast).toHaveBeenCalledWith('This document was already deleted elsewhere.', expect.anything());
+    expect(showToast).not.toHaveBeenCalledWith('Deleted.', expect.anything());
+  });
+
+  it('undo refuses to restore a document when another session already re-added the same id, instead of duplicating it', async () => {
+    const doc = makeDoc();
+    let trip = makeTrip([doc]);
+    const showToast = vi.fn();
+    const updateTrip = fakeUpdateTrip(
+      () => trip,
+      (t) => {
+        trip = t;
+      },
+      showToast,
+    );
+
+    await deleteDocumentWithUndo(doc, updateTrip, showToast);
+    expect(trip.documents).toEqual([]);
+
+    // Another session re-adds a document with this same id while the undo
+    // toast is still up.
+    const recreated = makeDoc({ title: 'recreated.pdf' });
+    trip = { ...trip, documents: [recreated] };
+
+    const [, options] = showToast.mock.calls[0]!;
+    options.action.onClick();
+
+    await vi.waitFor(() => expect(showToast).toHaveBeenCalledWith("Couldn't undo — this item already exists.", expect.anything()));
+    expect(trip.documents).toEqual([recreated]);
   });
 
   it('returns false and shows no toast when the save itself fails, leaving the caller to retry', async () => {

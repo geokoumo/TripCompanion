@@ -14,7 +14,7 @@ import type { Document } from '../types';
 
 interface AddDocumentFormProps {
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -61,7 +61,8 @@ export function AddDocumentForm({ trip, updateTrip, onClose, onSaved }: AddDocum
         storagePath,
         uploadedAt: new Date().toISOString(),
       };
-      await updateTrip((t) => addDocument(t, doc));
+      const result = await updateTrip((t) => addDocument(t, doc));
+      if (result && !result.ok) return;
       showToast('Document added.');
       onSaved();
     } catch {

@@ -8,6 +8,7 @@ import { DeleteConfirmSheet } from '../../../shared/components/ConfirmDialog';
 import { Modal } from '../../../shared/components/Modal';
 import { deleteTripFile, isLocalDataUrl, readAsDataUrl, uploadTripFile, validateTripFile } from '../../../data/storage/tripFilesBucket';
 import { replaceDocumentFile } from '../../../data/repository/documentRepository';
+import { assertExists } from '../../../shared/lib/updateTripAbort';
 import type { Trip } from '../../trips/types';
 import { deleteDocumentWithUndo } from '../lib/deleteDocumentWithUndo';
 import { useDocumentUrl } from '../lib/useDocumentUrl';
@@ -17,7 +18,7 @@ import styles from './DocumentDetailSheet.module.css';
 interface DocumentDetailSheetProps {
   doc: Document;
   trip: Trip;
-  updateTrip: (updater: (t: Trip) => Trip) => Promise<void>;
+  updateTrip: (updater: (t: Trip) => Trip) => Promise<{ ok: boolean } | void>;
   onClose: () => void;
 }
 
@@ -76,7 +77,11 @@ export function DocumentDetailSheet({ doc, trip, updateTrip, onClose }: Document
     try {
       const newPath = user ? await uploadTripFile(user.id, trip.id, file) : await readAsDataUrl(file);
       const oldPath = doc.storagePath;
-      await updateTrip((t) => replaceDocumentFile(t, doc.id, newPath, new Date().toISOString()));
+      const result = await updateTrip((t) => {
+        assertExists(t.documents, doc.id, 'This document was already deleted elsewhere.');
+        return replaceDocumentFile(t, doc.id, newPath, new Date().toISOString());
+      });
+      if (result && !result.ok) return;
       if (!isLocalDataUrl(oldPath)) void deleteTripFile(oldPath);
       showToast('Document replaced.');
     } catch {
