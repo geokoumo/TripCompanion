@@ -4,11 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
 import type { Trip } from '../types';
 
-// EditDescriptionSheet now re-reads the trip via getFullTrip before saving
-// (see saveTripPatch) — same mocking pattern used elsewhere for this context.
+// EditDescriptionSheet now re-reads the trip via getFullTripOrThrow before
+// saving (see saveTripPatch, Phase 4.4C) — same mocking pattern used
+// elsewhere for this context.
 const { getFullTripMock } = vi.hoisted(() => ({ getFullTripMock: vi.fn() }));
 vi.mock('../../../app/providers/TripsProvider', () => ({
-  useTripsContext: () => ({ getFullTrip: getFullTripMock }),
+  useTripsContext: () => ({ getFullTripOrThrow: getFullTripMock }),
 }));
 
 const trip = { id: 't1', title: 'Japan', description: 'Old description' } as Trip;

@@ -46,7 +46,7 @@ export function TripDetailScreen({
   onConsumePendingBookingSubView,
 }: TripDetailScreenProps) {
   const { trip, loading, updateTrip, saveTrip } = useTrip(tripId);
-  const { deleteTrip, saveTrip: saveTripToContext, getFullTrip } = useTripsContext();
+  const { deleteTrip, saveTrip: saveTripToContext, getFullTripOrThrow } = useTripsContext();
   const { showToast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showTripHealth, setShowTripHealth] = useState(false);
@@ -108,7 +108,7 @@ export function TripDetailScreen({
           <TripHeader
             trip={trip}
             onBack={onBack}
-            onArchiveToggle={() => void saveTripPatch(trip.id, trip, (fresh) => ({ archived: !fresh.archived }), getFullTrip, saveTrip)}
+            onArchiveToggle={() => void saveTripPatch(trip.id, (fresh) => ({ archived: !fresh.archived }), getFullTripOrThrow, saveTrip)}
             onDuplicate={() => void duplicateTrip()}
             onDeleteRequest={() => setConfirmDelete(true)}
             onSaveTrip={(updated) => saveTrip(updated)}

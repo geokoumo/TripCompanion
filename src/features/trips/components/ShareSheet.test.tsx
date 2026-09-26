@@ -6,11 +6,12 @@ import { ToastProvider } from '../../../app/providers/ToastProvider';
 import type { Trip } from '../types';
 import { ShareSheet } from './ShareSheet';
 
-// ShareSheet now re-reads the trip via getFullTrip before saving a share
-// link (see saveTripPatch) — same mocking pattern used elsewhere for this context.
+// ShareSheet now re-reads the trip via getFullTripOrThrow before saving a
+// share link (see saveTripPatch, Phase 4.4C) — same mocking pattern used
+// elsewhere for this context.
 const { getFullTripMock } = vi.hoisted(() => ({ getFullTripMock: vi.fn() }));
 vi.mock('../../../app/providers/TripsProvider', () => ({
-  useTripsContext: () => ({ getFullTrip: getFullTripMock }),
+  useTripsContext: () => ({ getFullTripOrThrow: getFullTripMock }),
 }));
 
 // F-10: sharing requires an account (a guest trip has no Supabase row for
@@ -23,7 +24,10 @@ vi.mock('../../../app/providers/AuthProvider', () => ({
 
 beforeEach(() => {
   getFullTripMock.mockReset();
-  getFullTripMock.mockResolvedValue(undefined); // falls back to the trip prop, same as the app's own fallback
+  // None of the tests below exercise the share-link save flow itself, so a
+  // present-and-unchanged trip is the right default; the current-tab flows
+  // exercised here never depend on this resolving to anything specific.
+  getFullTripMock.mockResolvedValue(makeTrip());
   mockAuth.user = { id: 'u1', email: 'alex@example.com' } as User;
 });
 

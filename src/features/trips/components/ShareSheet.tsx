@@ -6,6 +6,7 @@ import { Button } from '../../../shared/components/Button';
 import { Modal } from '../../../shared/components/Modal';
 import { useSavingGuard } from '../../../shared/hooks/useSavingGuard';
 import { generateShareToken } from '../../../shared/lib/id';
+import { UpdateAbortedError } from '../../../shared/lib/updateTripAbort';
 import { saveTripPatch } from '../lib/saveTripPatch';
 import { TRIP_TABS, type Trip, type TripTab } from '../types';
 import styles from './ShareSheet.module.css';
@@ -27,7 +28,7 @@ interface ShareSheetProps {
 
 export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
   const { user } = useAuth();
-  const { getFullTrip } = useTripsContext();
+  const { getFullTripOrThrow } = useTripsContext();
   const { showToast } = useToast();
   const [selected, setSelected] = useState<Set<TripTab>>(new Set(trip.shareSettings.includedTabs.length ? trip.shareSettings.includedTabs : ['overview']));
   const [shareToken, setShareToken] = useState(trip.shareSettings.shareToken);
@@ -65,13 +66,16 @@ export function ShareSheet({ trip, onClose, onSave }: ShareSheetProps) {
       try {
         await saveTripPatch(
           trip.id,
-          trip,
           { shareSettings: { enabled: true, includedTabs: [...selected], shareToken: token } },
-          getFullTrip,
+          getFullTripOrThrow,
           onSave,
         );
         setShareToken(token);
-      } catch {
+      } catch (err) {
+        if (err instanceof UpdateAbortedError) {
+          showToast(err.message, { variant: err.variant });
+          return;
+        }
         showToast("Couldn't create the link. Try again.", { variant: 'error' });
       }
     });

@@ -9,6 +9,7 @@ import { formatDateShort } from '../../../shared/lib/dateFormat';
 import { getTripDateRange } from '../lib/dateRange';
 import { saveTripPatch } from '../lib/saveTripPatch';
 import { downloadTripAsJson } from '../lib/tripFile';
+import { UpdateAbortedError } from '../../../shared/lib/updateTripAbort';
 import type { Trip } from '../types';
 import { ManageTravelersSheet } from '../../travelers/components/ManageTravelersSheet';
 import { EditDescriptionSheet } from './EditDescriptionSheet';
@@ -32,7 +33,7 @@ interface TripHeaderProps {
 export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDeleteRequest, onSaveTrip, hideDates = false }: TripHeaderProps) {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const { getFullTrip } = useTripsContext();
+  const { getFullTripOrThrow } = useTripsContext();
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editDescriptionOpen, setEditDescriptionOpen] = useState(false);
@@ -55,10 +56,17 @@ export function TripHeader({ trip, onBack, onArchiveToggle, onDuplicate, onDelet
       // not this component's (possibly stale) prop — if another tab/device
       // already changed it since this screen loaded, that's the real old
       // object to remove, not whatever this component last rendered.
-      const fresh = await saveTripPatch(trip.id, trip, { coverPhotoPath: newPath }, getFullTrip, onSaveTrip);
+      const fresh = await saveTripPatch(trip.id, { coverPhotoPath: newPath }, getFullTripOrThrow, onSaveTrip);
       if (fresh.coverPhotoPath && !isLocalDataUrl(fresh.coverPhotoPath)) void deleteTripFile(fresh.coverPhotoPath);
       showToast('Cover photo updated.');
-    } catch {
+    } catch (err) {
+      // The upload itself already succeeded here — only the trip-record
+      // write failed. A newly-orphaned upload from this path is an existing,
+      // pre-Phase-4.4C gap this phase doesn't extend scope to fix.
+      if (err instanceof UpdateAbortedError) {
+        showToast(err.message, { variant: err.variant });
+        return;
+      }
       showToast('Upload failed. Try again.', { variant: 'error' });
     }
   };

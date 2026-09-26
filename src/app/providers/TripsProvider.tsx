@@ -15,6 +15,15 @@ interface TripsContextValue {
   refresh: () => Promise<void>;
   /** Fetches one trip's full nested data — for opening it, or before editing it from a list-only view (menu/share/duplicate). */
   getFullTrip: (id: string) => Promise<Trip | null>;
+  /**
+   * Same fetch, but for a caller that needs to tell "confirmed gone" apart
+   * from "couldn't find out" — never swallows a read exception into a
+   * generic null and never shows its own toast (see saveTripPatch.ts,
+   * Phase 4.4C). `null` means the repository itself says the trip doesn't
+   * exist; a thrown error means the read failed and the trip's actual state
+   * is unknown — those must not be treated the same way.
+   */
+  getFullTripOrThrow: (id: string) => Promise<Trip | null>;
   saveTrip: (trip: Trip) => Promise<void>;
   deleteTrip: (id: string) => Promise<void>;
   searchTrips: (query: string) => Promise<SearchResultGroup[]>;
@@ -72,6 +81,14 @@ export function TripsProvider({ children }: { children: ReactNode }) {
     [repository, showToast],
   );
 
+  // Deliberately no try/catch, no toast: repository.getTrip already returns
+  // null ONLY for "no such row" (see LocalStorageTripRepository/
+  // SupabaseTripRepository) and throws only for a genuine read failure
+  // (corrupted local record, network/permission error) — this is that exact
+  // distinction, passed straight through instead of collapsing both into a
+  // swallowed null the way getFullTrip above does for its own callers.
+  const getFullTripOrThrow = useCallback(async (id: string): Promise<Trip | null> => repository.getTrip(id), [repository]);
+
   const saveTrip = useCallback(
     async (trip: Trip) => {
       const item = tripToListItem(trip);
@@ -119,7 +136,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <TripsContext.Provider value={{ trips, loading, refresh, getFullTrip, saveTrip, deleteTrip, searchTrips }}>
+    <TripsContext.Provider value={{ trips, loading, refresh, getFullTrip, getFullTripOrThrow, saveTrip, deleteTrip, searchTrips }}>
       {children}
     </TripsContext.Provider>
   );

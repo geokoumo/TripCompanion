@@ -15,15 +15,19 @@ interface EditDescriptionSheetProps {
 
 /** The trip's settings/edit surface for Round 9's description field — reachable from the "..." menu, on Home and in-trip alike. */
 export function EditDescriptionSheet({ trip, onClose, onSave }: EditDescriptionSheetProps) {
-  const { getFullTrip } = useTripsContext();
+  const { getFullTripOrThrow } = useTripsContext();
   const [description, setDescription] = useState(trip.description ?? '');
   const { saving, run } = useSavingGuard();
 
   // Only closes after the save actually persists — closing first (the old
-  // behavior) would show "success" for a write that could still fail.
+  // behavior) would show "success" for a write that could still fail. Any
+  // failure (including saveTripPatch's own abort when the trip is confirmed
+  // gone) is swallowed the same way an ordinary save failure already was
+  // here — the sheet just stays open, matching this sheet's existing
+  // (toast-free) error handling.
   const save = () =>
     run(async () => {
-      await saveTripPatch(trip.id, trip, { description: description.trim() || undefined }, getFullTrip, onSave);
+      await saveTripPatch(trip.id, { description: description.trim() || undefined }, getFullTripOrThrow, onSave);
       onClose();
     }).catch(() => {});
 
